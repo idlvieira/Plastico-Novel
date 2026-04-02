@@ -1,0 +1,102 @@
+#INCLUDE "rwmake.ch"   
+
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Programa  ³ TFism001 ³ Autor ³ TBA085                 ³ Data ³03/11/11  ³±±
+±±³          ³          ³       ³ Manoel Crispim         ³      ³          ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descricao ³ Programa resposnavel pelo preenchimento dos campos          ³±±
+±±³          ³ Produto e Especie na tabela SF9                             ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ Sigafis - Plasticos Novel                                   ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Parametros³ Nao existe                                                  ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³                            ALTERACOES                                  ³±±
+±±ÃÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Data   ³ Progamador  ³Solic Cliente ³Alteracoes                        ³±±
+±±ÃÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³        ³             ³              ³                                  ³±±
+±±ÀÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+
+User Function TFISM001
+Local c_Alias, n_Recno, l_Preenchido, c_CodCiap, c_ItemNFE, c_ContaCtb, c_CCusto, c_Especie
+
+c_Alias      := Alias()
+n_Recno      := Recno()
+l_Preenchido := .F.
+c_CodCiap    := Space(06)
+c_ItemNFE    := Space(04)
+c_CCusto     := Space(01)
+c_ContaCtb   := Space(01)
+c_Especie    := ""
+
+
+If SubStr(cUsuario,7,14) = "Administrador"
+
+   MsgBox("Iniciar preenchimento da tabela SF9")
+
+   dbSelectArea("SF9")
+   dbSetOrder(1)
+   dbGotop()
+
+   Do While !Eof()
+
+      c_CodCiap := Alltrim(SF9->F9_CODIGO)
+      c_ItemNFE := SF9->F9_ITEMNFE
+
+      If Empty(F9_PROD) .OR. Empty(F9_ESP)
+      dbSelectArea("SF1")
+      dbSetOrder(1)
+      dbSeek(xFilial("SF1")+SF9->(F9_DOCNFE+F9_SERNFE+F9_FORNECE+F9_LOJAFOR),.F.)
+
+      If ! Eof()
+         c_Especie := SF1->F1_ESPECIE
+      Else
+         c_Especie := ""
+      EndIf
+
+      dbSelectArea("SD1")
+      dbSetOrder(1)
+      dbSeek(xFilial("SD1")+SF9->(F9_DOCNFE+F9_SERNFE+F9_FORNECE+F9_LOJAFOR),.F.)
+
+      Do While !Eof() .And. SD1->(D1_DOC+D1_SERIE+D1_FORNECE+D1_LOJA) = SF9->(F9_DOCNFE+F9_SERNFE+F9_FORNECE+F9_LOJAFOR)
+            
+         dbSelectArea("SF4")
+         dbSetOrder(1)
+         dbSeek(xFilial("SF4")+SD1->D1_TES,.F.)
+                  
+         If !Eof() .And. SF4->F4_ATUATF = "S"
+            RecLock("SF9",.F.)
+            Replace F9_PROD With SD1->D1_COD
+            Replace F9_ESP  With c_Especie
+            MsUnlock()
+
+            l_Preenchido := .T.
+         EndIf
+
+         dbSelectArea("SD1")
+         dbSkip()
+      EndDo
+
+      EndIf
+
+      dbSelectArea("SF9")
+      dbSkip()
+   EndDo
+
+   If l_Preenchido
+      MsgBox("Preenchimento concluido com Sucesso")
+   Else
+      MsgBox("Preenchimento nao concluido, favor verificar se existe Codigo CIAP no Cadastro do Ativo Fixo ou se existem Conta Contabil e Centro Custos cadastrados no Produto")
+   EndIf
+Else
+   MsgBox("A Rotina so pode ser executada pelo Administrador ou Wellington")
+EndIf
+Return

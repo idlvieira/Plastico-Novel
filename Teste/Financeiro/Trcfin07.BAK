@@ -1,0 +1,42 @@
+USER FUNCTION TRCFIN07
+
+cAlias := Alias()
+nOrd := dbSetOrder()
+nReg := Recno()
+
+If FUNNAME() == "FINA150" 
+  nSeq := GetMv("MV_CNABCR")
+else
+   If FUNNAME() == "FINA420" 
+      nSeq := GetMv("MV_CNABCP")
+   else
+      If FUNNAME() == "GPEM410" 
+         nSeq := GetMv("MV_CNABFOL")
+      Endif
+   Endif
+Endif
+nProx := Val(nSeq)+1
+dbSelectArea("SX6")
+
+
+If FUNNAME() == "FINA150" 
+  dbSeek(xFilial()+"MV_CNABCR")
+else
+   If FUNNAME() == "FINA420" 
+      dbSeek(xFilial()+"MV_CNABCP")
+   else
+      If FUNNAME() == "GPEM410" 
+         dbSeek(xFilial()+"MV_CNABFOL")
+      Endif
+   Endif
+Endif
+
+RecLock("SX6",.f.)
+   Replace X6_CONTEUD With StrZero(nProx,5)
+MsUnLock() 
+
+dbSelectArea(cAlias)
+dbSetOrder(nOrd)
+dbGoTo(nReg)
+
+RETURN(nProx)

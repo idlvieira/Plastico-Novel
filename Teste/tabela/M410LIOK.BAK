@@ -1,0 +1,185 @@
+#INCLUDE "RWMAKE.CH"
+#INCLUDE "TOPCONN.CH"     
+  
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³M410LIOK  ºAutor 	º J.DONIZETE          ³ Data ³  27/11/06  º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³ Ponto de entrada para verificar se a TES selecionada gera  º±±
+±±º          ³ boleto. Se gerar, o preenchimento do Centro de Receita eh   ±±
+±±º          ³ obrigatorio.                                               º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ SIGAFAT - MT410LIOK  ( PEDIDO DE VENDA )                   º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±ºDATA      ³ ALTERAÇÕES                                                 º±±
+±±º03/08/07  ³ Alterado por Donizete/Microsiga                            º±±
+±±º          ³ Acrescentado tratamento para exigir obrigatóriamente o     º±±
+±±º          ³centro de receita (campo SEGMENTO) no item do pedido de     º±±
+±±º          ³vendas. Solicitado pelo Marcelo/Simionato.                  º±±
+±±º          ³                                                            º±±
+±±º190907    ³ Alterado por Donizete/Microsiga                            º±±
+±±º          ³ O sistema nao devera aceitar venda de materia prima usando º±±
+±±º          ³ tes de producao propria.                                   º±±
+±±º          ³                                                            º±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+USER FUNCTION M410LIOK()
+Local aArea    := GetArea()
+Local aAreaSC6 := SC6->(GetArea())
+Local aAreaSF4 := SF4->(GetArea())
+Local aAreaSA1 := SA1->(GetArea())
+Local aAreaSA2 := SA2->(GetArea())
+Local aAreaSB1 := SB1->(GetArea())
+Local lRet     := .T.
+Local nPosTES  := GDFIELDPOS("C6_TES")
+Local nPosCfo  := GDFIELDPOS("C6_CF")
+Local nPosST   := GDFIELDPOS("C6_CLASFIS")
+Local nPosProd := GDFIELDPOS("C6_PRODUTO")
+Local nPoscRec := GDFIELDPOS("C6_ZZCC")
+Local nPoscLis := GDFIELDPOS("C6_PRUNIT") //sartori
+Local nPoscPrv := GDFIELDPOS("C6_PRCVEN")
+Local nPoscPd  := GDFIELDPOS("C6_DESCONT")
+Local nPoscVd  := GDFIELDPOS("C6_VALDESC")
+Local nPosArm  := GDFIELDPOS("C6_LOCAL")
+Local nPosMYPL := GDFIELDPOS("C6_MYPRCLT")
+Local nPercent := 0
+Local cCfo	   := ""
+Local lDel	   := aCols[ n , Len(aCols[n]) ]           
+
+
+If !lDel
+	cQuery := "SELECT F4_DUPLIC, F4_IPI, F4_ESTOQUE, F4_PODER3, F4_ZZTM FROM "+ RetSQLName("SF4") +" WHERE"
+	cQuery += " F4_FILIAL ='"+ xFILIAL("SF4") +"' AND F4_CODIGO ='"+ aCols[ n , nPosTES ] +"'"
+	cQuery += " AND D_E_L_E_T_ = ' '"
+	TcQuery cQuery Alias TSF4 New
+	TSF4->(dbGoTop())
+	
+	// Verifica se o CFOP esta correto em relação ao cliente.
+	If M->C5_TIPO $ "N,C,I,P" .And. !Empty(M->C5_CLIENTE) // Movimentos que envolver cliente.
+
+		// Obtém o CFOP da linha.
+		cCfo := Left(aCols[ n , nPosCfo ],1)
+
+		dbSelectArea("SA1")
+		dbSetOrder(1)
+		If dbSeek(xFilial("SA1")+M->C5_CLIENTE+M->C5_LOJACLI)
+
+			// Válida Estado de SP
+			If SA1->A1_EST=="SP" .And. cCfo<>"6"
+				Alert("Atenção!!! CFOP inválido em relação ao estado do Cliente. Para Estado=" + ;
+					SA1->A1_EST + " o CFOP deve iniciar com '5'.")
+				lRet := .F.
+			ElseIf SA1->A1_EST=="EX" .And. cCfo<>"7"
+				Alert("Atenção!!! CFOP inválido em relação ao estado do Cliente. Para Estado=" + ;
+					SA1->A1_EST + " o CFOP deve iniciar com '7'.")
+				lRet := .F.
+			ElseIf SA1->A1_EST=="EX" .And. Alltrim(TSF4->F4_ZZTM)$"S01"
+				dbSelectArea("SB1")
+				dbSetOrder(1)                    
+				dbSeek(xFilial("SB1")+aCols[ n , nPosProd ])
+				If Found() .AND. SB1->B1_ORIGEM == "1"
+					Alert("TES inválida. Usando TES ref. a produção própria para produto importado.")
+					lRet := .F.
+				Endif
+				RestArea(aAreaSB1)
+			ElseIf !SA1->A1_EST$"SP,EX" .And. cCfo<>"6"
+				Alert("Atenção!!! CFOP inválido em relação ao estado do Cliente. Para Estado=" + ;
+					SA1->A1_EST + " o CFOP deve iniciar com '6'.")
+				lRet := .F.
+			ElseIf TSF4->F4_ESTOQUE == "S"
+				If Empty(aCols[ n , nPosArm])
+					Alert("Para TES: "+aCols[ n , nPosTes]+" deverá ser preenchido o armazém pois a mesma movimenta estoque")
+					lRet := .F.
+				EndIf
+			EndIf                        
+		EndIf
+		RestArea(aAreaSA1)
+//alteracao 17/12/2013 para atender exportação
+
+		// Tratamento para centro de receita conforme solicitado pelo Marcelo em 03/08/07.
+//		If (TSF4->F4_DUPLIC == "S" .OR. (TSF4->F4_ESTOQUE=="S" .AND. TSF4->F4_PODER3=="N")) .AND. EMPTY(aCols[ n , nPosCRec ]) .AND. !(ACOLS[ n , LEN(ACOLS[n]) ]) .And.;
+//       		M->C5_TIPO $ "N,C,I,P" .And. !Empty(M->C5_CLIENTE) .AND. Alltrim(cModulo)=="FAT" .And. lRet
+//			Alert("Atenção!!! Preenchimento do SEGMENTO é obrigatório.")
+//			lRet := .F.
+//		Endif
+		// Verifica se o seguimento esta correto.
+//		If (TSF4->F4_DUPLIC == "S" .OR. (TSF4->F4_ESTOQUE=="S" .AND. TSF4->F4_PODER3=="N")) .AND. !EMPTY(aCols[ n , nPosCRec ]) .AND. !(ACOLS[ n , LEN(ACOLS[n]) ]) .And.;
+//       		M->C5_TIPO $ "N,C,I,P" .And. !Empty(M->C5_CLIENTE) .AND. Alltrim(cModulo)=="FAT" .And. ;
+//       		(SubStr(aCols[ n , nPosCRec ],1,2)<>"06" .and. SubStr(aCols[ n , nPosCRec ],1,2)<>"07")
+//			Alert("Atenção!!! Segmento inválido. Correto segmento iniciado pelo digito '06 ou 07'.")
+//			lRet := .F.
+//		Endif
+	EndIf
+
+	// Verifica se a situação tributária foi montada corretamente.
+	//Alert(aCols[ n , nPosST ])
+	//alert(n)
+	If  Len(Alltrim(aCols[ n , nPosST ]))<3 .AND. lRet
+		Alert("Atenção!!! Classificação fiscal inválida, verifique os cadastro TES (Sit.Tribut) e PRODUTO (Origem).")
+		lRet := .F.
+	Endif
+
+	// Verifica se a aliq de IPI foi informada para TES que calcula IPI.
+	If TSF4->F4_IPI=="S" .AND. lRet
+		dbSelectArea("SB1")
+		dbSetOrder(1)                    
+		dbSeek(xFilial("SB1")+aCols[ n , nPosProd ])
+		If Found() .AND. SB1->B1_IPI == 0
+			Alert("Para TES que calcula IPI a alíquota deve ser informada no cadastro do Produto. Produto sem alíquota de IPI.")
+			lRet := .F.
+		Endif
+		RestArea(aAreaSB1)
+	Endif
+
+	// Não permite a venda de MP como produção própria.
+	If Alltrim(TSF4->F4_ZZTM)$"S01,S16" .AND. lRet
+		dbSelectArea("SB1")
+		dbSetOrder(1)                    
+		dbSeek(xFilial("SB1")+aCols[ n , nPosProd ])
+		If Found() .AND. SB1->B1_TIPO == "MP"
+			Alert("Nao eh permitida a venda de produto com tipo MP usando TES de venda de producao propria (TM S01,S16). Verifique se no caso a operacao eh uma revenda.")
+			lRet := .F.
+		Endif
+		RestArea(aAreaSB1)
+	Endif
+
+/*	
+	// Nao Permite o preco de lita com zero conforme solicitado por Marcelo em 14/03/08
+	If (TSF4->F4_DUPLIC == "S" .and. M->C5_TIPO <> "C" )	//	Solicitado por Marcelo e Luiz Fernando em 24/04/08 
+		//IF(M->C5_TIPO # "C")
+			If (aCols[ n , nPoscLis ])= 0 .AND. lRet 
+	       		lRet := .F.	
+		   		Alert("O preco de Lista nao deve ser igual a zero, inclua o produto em uma tabela de preco.")
+			Endif                 
+		Endif
+    //ALERT("TESTE")
+
+*/
+
+   	aCols[ n , nPoscPd]:= 0
+    aCols[ n , nPoscVd]:= 0
+    //aCols[ n , nPosMYPL]:= aCols[ n , nPoscLis]
+    aCols[ n , nPoscLis]:= 0
+
+/*              
+	nPercent := (1-(aCols[ n ,nPoscPrv ]/ aCols[ n , nPoscLis ]))*100	
+	If (nPercent > 0) .and. (nPercent < 100)
+    	aCols[ n , nPoscPd]:= (1-(aCols[ n ,nPoscPrv ]/ aCols[ n , nPoscLis ]))*100
+	    aCols[ n , nPoscVd]:= aCols[ n , nPoscLis ]- aCols[ n ,nPoscPrv ]
+    Endif
+*/	
+	TSF4->(dbCloseArea())
+Endif
+
+RestArea(aAreaSB1)
+RestArea(aAreaSA2)
+RestArea(aAreaSA1)
+RestArea(aAreaSF4)
+RestArea(aAreaSC6)
+RestArea(aArea)
+
+RETURN lRet

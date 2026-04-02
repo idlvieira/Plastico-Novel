@@ -1,0 +1,113 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP6 IDE em 18/03/04
+#INCLUDE "TOPCONN.CH"
+
+User Function COPCOTA()        // incluido pelo assistente de conversao do AP6 IDE em 18/03/04
+
+/*/
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±³ Programa ³ COPCOTA   ³ Autor ³   Eliene Cerqueira   ³ Data ³ 08.06.05 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Copia Cotas dos vendedores de um mes para outro            ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Call Center                                                ³±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+
+SetPrvt("WMESO,WANOO,WMESD,WANOD")
+
+wMesO:=0
+wMesD:=0
+wAnoO:=0
+wAnoD:=0
+@ 0,0 TO 120,210 DIALOG oDlg5 TITLE "Copia Cotas Mensais"
+@ 3,5 TO 35,100
+
+@ 12,12 SAY "Mes/Ano Origem  :      /"
+@ 22,12 SAY "Mes/Ano Destino :      /"
+
+@ 12,58 GET  wMesO   PICTURE "99" VALID naovazio() .And. TSTMES1() 
+@ 12,78 GET  wAnoO   PICTURE "9999" VALID naovazio() .And. TSTANO1()
+@ 22,58 GET  wMesD   PICTURE "99" VALID naovazio() .And. TSTMES2()
+@ 22,78 GET  wAnoD   PICTURE "9999" VALID naovazio() .And. TSTANO2()
+
+@ 40,40 BMPBUTTON TYPE 1 ACTION OkProc1()// Substituido pelo assistente de conversao do AP6 IDE em 23/03/04 ==> @ 105,155 BMPBUTTON TYPE 1 ACTION Execute(OkProc2)
+@ 40,70 BMPBUTTON TYPE 2 ACTION Close(oDlg5)
+ACTIVATE DIALOG oDlg5 CENTER
+
+Return
+
+****************
+// Substituido pelo assistente de conversao do AP6 IDE em 23/03/04 ==> Function OkProc2
+Static Function OkProc1()
+****************
+
+DbSelectArea("SZ5")
+DbSetOrder(1) // Z5_MES
+Dbgotop()
+DbSeek(xFilial("SZ5")+Strzero(WmesD,2)+Strzero(WanoD,4),.F.)
+If !EOF()
+   Msgbox("Mes/Ano Origem já existe!")
+   Return
+Endif
+DbSeek(xFilial("SZ5")+Strzero(WmesO,2)+Strzero(WanoO,4),.F.)
+If EOF()
+   Msgbox("Mes/Ano Origem não existe!")
+   Return
+Endif
+
+cQry := " SELECT SZ5.Z5_VEND, SZ5.Z5_VLCOTA FROM SZ5010 AS SZ5"
+cQry := cQry + " WHERE SZ5.Z5_MES = '"+Strzero(WmesO,2)+Strzero(WanoO,4)+"'"
+cQry := cQry + " AND SZ5.D_E_L_E_T_<>'*'"
+
+Tcquery cQry new alias "COTA"
+
+DbSelectArea("COTA")
+Dbgotop()
+While COTA->( !Eof() )
+  DbSelectArea("SZ5")
+  Reclock("SZ5",.T.)
+  SZ5->Z5_VEND    := COTA->Z5_VEND
+  SZ5->Z5_MES     := Strzero(WmesD,2)+Strzero(WanoD,4)
+  SZ5->Z5_GERENC  := "GVEN"
+  SZ5->Z5_VLCOTA  := COTA->Z5_VLCOTA
+  MSUnlock()                           
+  COTA->( DbSkip() )
+End
+
+Close(oDlg5)
+DbSelectArea("COTA")
+dbCloseArea()
+Return
+
+Static Function TSTMES1()
+   If wMesO < 1 .or. wMesO > 12
+      Msgbox("Mes inválido!")
+      wMesO = 0
+      Return .F.
+   Endif
+Return     
+
+Static Function TSTMES2()
+   If wMesD < 1 .or. wMesD > 12
+      Msgbox("Mes inválido!")
+      wMesD = 0
+      Return .F.
+   Endif
+Return     
+
+Static Function TSTANO1()
+   If wANOO < 2001 .or. wANOO > 2015
+      Msgbox("Ano inválido!")
+      wANOO = 0
+      Return .F.
+   Endif
+Return     
+
+Static Function TSTANO2()
+   If wANOD < 2001 .or. wANOD > 2015
+      Msgbox("Ano inválido!")
+      wANOD = 0
+      Return .F.
+   Endif
+Return     
+

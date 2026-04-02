@@ -1,0 +1,123 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP6 IDE em 18/03/04
+
+User Function LIBPED()        // incluido pelo assistente de conversao do AP6 IDE em 18/03/04
+
+SetPrvt("CPROG1,AROTINA,CCADASTRO")
+
+cPROG1 := 'EXECBLOCK("LIB")'
+*
+aRotina := {{"Pesquisa","AxPesqui",0,1},;
+            {"Visualiza","AxVisual",0,2},;
+            {"Libera Preco",cProg1,0,3}}
+cCadastro := "Pedidos"
+Mbrowse(3,8,22,78,"SC5")
+
+Return(nil)        // incluido pelo assistente de conversao do AP6 IDE em 18/03/04
+
+User Function LIB()        // incluido pelo assistente de conversao do AP6 IDE em 23/03/04
+
+SetPrvt("WNUM,WCLI,WEMI,WLIB,WMEN,WNOME")
+
+    If SC5->C5_TIPO $ "D"
+       MsgBox("PEDIDO DE DEVOLUÇÃO !")
+    Else
+       SC6->( DbSeek(xFilial()+SC5->C5_NUM,.T.) ) 
+       wNUM:=SC5->C5_NUM
+       wCLI:=SC5->C5_CLIENTE
+       wEMI:=SC5->C5_EMISSAO
+       If SC5->C5_OK="SS"
+          wLIB:="S"
+       Else
+          wLIB:="N"
+       Endif
+       wMEN:=SC5->C5_DESCR15
+       wNLIB:=SC5->C5_NUMLIB
+       DbSelectArea("SA1")
+       DbSetOrder(1)
+       dbSeek(xFilial("SA1")+wCLI,.F.)
+       wNOME:=SA1->A1_NOME
+       DbSelectArea("SC5")
+       Mostra_Dados()
+    Endif
+      
+Return
+
+*********************
+// Substituido pelo assistente de conversao do AP6 IDE em 23/03/04 ==> Function Mostra_Dados
+Static Function Mostra_Dados()
+*********************
+
+@ 96,42 TO 335,505 DIALOG oDlg5 TITLE "Dados do Pedido"
+@ 8,10 TO 100,222
+@ 105,155 BMPBUTTON TYPE 1 ACTION OkProc2()// Substituido pelo assistente de conversao do AP6 IDE em 23/03/04 ==> @ 105,155 BMPBUTTON TYPE 1 ACTION Execute(OkProc2)
+@ 105,195 BMPBUTTON TYPE 2 ACTION Close(oDlg5)
+@ 22,14 SAY "Pedido : "+wNUM
+@ 30,14 SAY "Cliente : "+wCLI + " - " + wNOME
+@ 46,14 SAY "Dt.Emissao : "+Dtoc(WEMI)
+@ 54,14 SAY "N.Liberacao : "+wNLIB
+@ 62,14 SAY "Mensagem : "+wMEN
+ACTIVATE DIALOG oDlg5
+
+Return
+
+****************
+// Substituido pelo assistente de conversao do AP6 IDE em 23/03/04 ==> Function OkProc2
+Static Function OkProc2()
+****************
+
+IF WLIB="S"
+   IF  MsgBox("RETIRA A LIBERAÇÃO DE PREÇO ?","CONFIRMA ?","YESNO")
+       WLIB:="N"
+       WMEN:="LIBERACAO "+WNLIB+" RETIRADA PELO "+alltrim(substr(cusuario,7,15))
+       WNLIB:=""
+       BotOK1()
+   ENDIF
+ELSE
+   IF  MsgBox("LIBERA PREÇO ?","CONFIRMA ?","YESNO")
+       WLIB="S"
+       WMEN:="LIBERADO PELO "+alltrim(substr(cusuario,7,15))
+
+       nSeq := GetMv("MV_LIBPED")
+       nProx := nSeq+1
+       WNLIB:=STRZERO(nProx,6)
+       dbSelectArea("SX6")
+       dbSeek(xFilial()+"MV_LIBPED")
+       RecLock("SX6",.f.)
+       Replace X6_CONTEUD With WNLIB
+       MsUnLock() 
+
+       BotOK1()
+   ENDIF
+ENDIF
+Return
+
+****************
+// Substituido pelo assistente de conversao do AP6 IDE em 23/03/04 ==> Function BotOk1
+Static Function BotOk1()
+****************
+
+Reclock("SC5",.F.)
+IF WLIB="S"
+   SC5->C5_OK:="SS"     
+ELSE
+   SC5->C5_OK:="  "     
+ENDIF
+SC5->C5_DESCR15:=wMEN
+SC5->C5_NUMLIB:=WNLIB
+Dbunlock()
+
+DbSelectArea("SUA")
+DbSetOrder(8)
+dbSeek(xFilial("SUA")+SC5->C5_NUM,.F.)
+If SUA->UA_NUMSC5=SC5->C5_NUM
+   Reclock("SUA",.F.)
+   IF WLIB="S"
+      SUA->UA_CODLIG:="SS"     
+   ELSE
+      SUA->UA_CODLIG:="  "     
+   ENDIF
+   Dbunlock()
+Endif
+Close(oDlg5)
+Return
+

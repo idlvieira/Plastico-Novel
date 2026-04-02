@@ -1,0 +1,47 @@
+00001#STR0001#ALL#
+00002#STR0002#ALL#Comissões a serem pagas.
+00003#STR0003#ALL#Previsão De Comissões
+00004#STR0004#ALL#Código de barras
+00005#STR0005#ALL#Administração
+00006#STR0006#ALL#Prf Título       Prc Código Lj Nome                 Data De    Data               Valor      Emissão      Emissão    Valor Base %comis   Valor Total P/t
+00007#STR0007#ALL#    pedido           cliente                        emissão    vencto            título     p/emissão       p/liquidação      p/ liquidação  total   da emissão    
+00008#STR0008#ALL#Cancelado Pelo Operador
+00009#STR0009#ALL#Código : 
+00010#STR0010#ALL#Nome : 
+00011#STR0011#ALL#Total do vendedor    --->
+00012#STR0012#ALL#Total  geral         --->
+00013#STR0013#ALL#Subtotal do vendedor --->
+00014#STR0014#ALL#Total ir vendedor    --->
+00015#STR0015#ALL#Subtotal crial       --->
+00016#STR0016#ALL#Total crial irs       --->
+00017#STR0017#ALL#Prf Título       Prc Código               Lj   Nome                 Data De    Data               Valor      Emissão      Emissão    Valor Base %comis   Valor Total P/t
+00018#STR0018#ALL#    pedido           cliente                                        emissão    vencto            título     p/emissão       p/liquidação      p/ liquidação  total   da emissão    
+00019#STR0019#ALL#
+00020#STR0020#ALL#
+00021#STR0021#ALL#Não
+00022#STR0022#ALL# 
+00023#STR0023#ALL#A Seleccionar Registos...
+00024#STR0024#ALL#Registos
+00025#STR0025#ALL#Prf
+00026#STR0026#ALL#Título
+00027#STR0027#ALL#Pedido
+00028#STR0028#ALL#Prc
+00029#STR0029#ALL#Código
+00030#STR0030#ALL#Cliente
+00031#STR0031#ALL#Loja
+00032#STR0032#ALL#Nome
+00033#STR0033#ALL#Da Data
+00034#STR0034#ALL#Emissão
+00035#STR0035#ALL#Data
+00036#STR0036#ALL#Vencto
+00037#STR0037#ALL#Valor
+00038#STR0038#ALL#Título
+00039#STR0039#ALL#Comissão
+00040#STR0040#ALL#P/emissão
+00041#STR0041#ALL#P/liquidação
+00042#STR0042#ALL#Valor Base
+00043#STR0043#ALL#%comis
+00044#STR0044#ALL#Total
+00045#STR0045#ALL#Valor Total
+00046#STR0046#ALL#Banco
+00047#STR0047#ALL#P/t

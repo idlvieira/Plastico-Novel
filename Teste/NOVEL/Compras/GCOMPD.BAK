@@ -1,0 +1,192 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP5 IDE em 06/09/02
+#INCLUDE "TOPCONN.CH"
+
+User Function GCOMPD()        // incluido pelo assistente de conversao do AP5 IDE em 06/09/02
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³ Programa ³ GCOMPD    ³ Autor ³ Wellington Carvalho  ³ Data ³ 05.06.08 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Relatorio Gestão de Compras Diversas                       ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Sigacom                                                    ³±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+
+wnrel            :=""
+tamanho          :="P"
+titulo           :="Relatorio Gestão de Compras Diversas"
+cDesc1           :="Relatorio Gestão de Compras Diversas"
+cDesc2           :=""
+cDesc3           :=" "
+cabec1 	         := "Numero SC   Data SC   Item SC    Pedido    Data Pedido     Produto          Descrição                   Necessidade      Dt. Entrega    Dias Atrasos   "
+cabec2 	         := ""
+nRegistro        := 0
+cKey             :=""
+nIndex           :=""
+cIndex           :="" //  && Variaveis para a criacao de Indices Temp.
+cCondicao        :=""
+lEnd             := .T.
+cPerg            :="VCR610"
+aReturn          := { "Zebrado", 1,"Administracao", 2, 2, 1, "",0 }
+nTipo	         := GetMv("MV_COMP")
+nomeprog         :="GCOMPD"
+nLastKey         :=0
+nBegin           :=0
+aLinha           :={ }   
+tamanho	         := "G"
+li               :=80
+limite           :=220
+m_pag            := 1
+lRodape          :=.F.
+wnrel            := "GCOMPD"
+cString          := "SD1"     
+NPag             := 0
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Verifica as perguntas selecionadas                          ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+pergunte(cPerg,.F.)
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Variaveis utilizadas para parametros                        ³
+//³ mv_par01              Da Data                               ³
+//³ mv_par02              Ate a Data                            ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+wnrel:=SetPrint("",wnrel,cPerg,@Titulo,cDesc1,cDesc2,cDesc3,.F.,,,Tamanho)
+
+If nLastKey==27
+   Return
+Endif
+
+SetDefault(aReturn,cString)
+
+If nLastKey==27
+   Return
+Endif
+
+RptStatus({||Gera()})// Substituido pelo assistente de conversao do AP5 IDE em 06/09/02 ==>     RptStatus({||Execute(C730Imp)})
+
+DbSelectArea("GCD")
+dbCloseArea()
+Return
+
+// Substituido pelo assistente de conversao do AP5 IDE em 06/09/02 ==>     Function C730IMP
+Static Function Gera()
+/*
+limite   := 132
+li       := 80
+nPag     := 0
+@ 0,0 PSAY AvalImp(Limite)
+
+*/
+
+
+li := 71
+
+DbSelectArea("SC1")  
+DbSetOrder(3)
+dbgotop()
+
+SetRegua(RecCount())  
+
+impforn = "S"  
+fornant = " "
+
+While !EOF()   
+  IncRegua() 
+  IF SC1->C1_EMISSAO >= MV_PAR01
+     flag := 0
+     mdata := 0
+     DbselectArea("SC7")
+     DbSetOrder(1) 
+     DbSeek(xFilial("SC7")+SC1->C1_PEDIDO+SC1->C1_ITEMPED,.F.) 
+     If EOF()    
+        flag := 1
+     Endif 
+        
+              
+     If li > 70
+        Cabec(Titulo,Cabec1,Cabec2,wnrel,Tamanho,nTipo)
+        li:=li+1 
+     End       
+
+     DbSelectArea("SA2") 
+     DbSetOrder(1) 
+     DbSeek( xFilial("SA2") + SC1->C1_FORNECE + SC1->C1_LOJA, .T.)
+     
+     DbselectArea("SC7") 
+     
+     
+     IF SC7->C7_DATPRF = CTOD("  /  /  ")
+     
+     If impforn = "S"
+        li = li+1
+        @ li,000  PSAY SA2->A2_COD+" - "+SA2->A2_NOME
+        store SA2->A2_COD to fornant
+        li = li+2
+        impforn = "N"
+     endif
+       
+     @ li,000      PSAY SC1->C1_NUM 
+     @ li,PCol()+6 PSAY SC1->C1_EMISSAO
+     @ li,PCol()+4 PSAY SC1->C1_ITEM  
+     
+     DbSelectArea("SB1")
+     DbSetOrder(1)
+     dBgotop()
+     DbSeek(xFilial()+SC1->C1_PRODUTO,.T.)  
+       
+     if flag <> 1
+        @ li, PCol()+5 PSAY SC1->C1_PEDIDO
+     else    
+        @ li, PCol()+5 PSAY "      "
+     endif
+     @ li, PCol()+5 PSAY SC7->C7_EMISSAO  
+     @ li, PCol()+5 PSAY SC1->C1_PRODUTO 
+     if flag <> 1
+        @ li, PCol()+4 PSAY SUBSTRING(SC7->C7_DESCRI,1,20)
+     else
+        @ li, PCol()+4 PSAY SUBSTRING(SB1->B1_DESC,1,20)   
+     endif                              
+         
+     @ li, PCol()+10 PSAY SC1->C1_DATPRF 
+     @ li, PCol()+8 PSAY SC7->C7_DATPRF
+     
+     if SC7->C7_DATPRF > SC1->C1_DATPRF
+        mdata = SC1->C1_DATPRF - SC7->C7_DATPRF
+     else
+        mdata = 0
+     endif      
+      
+     @ li, PCol()+8 PSAY mdata picture "9999"
+     
+     li:=li+1                             
+     
+    ENDIF 
+    
+    ENDIF
+    
+     DbSelectArea("SC1")
+  
+     DbSkip()
+     
+     store SC1->C1_FORNECE to fornatu
+     
+     
+     if fornatu <> fornant  
+        impforn = "S"
+     else
+        impforn = "N"   
+     endif         
+  
+End
+
+If aReturn[5] == 1
+	Set Printer To
+	dbCommitAll()
+	OurSpool(wnrel)
+Endif
+
+MS_FLUSH()

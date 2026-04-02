@@ -1,0 +1,19 @@
+{
+	"version": "0.2.0",
+	"lastPrograms": [
+		{
+			"label": "SIGAMDI"
+		},
+		{
+			"label": "apsdu"
+		},
+		{
+			"label": "u_executil"
+		},
+		{
+			"label": "sigacfg"
+		}
+	],
+	"lastProgramExecuted": "apsdu",
+	"lastProgramArguments": []
+}

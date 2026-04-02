@@ -1,0 +1,55 @@
+#include "rwmake.ch"
+
+User Function MVBLQMOV()
+
+SetPrvt("_DDATA,_LSAI,_DULTIMO,")
+
+_dData := GetMv("MV_DBLQMOV")
+
+@ 96,42 TO 323,505 DIALOG oDlg1 TITLE "Bloqueia Lancamentos Estoque"
+@ 8,10 TO 84,222
+@ 23,14 SAY "Este programa bloqueia os lancamentos de produtos no estoque."    SIZE 200,08
+@ 33,14 SAY "A data informada deve ser o dia anterior ao desejado."            SIZE 200,08
+@ 43,14 SAY "Ex. informando 31/08/2012, so serao aceitos lancamentos com data" SIZE 200,08
+@ 53,14 SAY "superior, ou seja, do dia 01/09/2012 em diante."                  SIZE 200,08
+@ 65,14 SAY "Data p/ bloqueio :"
+@ 65,70 GET _dData SIZE 40,08
+@ 91,168 BMPBUTTON TYPE 1 ACTION OkProc() 
+@ 91,196 BMPBUTTON TYPE 2 ACTION Close(oDlg1)
+ACTIVATE DIALOG oDlg1
+Return nil
+
+Static Function OkProc()
+Processa({|| Desmar01()})
+Close(oDlg1)
+Return nil
+
+Static Function Desmar01()
+
+cFilCon := StrZero(Val(cFilant)+1,2)
+
+dbSelectArea("SB9")
+dbSetOrder(1)
+dbSeek(cFilCon)
+dbSkip(-1)
+
+_dUltimo := SB9->B9_DATA
+
+If _dData >= _dUltimo
+   dbSelectArea("SX6")
+   dbSetOrder(1)
+   If dbseek(cFilant + "MV_DBLQMOV")
+      RecLock("SX6")
+      Replace X6_CONTEUD With DTOC(_dData)
+      MsUnLock()
+   ElseIf dbseek("  " + "MV_DBLQMOV")
+      RecLock("SX6")
+      Replace X6_CONTEUD With DTOC(_dData)
+      MsUnLock()
+   EndIf   
+Else
+   MsgBox("Voce nao pode voltar para uma data anterior ao ultimo FECHAMENTO")
+Endif
+
+Return .t.
+

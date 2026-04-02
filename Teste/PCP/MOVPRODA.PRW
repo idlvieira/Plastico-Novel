@@ -1,0 +1,137 @@
+#INCLUDE "RWMAKE.CH"
+#INCLUDE "TOPCONN.CH"
+                            
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Funcao    ³ MOVPRODA ³ Autor ³ Eliene Cerqueira      ³ Data ³ 30.08.05 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descricao ³ Relatorio dos lancamentos da produção - Analitico          ³±±
+±±³            Por OP                                                     ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+*/
+
+User Function MOVPRODA
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Define Variaveis                                             ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+wnrel  	:= "MOVPRODA"    
+titulo 	:= "Movimentação de Estoque da Produção-Analítico"
+cDesc1 	:= "Este programa ira emitir a movimentação de estoque da Produção"
+cDesc2 	:= ""
+cDesc3 	:= ""
+tamanho	:= "M"
+limite 	:= 132
+cString := "SD3"
+lEnd    := .F.                                                                                                             
+cabec1 	:= "OP           TM   PRODUTO                                       QUANT.      INSUMO                                        QUANT." 
+cabec2 	:= "                                                               PRODUZIDA                                                 CONSUMIDA" 
+//          99999999999  999  99999999999-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX   999.999,99   99999999999-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX   999.999,99 
+lContinua  := .T.
+nTipo	:= GetMv("MV_COMP")
+LI      := 80
+m_pag   := 1
+nLastKey := 0
+IMP     :=.F.
+cPerg   :="ATC010"
+PRIVATE aReturn  := { "Zebrado", 1,"Administracao", 1, 2, 1, "",1 }		//"Zebrado"###"Administracao"
+cArqTrb1:=cArqTrb2:=cArqTrb3:=""
+
+pergunte(cPerg,.F.)
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Variaveis utilizadas para parametros                        ³
+//³ mv_par01              De Emissao                            ³
+//³ mv_par02              Ate Emissao                           ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+wnrel:=SetPrint(cString,wnrel,cPerg,titulo,cDesc1,cDesc2,cDesc3,.F.,,.T.,Tamanho)
+
+If nLastKey == 27
+	Set Filter to
+	Return
+Endif
+
+SetDefault(aReturn,cString)
+
+If nLastKey==27
+	Set Filter to
+	Return
+Endif
+
+RptStatus({|lEnd| C700Imp(@lEnd,wnrel,cString,aReturn,tamanho,limite,;	
+						  titulo,cDesc1,cDesc2,cDesc3)},Titulo)
+
+DbSelectArea("PRODA")
+dbCloseArea()
+Return 
+
+Static Function C700Imp(lEnd,WnRel,cString,aReturn,tamanho,limite,titulo,;
+						cDesc1,cDesc2,cDesc3)
+
+cQry := " SELECT SD3.D3_OP, SD3.D3_TM, SD3.D3_NUMSEQ, SD3.D3_COD, SD3.D3_EMISSAO, SD3.D3_QUANT, SB1.B1_DESC"
+cQry := cQry + " FROM SD3010 AS SD3,SB1010 AS SB1"
+cQry := cQry + " WHERE SD3.D3_EMISSAO>='"+DTOS(MV_PAR01)+"'"
+cQry := cQry + " AND SD3.D3_EMISSAO<='"+DTOS(MV_PAR02)+"'"
+cQry := cQry + " AND SD3.D3_OP<>'           '"
+cQry := cQry + " AND SD3.D3_ESTORNO<>'S'"
+cQry := cQry + " AND (SUBSTRING(SD3.D3_TM,1,1)='3' OR SD3.D3_TM='999')"
+cQry := cQry + " AND SB1.B1_COD=SD3.D3_COD
+cQry := cQry + " AND SD3.D_E_L_E_T_<>'*'
+cQry := cQry + " ORDER BY SD3.D3_OP, SD3.D3_NUMSEQ, SD3.D3_TM
+
+Tcquery cQry new alias "PRODA"
+
+dbSelectArea("PRODA")
+SetRegua(RecCount())
+dbGoTop()
+While !EOF()
+
+  IncRegua()
+  If lAbortPrint
+ 	 @LI,00 PSAY "*** CANCELADO PELO OPERADOR ***"
+     Exit
+  Endif 
+
+  If LI > 78
+     Cabec(Titulo,Cabec1,Cabec2,wnrel,Tamanho,nTipo)
+     LI := LI + 1
+  Endif   
+//99999999999  999  99999999999-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX   999.999,99   99999999999-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX   999.999,99 
+  @ LI,000      PSAY SUBSTRING(PRODA->D3_OP,1,11)+Space(2)+PRODA->D3_TM+SPACE(2)+SUBSTRING(PRODA->D3_COD,1,11) + "-" + SUBSTRING(PRODA->B1_DESC,1,30)
+  @ LI,PCOL()+3 PSAY PRODA->D3_QUANT Picture "@E 999,999.99"
+  Chave:=PRODA->D3_OP+PRODA->D3_NUMSEQ
+  INS:=0
+  dbSkip()
+  While !EOF() .and. PRODA->D3_OP+PRODA->D3_NUMSEQ=Chave
+     If LI > 78
+        Cabec(Titulo,Cabec1,Cabec2,wnrel,Tamanho,nTipo)
+        LI := LI + 1
+     Endif   
+     INS:=INS+1
+     @ LI,076      PSAY SUBSTRING(PRODA->D3_COD,1,11) + "-" + SUBSTRING(PRODA->B1_DESC,1,30)
+     @ LI,PCOL()+3 PSAY PRODA->D3_QUANT Picture "@E 999,999.99"
+     LI := LI + 1
+     dbSkip()
+  Enddo        
+  If INS>0
+     LI := LI + 1
+  Else
+     LI := LI + 2
+  Endif
+Enddo
+@ LI,01 PSAY "."
+SET DEVICE TO SCREEN
+
+If aReturn[5]==1
+	dbCommitAll()
+	SET PRINTER TO
+	OurSpool(wnrel)
+Endif
+
+MS_FLUSH()
+
+Return        

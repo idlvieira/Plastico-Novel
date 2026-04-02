@@ -1,0 +1,296 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP5 IDE em 06/09/02
+#INCLUDE "TOPCONN.CH"
+
+User Function ANAFAT()        // incluido pelo assistente de conversao do AP5 IDE em 06/09/02
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³ Programa ³ ANAFAT   ³ Autor ³ Eliene Cerqueira      ³ Data ³ 03.11.04 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Relatório de Analise de Faturamento       (Plasticos Novel)³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Sigafat                                                    ³±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+
+SetPrvt("WNREL,TAMANHO,TITULO,CDESC1,CDESC2,CDESC3")
+
+tamanho          :="G"
+titulo           :="ANALISE DE FATURAMENTO"
+cDesc1           :="Relatorio de analise de faturamento."
+cDesc2           :=""
+cDesc3           :=" "
+cabec1 	         := "PEDIDO CLIENTE                                                    PRODUTO                                             LIBERADO   SERVICO   DATA     DATA    TABELA   PRECO    PRECO   VARIACAO"
+cabec2 	         := "                                                                                                                        (S/N)     (S/N)   PEDIDO    FATUR.   PRECO    MIN.    VENDA      %"
+nRegistro        := 0
+cKey             :=""
+nIndex           :=""
+cIndex           :="" //  && Variaveis para a criacao de Indices Temp.
+cCondicao        :=""
+lEnd             := .T.
+cPerg            :="ANAFAT"
+PRIVATE aReturn  := { "Zebrado", 1,"Administracao", 1, 2, 1, "",1 }		//"Zebrado"###"Administracao"
+nomeprog         :="ANAFAT"
+nLastKey         :=0
+nBegin           :=0
+aLinha           :={ }
+li               :=80
+limite           :=220
+lRodape          :=.F.
+cPictQtd         :=""
+nTotQtd          :=nTotVal:=0
+nTotIPI          :=0
+aPedCli          := {}
+wnrel            := "ANAFAT"
+cString          := "SC6"     
+NPag             := 0
+nTipo		     := GetMv("MV_COMP")
+m_pag            := 1
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Verifica as perguntas selecionadas                          ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+AjustaSx1()
+pergunte(cPerg,.F.)
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Variaveis utilizadas para parametros                        ³
+//³ mv_par01              Do Cliente                            ³
+//³ mv_par02              Ate Cliente                           ³
+//³ mv_par03              Do Produto                            ³
+//³ mv_par04              Ate Produto                           ³
+//³ mv_par05              Do Faturamento                        ³
+//³ mv_par06              Ate Faturamento                       ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+wnrel:=SetPrint("",wnrel,cperg,titulo,cDesc1,cDesc2,cDesc3,.F.,,.T.,Tamanho)
+
+If nLastKey==27
+   Return
+Endif
+
+SetDefault(aReturn,cString)
+
+If nLastKey==27
+   Return
+Endif
+
+RptStatus({||Gera()})// Substituido pelo assistente de conversao do AP5 IDE em 06/09/02 ==>     RptStatus({||Execute(C730Imp)})
+
+DbSelectArea("ANAFAT")
+dbCloseArea()
+
+Return
+
+// Substituido pelo assistente de conversao do AP5 IDE em 06/09/02 ==>     Function C730IMP
+Static Function Gera()
+
+cEstado	:= GetMV("MV_ESTADO")
+cNorte	:= GetMV("MV_NORTE")
+
+cQry := " SELECT SC6.C6_NUM, SC6.C6_ITEM, SC6.C6_PRODUTO, SC6.C6_DATFAT, SC6.C6_VUNTREA, SC6.C6_SERVICO,"
+cQry := cQry + "  SC6.C6_PCM, SC5.C5_EMISSAO, SC5.C5_CLIENTE, SC5.C5_LOJACLI, SC5.C5_NOVULT, SC5.C5_OK FROM SC5010 AS SC5, SC6010 AS SC6"
+cQry := cQry + " WHERE SC6.C6_DATFAT >= '"+DTOS(MV_PAR05)+"'"
+cQry := cQry + " AND SC6.C6_DATFAT <= '"+DTOS(MV_PAR06)+"'"
+cQry := cQry + " AND SC6.C6_PRODUTO >= '"+MV_PAR03+"'"
+cQry := cQry + " AND SC6.C6_PRODUTO <= '"+MV_PAR04+"'"
+cQry := cQry + " AND SC5.C5_NUM = SC6.C6_NUM"
+cQry := cQry + " AND SC5.C5_CLIENTE >= '"+MV_PAR01+"'"
+cQry := cQry + " AND SC5.C5_CLIENTE <= '"+MV_PAR02+"'"
+cQry := cQry + " AND SC6.D_E_L_E_T_<>'*'"
+cQry := cQry + " AND SC5.D_E_L_E_T_<>'*'"
+cQry := cQry + " ORDER BY SC6.C6_DATFAT, SC6.C6_NUM, SC6.C6_ITEM ASC"
+
+Tcquery cQry new alias "ANAFAT"
+
+DbSelectArea("ANAFAT")
+Dbgotop()
+SetRegua(RecCount())
+li := 65
+While !EOF()
+  IncRegua()                            
+  If li > 59 
+     If li <> 65
+        @ li,000 PSAY Replicate("-",limite)
+     Endif
+     Cabec(Titulo,Cabec1,Cabec2,wnrel,Tamanho,nTipo)
+  End
+  nvalor:=ANAFAT->C6_VUNTREA
+  Tserv:=ANAFAT->C6_SERVICO
+  XPCM:=ANAFAT->C6_PCM
+     
+  Aliq    := 0
+  DbSelectArea("SA1")
+  DbSetOrder(1)
+  DbSeek(xFilial("SA1")+ANAFAT->C5_CLIENTE+ANAFAT->C5_LOJACLI,.F.)
+  If SA1->A1_EST==cEstado .or. Empty(Alltrim(SA1->A1_INSCR))
+     Aliq:=GetMV("MV_ICMPAD")
+  Else
+     Aliq:=12
+  Endif   
+  DbSelectArea("SB1")
+  DbSetOrder(1)
+  DbSeek(xFilial("SB1")+ANAFAT->C6_PRODUTO,.F.)    
+
+  Aliq:=(100-Aliq)/100
+  PCM:=XPCM/Aliq
+  DESC:=0
+  If SB1->B1_SUBGRUP="01" .OR. SB1->B1_SUBGRUP="02" .OR. SB1->B1_SUBGRUP="03"
+     DESC:=0.85
+  ElseIf (SB1->B1_SUBGRUP="04" .OR. SB1->B1_SUBGRUP="05") .AND. Tserv='N'
+     If SB1->B1_SUBGRUP="05" .AND. (SB1->B1_CLASSE1="061" .OR. SB1->B1_CLASSE1="062")
+        DESC:=0.5
+     Else
+        DESC:=0.9
+     Endif
+  ElseIf (SB1->B1_SUBGRUP="04" .OR. SB1->B1_SUBGRUP="05") .AND. Tserv='S'
+     DESC:=0.45
+  Endif
+  Valmin:=PCM*DESC
+  dbSelectArea("ANAFAT")
+  If nValor<Valmin
+     @ li,000        PSAY ANAFAT->C6_NUM+" "+ANAFAT->C5_CLIENTE+"-"+SA1->A1_NOME+"  "+Substr(ANAFAT->C6_PRODUTO,1,11)+"-"+SB1->B1_DESC
+     @ li, PCol()+13 PSAY SUBSTR(ANAFAT->C5_OK,1,1)+"          "+Tserv+"    "
+     @ li, PCol()    PSAY SUBSTR(ANAFAT->C5_EMISSAO,7,2)+"/"+SUBSTR(ANAFAT->C5_EMISSAO,5,2)+"/"+SUBSTR(ANAFAT->C5_EMISSAO,3,2)
+     @ li, PCol()+2  PSAY SUBSTR(ANAFAT->C6_DATFAT,7,2)+"/"+SUBSTR(ANAFAT->C6_DATFAT,5,2)+"/"+SUBSTR(ANAFAT->C6_DATFAT,3,2) 
+     @ li, PCol()+2  PSAY XPCM Picture "@E 999.99"
+     @ li, PCol()    PSAY "  "
+     @ li, PCol()    PSAY Valmin Picture "@E 999.99"
+     @ li, PCol()    PSAY "  "
+     @ li, PCol()    PSAY nValor Picture "@E 999.99"
+     @ li, PCol()    PSAY "    "
+     @ li, PCol()    PSAY (100 - (nValor*100/Valmin)) Picture "@E 999.99"
+     li:=li+1
+  Endif
+  DbSelectArea("ANAFAT")
+  ANAFAT->( DbSkip() )       
+End
+
+
+If aReturn[5] == 1
+	Set Printer To
+	dbCommitAll()
+	OurSpool(wnrel)
+Endif
+
+MS_FLUSH()
+
+Return
+
+Static Function AjustaSX1()
+
+LOCAL aArea    := GetArea()
+LOCAL aReg     := {}
+
+LOCAL nLoop    := 0
+LOCAL nLoop2   := 0
+LOCAL nPosCpo  := 0
+
+AAdd(aReg,{	{"X1_GRUPO","ANAFAT"},;
+{"X1_ORDEM","01"},;
+{"X1_PERGUNT","Cliente de         ?"},;
+{"X1_PERSPA","Cliente de         ?"},;
+{"X1_PERENG","Cliente de         ?"},;
+{"X1_VARIAVL","mv_ch1"},;
+{"X1_TIPO","C"},;
+{"X1_TAMANHO",6},;
+{"X1_DECIMAL",0},;
+{"X1_PRESEL",0},;
+{"X1_GSC","G"},;
+{"X1_VALID",""},;
+{"X1_VAR01","mv_par01"},;
+{"X1_PYME","N"} })
+
+AAdd(aReg,{	{"X1_GRUPO","ANAFAT"},;
+{"X1_ORDEM","02"},;
+{"X1_PERGUNT","Cliente ate        ?"},;
+{"X1_PERSPA","Cliente ate        ?"},;
+{"X1_PERENG","Cliente ate        ?"},;
+{"X1_VARIAVL","mv_ch2"},;
+{"X1_TIPO","C"},;
+{"X1_TAMANHO",6},;
+{"X1_DECIMAL",0},;
+{"X1_PRESEL",0},;
+{"X1_GSC","G"},;
+{"X1_VALID","NAOVAZIO"},;
+{"X1_VAR01","mv_par02"},;
+{"X1_PYME","N"} })
+
+AAdd(aReg,{	{"X1_GRUPO","ANAFAT"},;
+{"X1_ORDEM","03"},;
+{"X1_PERGUNT","Produto de         ?"},;
+{"X1_PERSPA","Produto de         ?"},;
+{"X1_PERENG","Produto de         ?"},;
+{"X1_VARIAVL","mv_ch3"},;
+{"X1_TIPO","C"},;
+{"X1_TAMANHO",15},;
+{"X1_DECIMAL",0},;
+{"X1_PRESEL",0},;
+{"X1_GSC","G"},;
+{"X1_VALID",""},;
+{"X1_VAR01","mv_par03"},;
+{"X1_PYME","N"} })
+
+AAdd(aReg,{	{"X1_GRUPO","ANAFAT"},;
+{"X1_ORDEM","04"},;
+{"X1_PERGUNT","Produto ate        ?"},;
+{"X1_PERSPA","Produto ate        ?"},;
+{"X1_PERENG","Produto ate        ?"},;
+{"X1_VARIAVL","mv_ch4"},;
+{"X1_TIPO","C"},;
+{"X1_TAMANHO",15},;
+{"X1_DECIMAL",0},;
+{"X1_PRESEL",0},;
+{"X1_GSC","G"},;
+{"X1_VALID","NAOVAZIO"},;
+{"X1_VAR01","mv_par04"},;
+{"X1_PYME","N"} })
+
+AAdd(aReg,{	{"X1_GRUPO","ANAFAT"},;
+{"X1_ORDEM","05"},;
+{"X1_PERGUNT","Faturado de       ?"},;
+{"X1_PERSPA","Faturado de       ?"},;
+{"X1_PERENG","Faturado de       ?"},;
+{"X1_VARIAVL","mv_ch5"},;
+{"X1_TIPO","D"},;
+{"X1_TAMANHO",8},;
+{"X1_DECIMAL",0},;
+{"X1_PRESEL",0},;
+{"X1_GSC","G"},;
+{"X1_VALID","NAOVAZIO"},;
+{"X1_VAR01","mv_par05"},;
+{"X1_PYME","N"} })
+
+AAdd(aReg,{	{"X1_GRUPO","ANAFAT"},;
+{"X1_ORDEM","06"},;
+{"X1_PERGUNT","Faturado Ate       ?"},;
+{"X1_PERSPA","Faturado Ate       ?"},;
+{"X1_PERENG","Faturado Ate       ?"},;
+{"X1_VARIAVL","mv_ch6"},;
+{"X1_TIPO","D"},;
+{"X1_TAMANHO",8},;
+{"X1_DECIMAL",0},;
+{"X1_PRESEL",0},;
+{"X1_GSC","G"},;
+{"X1_VALID","NAOVAZIO"},;
+{"X1_VAR01","mv_par06"},;
+{"X1_PYME","N"} })
+
+dbSelectArea("SX1")
+dbSetOrder(1)
+For nLoop := 1 to Len(aReg)
+	If !dbSeek(aReg[nLoop][1][2]+aReg[nLoop][2][2])
+		RecLock("SX1",.T.)
+		For nLoop2 := 1 to Len(aReg[nLoop])
+			nPosCpo := SX1->(FieldPos(aReg[nLoop][nLoop2][1]))
+			If nPosCpo > 0
+				SX1->(FieldPut(nPosCpo,aReg[nLoop][nLoop2][2]))
+			EndIf
+		Next nLoop2
+		MsUnlock()
+	EndIf
+Next nLoop
+
+RestArea(aArea)
+Return(NIL)

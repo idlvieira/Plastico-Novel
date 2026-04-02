@@ -1,0 +1,89 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP6 IDE em 11/03/03
+
+User Function CONPESO()        // incluido pelo assistente de conversao do AP6 IDE em 11/03/03
+
+/*/
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±³ Programa ³ CONPESO   ³ Autor ³   Eliene Cerqueira   ³ Data ³ 06.09.05    ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Consulta o Peso Bruto do Pedido (itens liberados)             ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Faturamento                                                   ³±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+
+WCONTINUA:=.T.
+WHILE WCONTINUA
+   CONSULTA()
+ENDDO
+
+REturn
+
+Static Function CONSULTA()
+
+XPed:=SPACE(6)
+@ 0,0 TO 140,230 DIALOG oDlg1 TITLE "Consulta Peso Bruto"
+@ 3,5 TO 50,110
+@ 15,10 say "Pedido"
+@ 15,35 GET XPed PICTURE "999999" Valid !Empty(XPed)
+@ 56,25 BMPBUTTON TYPE 1 ACTION nseqOk1()// Substituido pelo assistente de conversao do AP6 IDE em 20/04/04 ==>     @  60,65 BMPBUTTON TYPE 1 ACTION Execute(BotOk1)
+@ 56,65 BMPBUTTON TYPE 2 ACTION ncanc1(oDlg1)// Substituido pelo assistente de conversao do AP6 IDE em 20/04/04 ==>     @  60,95 BMPBUTTON TYPE 2 ACTION Execute(BotCan1)
+ACTIVATE DIALOG oDlg1 CENTER
+REturn
+
+Static Function ncanc1()
+***************
+WCONTINUA:=.F.
+Close(oDlg1)
+Return
+
+Static Function nseqOk1()
+***************
+
+dbSelectArea("SC6")
+dbSetOrder(1) // pedido+item
+dbSeek(xFilial("SC6")+XPed,.F.)	
+If !Found()
+   msgBox("Pedido não existe.")
+   Return
+Endif
+
+TPESO:=0
+Do While !Eof() .AND. SC6->C6_NUM=XPed
+   IF SC6->C6_TES$"508/515/516/517/521/522/523/524/528/529/531/535/536/537/538/541/543/544/545/546/547/548/549/550/551/552/555/556/557"
+      dbSelectArea("SC6")
+      dbSkip()
+      Loop
+   Endif
+   DbSelectArea("SB1") 
+   DbSeek( xFilial("SB1") + SC6->C6_PRODUTO, .T.)
+   If SC6->C6_QTDVEN-SC6->C6_QTDENT <> 0
+      dbSelectArea("SC9")
+      dbSetOrder(1)
+      dbSeek(xFilial("SC9")+SC6->C6_NUM+SC6->C6_ITEM,.F.)
+   
+      If !Found()// Bloqueado em vendas
+         xStatus:="P"        
+      Else
+         While !EOF() .AND. SC6->C6_NUM=SC9->C9_PEDIDO .AND. SC6->C6_ITEM=SC9->C9_ITEM
+	        If SC9->C9_BLCRED="  " .and. SC9->C9_BLEST="  "
+               TPESO:=TPESO+(SB1->B1_PESO*SC9->C9_QTDLIB)
+            Endif
+            dbSkip()
+         Enddo
+      Endif   
+   Endif
+   dbSelectArea("SC6")
+   dbSkip()
+Enddo
+@ 0,0 TO 140,230 DIALOG oDlg2 TITLE "Consulta Peso Bruto"
+@ 3,5 TO 50,110
+@ 15,10 say "Pedido"
+@ 15,35 say XPed PICTURE "999999" 
+@ 30,10 say "Peso Bruto"
+@ 30,35 say TPESO SIZE 45,30 PICTURE "999,999.99"
+@ 56,65 BMPBUTTON TYPE 1 ACTION close(oDlg2)// Substituido pelo assistente de conversao do AP6 IDE em 20/04/04 ==>     @  60,95 BMPBUTTON TYPE 2 ACTION Execute(BotCan1)
+ACTIVATE DIALOG oDlg2 CENTER
+Close(oDlg1)
+
+Return

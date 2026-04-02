@@ -1,0 +1,438 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP5 IDE em 27/07/02
+#IFNDEF WINDOWS
+	#DEFINE PSAY SAY
+#ENDIF
+
+User Function dupli2()        // incluido pelo assistente de conversao do AP5 IDE em 27/07/02
+
+/*/
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±³Programa  ³ DUPLI2   ³ Autor ³ Moacir Carvalho       ³ Data ³ 16/10/95 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Duplicata da NOVEL                                versao 1 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ Faturamento                                                ³±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+
+SetPrvt("CBTXT,CBCONT,NORDEM,TAMANHO,LIMITE,TITULO")
+SetPrvt("CDESC1,CDESC2,CDESC3,CNATUREZA,CSTRING,ARETURN")
+SetPrvt("NOMEPROG,CPERG,NLASTKEY,LCONTINUA,NLIN,WNREL")
+SetPrvt("NTAMNF,NLININI,XNUM_DUP,XSERIE,XEMISSAO,XTOT_FAT")
+SetPrvt("XCLIENTE,XLOJA,XPARCELA,XVENCREA,XPEDVEN,XNOME_CLI")
+SetPrvt("XEND_CLI,XBAIRRO,XCEP,XCEPCOBR,XCOB_CLI,XREC_CLI")
+SetPrvt("XMUN_CLI,XMUN_PAG,XBRCOB,XEST_CLI,XCGC_CLI,XINSC_CLI")
+SetPrvt("XTRAN_CLI,XPREFIXO,XTEL,XFAX,XCONDPAG,XREPRESE1")
+SetPrvt("XREPRESE2,XCONDICAO,XSPEDIDO,XDESC_PAG,XEXTENSO,XEXTENSO1")
+SetPrvt("XEXTENSO2,P_CNT,NOPC,CCOR,")
+
+CbTxt:=""
+CbCont:=""
+nOrdem :=0
+tamanho:="M" 
+limite:=132
+titulo :="Duplicata"
+cDesc1 :="Este programa ira emitir a Duplicata da NOVEL"
+cDesc2 :=""
+cDesc3 :=""
+cNatureza:="" 
+cString:="SE1"
+aReturn := { "Especial", 1,"Administracao", 2, 2, 1, "",1 }
+nomeprog:="NOVELDP" 
+cPerg:="MTR750"
+nLastKey:= 0 
+lContinua := .T.
+nLin:=0
+
+wnrel    := "DUPLIC"
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Define Variaveis                                             ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Variaveis utilizadas para parametros                         ³
+//³ mv_par01             // Da Duplicata                         ³
+//³ mv_par02             // Ate a Duplicata                      ³ 
+//³ mv_par03             // Da Serie                             ³ 
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Tamanho do Formulario de Nota Duplicata (em Linhas)       ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+nTamNf:=36 
+
+pergunte(cPerg,.F.)
+
+wnrel:=SetPrint(cString,wnrel,cPerg,titulo,cDesc1,cDesc2,cDesc3,.F.,,.f.,Tamanho)
+
+SetDefault(aReturn,cString)
+
+If LastKey() == 27 
+	Return
+Endif
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Verifica Posicao do Formulario na Impressora                 ³          
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+VerImp()       
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³                                                              ³
+//³ Inicio do Processamento da Duplicata                         ³
+//³                                                              ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+#IFDEF WINDOWS
+	RptStatus({|| RptDetail()})// Substituido pelo assistente de conversao do AP5 IDE em 27/07/02 ==> 	RptStatus({|| Execute(RptDetail)})
+	Return
+// Substituido pelo assistente de conversao do AP5 IDE em 27/07/02 ==> 	Function RptDetail
+Static Function RptDetail()
+#ENDIF
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Guarda Empresa que esta sendo emitido Duplicata              ³          
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+Limite:=132
+Tamanho:="M"
+@ 0,0 PSay AvalImp(limite)
+
+dbSelectArea("SE1")
+Set SoftSeek On
+dbSetOrder(1)
+dbSeek(xFilial()+mv_par03+mv_par01)
+
+nLin := nLin+3
+While !eof() .and. SE1->E1_NUM <= mv_par02 ;
+		  .and. SE1->E1_PREFIXO == mv_par03 ;
+		  .and. lContinua      == .T.
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Inicializa  regua de impressao                            ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	SetRegua(Val(mv_par02)-Val(mv_par01))
+
+	#IFNDEF WINDOWS
+	      IF LastKey()==286
+                 @ 00,01 PSAY "** CANCELADO PELO OPERADOR **"
+                 lContinua := .F.
+                 Exit
+	      Endif
+  	#ELSE
+ 	      IF lAbortPrint
+	         @ 00,01 PSAY "** CANCELADO PELO OPERADOR **"
+	         lContinua := .F.
+	         Exit
+	      Endif
+	#ENDIF
+
+	nLinIni:=nLin                      // Armazema Linha Inicial da Impressao
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Inicio de Levantamento dos Dados da Duplicata                ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+						
+	xNUM_DUP    :=SE1->E1_NUM             // Numero 
+	xSERIE      :=SE1->E1_PREFIXO         // Serie 
+	xEMISSAO    :=SE1->E1_EMISSAO         // Data de Emissao 
+	xTOT_FAT    :=SE1->E1_VALOR           // Valor Total da Duplicata 
+	xCLIENTE    :=SE1->E1_CLIENTE         // Codigo do Cliente
+	xLOJA       :=SE1->E1_LOJA            // Loja do Cliente
+	xPARCELA    :=SE1->E1_PARCELA         // Parcela da Duplicata
+	xVENCREA    :=SE1->E1_VENCREA         // Vencto Real da Duplicata
+	xPEDVEN     :=SE1->E1_PEDIDO          // Numero Pedido de Venda
+
+        If AllTrim(SE1->E1_TIPO)=="NCC"
+           DbSkip()
+           Loop
+        EndIf
+
+	If xPARCELA == SPACE(1)
+		xPARCELA := "U"
+		*DbSkip()
+		*Loop
+	EndIf
+		dbSelectArea("SA1")                // * Cadastro de Clientes
+		dbSetOrder(1)
+		dbSeek(xFilial("SA1")+xCLIENTE+xLOJA)
+		xNOME_CLI:=SA1->A1_NOME               // Nome 
+		xEND_CLI :=SA1->A1_END                // Endereco
+		xBAIRRO  :=SA1->A1_BAIRRO             // Bairro
+		xCEP     :=SA1->A1_CEP                // CEP
+		xCEPCOBR :=SA1->A1_CEPC               // CEP de Cobranca do CLiente
+		xCOB_CLI :=SA1->A1_ENDCOB             // Endereco de Cobranca
+		*xREC_CLI :=SA1->A1_ENDENT             // Endereco de Entrega
+		xEST_COB :=SA1->A1_ESTC               // Estado de Cobranca
+		xMUN_CLI :=SA1->A1_MUN                // Municipio 
+		xMUN_PAG :=SA1->A1_MUNC               // Municipio de Cobranca
+		xBRCOB   :=SA1->A1_BAIRROC             //BAIRRO COBRANCA
+		xEST_CLI :=SA1->A1_EST                // Estado 
+		xCGC_CLI :=SA1->A1_CGC                // CGC 
+		xINSC_CLI:=SA1->A1_INSCR              // Inscricao estadual 
+		xTRAN_CLI:=SA1->A1_TRANSP             // Transportadora
+		xPREFIXO :=SA1->A1_PRFTEL             // Prefixo do Telefone 
+		xTEL     :=SA1->A1_TEL                // Telefone
+		xFAX     :=SA1->A1_FAX                // Fax
+
+		dbSelectArea("SC5")                   // Pedido de Venda
+		dbSetOrder(1)
+		dbSeek(xFilial("SC5")+xPEDVEN)
+		xCONDPAG := SC5->C5_CONDPAG
+		xREPRESE1 := SC5->C5_VEND1             
+		xREPRESE2 := SC5->C5_VEND2             
+						 
+	
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Levantamento dos dados da Condicao de Pagamento no SF2.      ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		
+		dbSelectArea("SF2")                   // Cabecalho da Nota Fiscal
+		dbSetOrder(1)
+		dbSeek(xFilial("SF2")+xNUM_DUP+xSERIE)
+		xCONDICAO := SF2->F2_COND
+
+		
+		DbSelectArea("SC6")
+		DbSetOrder(1)
+		DbSeek(xFilial()+xPEDVEN)
+		xSPEDIDO := SC6->C6_PEDCLI
+
+		dbSelectArea("SE4")                   // Condicao de Pagto
+		dbSetOrder(1)
+		dbSeek(xFilial("SE4")+xCONDICAO)
+		xDESC_PAG := SE4->E4_DESCRI
+
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³                                                              ³
+//³                         IMPRESSAO                            ³
+//³                                                              ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+	@ nLin,  003 PSay "X"
+	_L()
+	_L()
+	_L()
+	_L()
+	_L()
+	_L()
+        @ nLin, 001  PSay xEMISSAO
+        @ nLin, 011  PSay xSERIE+xNUM_DUP
+        @ nLin, 022  PSay xTOT_FAT picture "@e 999,999,999.99"
+        @ nLin, 040  PSay xNUM_DUP + "-" + xPARCELA
+        @ nLin, 052  PSay xVENCREA
+
+	_L()
+	_L()
+	_L()
+
+	 @ nLin, 022 PSay xDESC_PAG
+
+	_L()
+	_L()
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Impressao dos Dados do Cliente      ³          
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+	@ nLin,  52  PSay xCLIENTE
+	_L()
+	_L()
+	@ nLin,  19  PSay Substr(xNOME_CLI,1,40)  
+	_L()
+
+	@ nLIn,000 Psay chr(15)
+	@ nLin,  33  PSay Alltrim(xEND_CLI) + " - " + alltrim(xBAIRRO) 
+	@ nLIn,000 Psay chr(18)
+	@ nLin,  60  PSay xPREFIXO
+	@ nLin,  70  PSay AllTrim( xREPRESE1 )
+	_L()
+
+	@ nLin,  19  PSay xCEP Picture "@R 99999-999"
+	@ nLin,  32  PSay xMUN_CLI
+	@ nLin,  47  PSay xEST_CLI
+
+	@ nLIn,000 Psay chr(15)
+    @ nLin,  93  PSay xTEL   Picture "@R 99 999999999"
+	@ nLin, 120  PSay xPEDVEN
+	@ nLIn,000 Psay chr(18)
+	_L()
+	@ nLIn,000 Psay chr(15)
+	@ nLin,  33  PSay  aLLTRIM(xCOB_CLI) + " " + Alltrim(xBRCOB) + " " + Alltrim(xCEPCOBR) + " " + ALLTRIM(xEST_COB)
+	@ nLIn,000 Psay chr(18)
+	@ nLin,  68  PSay xSPEDIDO
+	_L()
+	If !EMPTY(xCGC_CLI)
+		@ nLin, 19  PSay xCGC_CLI Picture "@R 99.999.999/9999-99"
+	Endif
+	@ nLin,  47 PSay xINSC_CLI
+	_L()
+	_L()
+	xExtenso:=Extenso(xTOT_FAT,.F.,1)
+	xExtenso:=xExtenso+" "+Replicate("X",117-len(xExtenso))
+	xExtenso1:=substr(xExtenso,1,59)
+	xExtenso2:=substr(xExtenso,60,117)
+	@ nLin  , 20 PSay xExtenso1
+	_L()
+	@ nLin  , 20 PSay xExtenso2
+	_L()
+	_L()
+	_L()
+	@ nLin,  11 PSay "X"
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Termino da Impressao da Duplicata                            ³    
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	
+				//
+	nLin:=nLinIni+nTamNF    // Posiciona proximo formulario
+	p_cnt:=nTamNf           //
+
+	dbSelectArea("SE1")     //
+	//dbSetOrder(1)           // Reestabelece Area Principal de Pesquisa
+	dbSkip()                // e passa para a proxima Duplicata 
+	IncRegua()			//
+End
+Set SoftSeek Off
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³                                                              ³          
+//³                      FIM DA IMPRESSAO                        ³          
+//³                                                              ³          
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Fechamento do Programa da Duplicata                          ³          
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+@ nLin, 000 PSay " "+chr(18) // Descompressao de Impressao
+@ nLin, 000 PSay " "
+dbCommitAll()
+SetPrc(0,0)
+
+dbSelectArea("SE1")
+dbSetOrder(1)
+Set Device To Screen
+If aReturn[5] == 1
+	Set Printer TO 
+	dbcommitAll()
+	ourspool(wnrel)
+Endif
+MS_FLUSH()
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Fim do Programa                                              ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³                                                              ³
+//³                   FUNCOES ESPECIFICAS                        ³
+//³                                                              ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ VERIMP   ³ Autor ³   CHESTER BRAGA       ³ Data ³ 30/12/97 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Verifica posicionamento de papel na Impressora             ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ EXCLUSIVO                                                  ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Inicio da Funcao    ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+// Substituido pelo assistente de conversao do AP5 IDE em 27/07/02 ==> Function VerImp
+Static Function VerImp()
+
+nLin:= 0                // Contador de Linhas
+nLinIni:=0
+If aReturn[5]==2
+
+   nOpc       := 1
+	#IFNDEF WINDOWS
+	   cCor       := "B/BG"
+	#ENDIF
+   While .T.
+
+      SetPrc(0,0)
+      dbCommitAll()
+
+      @ nLin ,000 PSAY " "
+      @ nLin ,004 PSAY "*"
+      @ nLin ,022 PSAY "."
+		#IFNDEF WINDOWS
+	      Set Device to Screen
+	      DrawAdvWindow(" Formulario ",10,25,14,56)
+	      SetColor(cCor)
+	      @ 12,27 Say "Formulario esta posicionado?"
+	      nOpc:=Menuh({"Sim","Nao","Cancela Impressao"},14,26,"b/w,w+/n,r/w","SNC","",1)
+			Set Device to Print
+		#ELSE
+			IF MsgYesNo("Fomulario esta posicionado ? ")
+				nOpc := 1
+			ElseIF MsgYesNo("Tenta Novamente ? ")
+				nOpc := 2
+			Else
+				nOpc := 3
+			Endif
+		#ENDIF
+
+      Do Case
+         Case nOpc==1
+            lContinua:=.T.
+            Exit
+         Case nOpc==2
+            Loop
+         Case nOpc==3
+            lContinua:=.F.
+            Return
+      EndCase
+   End
+Endif
+
+Return
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Fim da Funcao       ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ LI       ³ Autor ³ Moacir Carvalho       ³ Data ³ 16/10/95 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Pula 1 linha                                               ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ Generico RDMAKE                                            ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Inicio da Funcao    ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+// Substituido pelo assistente de conversao do AP5 IDE em 27/07/02 ==> Function _L
+Static Function _L()
+
+nLin:=nLin+1
+
+Return
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Fim da Funcao       ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ

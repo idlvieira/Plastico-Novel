@@ -1,0 +1,716 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP5 IDE em 10/05/02
+#IFNDEF WINDOWS
+	#DEFINE PSAY SAY
+#ENDIF
+
+User Function Nfserv()        // incluido pelo assistente de conversao do AP5 IDE em 10/05/02
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Declaracao de variaveis utilizadas no programa atraves da funcao    ³
+//³ SetPrvt, que criara somente as variaveis definidas pelo usuario,    ³
+//³ identificando as variaveis publicas do sistema utilizadas no codigo ³
+//³ Incluido pelo assistente de conversao do AP5 IDE                    ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+SetPrvt("XQTD_VOL,XESP_VOL,CBTXT,CBCONT,NORDEM,ALFA")
+SetPrvt("Z,M,LINHA,TAMANHO,LIMITE,TITULO")
+SetPrvt("CDESC1,CDESC2,CDESC3,CNATUREZA,ARETURN,NOMEPROG")
+SetPrvt("CPERG,NLASTKEY,LCONTINUA,NLIN,WNREL,NTAMNF")
+SetPrvt("CSTRING,XCOD_FIL,XNOME_FIL,NLININI,XNUM_NF,XSERIE")
+SetPrvt("XEMISSAO,XTOT_FAT,XTIPONF,XLOJA,XVALOR_MERC,XNUM_DUPLIC")
+SetPrvt("XCOND_PAG,XTIPO,XBASE_ISS,XVALOR_ISS,XPED_VEND,XITEM_PED")
+SetPrvt("XNUM_NFDV,XPREF_DV,XCOD_PRO,XQTD_PRO,XPRE_UNI,XDESC")
+SetPrvt("XVAL_DESC,XVAL_MERC,XTES,XCF,XNATUREZA,XCFOP1")
+SetPrvt("XDESC_TOTAL,XCFOP,XCOD_TRIB,XCOD_FIS,XCLAS_FIS,XISS")
+SetPrvt("XTIPO_PRO,I,XPOS,XCONTADOR,XPED,ACHOU")
+SetPrvt("XDATA_PED,XCLIENTE,XTIPO_CLI,XCONDPAG,XDESC_NF,XDESC_PAG")
+SetPrvt("XDESC_PRO,J,XNOME_CLI,XEND_CLI,XSUFRAMA,XBAIRRO")
+SetPrvt("XBR_CLI,XCEP,XCEPPAG,XCOB_CLI,XREC_CLI,XMUN_CLI")
+SetPrvt("XEST_CLI,XCGC_CLI,XINSC_CLI,XTRAN_CLI,XTEL,XFAX")
+SetPrvt("XCIPAG,XMARCA,XVENC_DUP,XVALOR_DUP,XDUPLICATAS,FATOR")
+SetPrvt("COLUNA,XBARRA,XULTIMA,X,BB,NCOL")
+SetPrvt("NOPC,CCOR,XTAMDET,I2,")
+
+#IFNDEF WINDOWS
+// Movido para o inicio do arquivo pelo assistente de conversao do AP5 IDE em 10/05/02 ==> 	#DEFINE PSAY SAY
+#ENDIF
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡„o    ³  NOVEL   ³ Autor ³   Moacir Carvalho     ³ Data ³ 05/09/95 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡„o ³ Nota Fiscal para a NOVEL                          vers„o 1 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ Especifico SigaFatAdv NOVEL                                ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Arquivos  ³ SF2 - SA1 - SD2 - SB1 - SE1 - SC5 - SC6                    ³±±
+±±³Utilizados³                                                            ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³ALTERACAO ³  NOVEL   ³ Autor ³   CHESTER BRAGA       ³ Data ³ 10/05/97 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡„o ³ Alterar NF para impressao modelo servico                   ³±±
+±±³          ³                                                            ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+
+xQTD_VOL  := {0,0,0,0,0}
+xESP_VOL  := {" "," "," "," "," "}
+CbTxt:=""
+CbCont:=""
+nOrdem :=0
+Alfa := 0
+Z:=0
+M:=0
+linha:=0
+tamanho:="M" 
+limite:=132
+titulo :="Nota Fiscal Servicos"
+cDesc1 :="Este programa ira emitir a Nota Fiscal de Servico da Novel"
+cDesc2 :=""
+cDesc3 :=""
+cNatureza:="" 
+//aReturn := { "Especial", 1,"Administracao", 1, 2, 1,"",1 }
+aReturn := { "Especial", 1,"Administracao", 2, 2, 1,"",1 }
+nomeprog:="SERV" 
+cPerg:="MTR740"
+nLastKey:= 0 
+lContinua := .T.
+nLin:=0
+linha:=0
+z:=0
+wnrel    := "SERV"
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Tamanho do Formulario de Nota Fiscal (em Linhas)          ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+nTamNf:=65     // Apenas Informativo 
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Verifica as perguntas selecionadas, busca o padrao da Nfiscal           ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+Pergunte(cPerg,.F.)               // Pergunta no SX1
+
+cString:="SF2"
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Envia controle para a funcao SETPRINT                        ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+wnrel:=SetPrint(cString,wnrel,cPerg,Titulo,cDesc1,cDesc2,cDesc3,.F.,,,,,.F.)
+
+If nLastKey == 27
+   Return
+Endif
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Verifica Posicao do Formulario na Impressora                 ³          
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+SetDefault(aReturn,cString)
+
+If nLastKey == 27
+   Return
+Endif
+
+VerImp()       
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³                                                              ³
+//³ Inicio do Processamento da Nota Fiscal                       ³
+//³                                                              ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+#IFDEF WINDOWS
+	RptStatus({|| RptDetail()})// Substituido pelo assistente de conversao do AP5 IDE em 10/05/02 ==> 	RptStatus({|| Execute(RptDetail)})
+	Return
+// Substituido pelo assistente de conversao do AP5 IDE em 10/05/02 ==> 	Function RptDetail
+
+Static Function RptDetail()
+#ENDIF
+
+Limite:=132
+Tamanho:="M"
+@ 0,0 PSay AvalImp(limite)
+
+If mv_par03 <> "SRV"
+        MsgBox("Erro na opcao de parametros : Serie <> SRV","Serie Invalida","STOP")
+	Return
+EndIf
+
+If LastKey() == 27 
+	Return
+Endif
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Verifica Posicao do Formulario na Impressora                 ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+VerImp()
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³                                                              ³
+//³ Inicio do Processamento da Nota Fiscal                       ³
+//³                                                              ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Guarda Empresa que esta sendo emitido nota fiscal            ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+dbSelectArea("SF2")                // * Cabecalho da Nota Fiscal
+
+xCOD_FIL  := SM0->M0_CODIGO
+xNOME_FIL := SM0->M0_FILIAL
+
+dbSelectArea("SF2")                // * Cabecalho da Nota Fiscal
+dbSetOrder(1)  
+dbGoTop()
+dbSeek(xFilial()+mv_par01+mv_par03,.t.)
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Inicializa  regua de impressao                            ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	SetRegua(Val(mv_par02)-Val(mv_par01))
+	
+
+While !eof() .and. SF2->F2_DOC  <= mv_par02 .and. lContinua == .T.
+
+ If SF2->F2_SERIE  == mv_par03    // Verifica se a nota e de servico
+
+		nLinIni := Linha            // Armazema Linha Inicial da Impressao
+
+	#IFNDEF WINDOWS
+	      IF LastKey()==286
+		      @ 00,01 PSAY "** CANCELADO PELO OPERADOR **"
+	     	      lContinua := .F.
+	              Exit
+	      Endif
+	#ELSE
+ 	      IF lAbortPrint
+		      @ 00,01 PSAY "** CANCELADO PELO OPERADOR **"
+		      lContinua := .F.
+		      Exit
+	      Endif
+	#ENDIF
+
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Inicio de Levantamento dos Dados da Nota Fiscal              ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	
+	// Cabecalho da Nota Fiscal
+
+	  
+	xNUM_NF     := SF2->F2_DOC             // Numero
+	xSERIE      := SF2->F2_SERIE           // Serie
+	xEMISSAO    := SF2->F2_EMISSAO         // Data de Emissao
+	xTOT_FAT    := SF2->F2_VALFAT          // Valor Total da Fatura
+	xTIPONF     := SF2->F2_TIPO            // Tipo da Nota Fiscal
+	xLOJA       := SF2->F2_LOJA            // Loja do Cliente
+	xVALOR_MERC := SF2->F2_VALMERC         // Valor  da Mercadoria
+	xNUM_DUPLIC := SF2->F2_DUPL            // Numero da Duplicata
+	xCOND_PAG   := SF2->F2_COND            // Condicao de Pagamento
+	xTIPO       := SF2->F2_TIPO            // Tipo do Cliente
+	xBASE_ISS   := SF2->F2_BASEISS         // Base de ISS
+//	xVALOR_ISS  := xBASE_ISS * (3/100)
+	xVALOR_ISS  := SF2->F2_VALISS
+	
+	dbSelectArea("SD2")                // * Itens de Venda da Nota Fiscal
+	dbSetOrder(3)
+	dbSeek(xFilial()+xNUM_NF+xSERIE)
+	
+	xPED_VEND   := {}                         // Numero do Pedido de Venda
+	xITEM_PED   := {}                         // Numero do Item do Pedido de Venda
+	xNUM_NFDV   := {}                         // Numero quando houver devolucao
+	xPREF_DV    := {}                         // Serie  quando houver devolucao
+	xCOD_PRO    := {}                         // Codigo  do Produto
+	xQTD_PRO    := {}                         // Peso/Quantidade do Produto
+	xPRE_UNI    := {}                         // Preco Unitario de Venda
+	xDESC       := {}                         // Desconto por Item
+	xVAL_DESC   := {}                         // Valor do Desconto
+	xVAL_MERC   := {}                         // Valor da Mercadoria
+	xTES        := {}                         // TES
+	xCF         := {}                         // Classificacao quanto natureza da Operacao
+
+	xNatureza   := {}
+	xCfop1      := {}
+	xDesc_Total := 0
+
+	While !eof() .and. SD2->D2_DOC == xNUM_NF .and. D2_SERIE == mv_par03
+
+		AADD(xITEM_PED ,SD2->D2_ITEMPV)
+		AADD(xPED_VEND ,SD2->D2_PEDIDO)
+		AADD(xPREF_DV  ,SD2->D2_SERIORI)
+		AADD(xCOD_PRO  ,SD2->D2_COD)
+		AADD(xQTD_PRO  ,SD2->D2_QUANT)
+		AADD(xPRE_UNI  ,SD2->D2_PRCVEN)
+		AADD(xDESC     ,SD2->D2_DESC)
+		AADD(xVAL_MERC ,SD2->D2_TOTAL)
+		AADD(xTES      ,SD2->D2_TES)
+		AADD(xCF       ,SD2->D2_CF)
+		xCFOP  := xCF[Len(xCF)]
+		
+		dbskip()
+	
+	End
+
+	dbSelectArea("SB1")                // * Descricao Generica do Produto
+	dbSetOrder(1)
+	xCOD_TRIB := {}                           // Codigo de Tributacao
+	xCOD_FIS  := {}                           // Cogigo Fiscal
+	xCLAS_FIS := {}                           // Classificacao Fiscal
+	xISS      := {}                           // Aliquota de ISS
+	xTIPO_PRO := {}                           // Tipo do Produto
+	
+	I:=1
+	xPos:=0
+	
+	For xContador := 1 To Len( xCod_Pro )
+	
+		 dbSeek(xFilial()+xCOD_PRO[xContador])
+	
+		 AADD(xCOD_TRIB ,SB1->B1_ORIGEM)
+		 AADD(xCOD_FIS  ,SB1->B1_CLASFIS)
+		 AADD(xISS      ,SB1->B1_ALIQISS)
+
+	Next
+	
+	
+	dbSelectArea("SC5")                // * Pedidos de Venda
+	dbSetOrder(1)
+	
+	xPED:={}
+	Achou := .F.
+
+	For xContador := 1 To Len( xPed_Vend )
+	
+		 If !Achou
+		 
+			 dbSeek(xFilial()+xPED_VEND[xContador])
+	
+			 xDATA_PED   :=SC5->C5_EMISSAO            // Data de Emissao do pedido
+			 xCLIENTE    :=SC5->C5_CLIENTE            // Codigo do Cliente
+			 xTIPO_CLI   :=SC5->C5_TIPOCLI            // Tipo de Cliente
+			 xCONDPAG    :=SC5->C5_CONDPAG            // Condicao de Pagamento
+			 xDESC_NF := {SC5->C5_DESC1,;             // Desconto Global 1
+				 SC5->C5_DESC2,;             // Desconto Global 2
+				 SC5->C5_DESC3,;             // Desconto Global 3
+				 SC5->C5_DESC4}              // Desconto Global 4
+			 Achou := .T.
+
+		 EndIf
+
+		 AADD(xPED,xPED_VEND[I])
+
+	Next
+
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Pesquisa da Condicao de Pagto               ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+	dbSelectArea("SE4")
+	dbSetOrder(1)
+	dbSeek( xFilial() + xCONDPAG )
+	xDESC_PAG := SE4->E4_DESCRI
+
+	dbSelectArea("SC6")                    // * Itens de Pedido de Venda
+	dbSetOrder(1)
+	xDESC_PRO := {}                          // Descricao aux do produto
+	J:= Len(xPED_VEND)
+	For I:= 1 to J
+		 dbSeek(xFilial()+xPED_VEND[I]+xITEM_PED[I])
+		 AADD(xDESC_PRO,SC6->C6_DESCRI)
+		 xDESC_TOTAL := xDESC_TOTAL + SC6->C6_VALDESC
+	Next
+	
+	If xTIPO$"NVPCI"
+		
+		dbSelectArea("SA1")                // * Cadastro de Clientes
+		dbSetOrder(1)
+		dbSeek(xFilial()+xCLIENTE)
+		xNOME_CLI := SA1->A1_NOME               // Nome
+		xEND_CLI  := SA1->A1_END                // Endereco
+		xTIPO     := SA1->A1_TIPO               // Tipo
+		xSUFRAMA  := SA1->A1_CALCSUF            // Se e Suframdo
+		xBAIRRO   := SA1->A1_BAIRRO             // Bairro
+		xBR_CLI   := SA1->A1_BAIRROC            // Bairro Cobranca
+		xCEP      := SA1->A1_CEP                // CEP
+		xCEPPAG   := SA1->A1_CEPC               // Cep Cobr. CLiente
+		xCOB_CLI  := SA1->A1_ENDCOB             // Endereco de Cobranca
+		xREC_CLI  := SA1->A1_ENDENT             // Endereco de Entrega
+		xMUN_CLI  := SA1->A1_MUN                // Municipio
+		xEST_CLI  := SA1->A1_EST                // Estado
+		xCGC_CLI  := SA1->A1_CGC                // CGC
+		xINSC_CLI := SA1->A1_INSCR              // Inscricao estadual
+		xTRAN_CLI := SA1->A1_TRANSP             // Transportadora
+		xTEL      := SA1->A1_TEL                // Telefone
+		xFAX      := SA1->A1_FAX 
+		xCIPAG    := SA1->A1_MUNPAG             // Municipio de pagamento
+		xMARCA    := SA1->A1_MARCA              // Abreviacao do Nome Reduzido, Criado
+														  // a Partir de Solicitacao do Usuario.
+
+	Endif
+
+	dbSelectArea("SE1")                // * Contas a Receber
+	dbSetOrder(1)
+	
+	xVENC_DUP  :={}                      // Vencimento
+	xVALOR_DUP :={}                      // Valor
+	xDUPLICATAS:=IIF(dbSeek(xFilial()+xSERIE+xNUM_DUPLIC,.T.),.T.,.F.) // Flag p/Impressao de Duplicatas
+	
+	while !eof() .and. SE1->E1_NUM == xNUM_DUPLIC .and. xDUPLICATAS==.T. ;
+			  .and. SE1->E1_PREFIXO == mv_par03
+
+		AADD(xVENC_DUP ,SE1->E1_VENCTO)
+		AADD(xVALOR_DUP,SE1->E1_VALOR)
+		dbSkip()
+	End
+
+	dbSelectArea("SF4")                // * Tipos de Entrada e Saida
+	dbSetOrder(1)
+
+	For xContador := 1 To Len( xTes )
+		 
+		 DbSelectArea("SF4")
+		 DbSetOrder(1)
+	
+		 dbSeek(xFilial()+xTES[xContador])
+	
+		 Aadd(xNATUREZA,SF4->F4_TEXTO)  // Natureza da Operacao
+	
+		 DbSelectArea("SD2")
+		 DbSetOrder(3)
+		 DbSeek(xFilial("SD2")+xNUM_NF+xSERIE+xCF[xContador])
+		 Aadd(xCFOP1,xCF[xContador])
+
+	Next
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³                                                              ³
+//³                         IMPRESSAO                            ³
+//³                                                              ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	
+		//Compactacao da Impressora Para Impressao do Cabecalho
+
+	@ linha, 000 PSay chr(15)
+
+	 //ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	 //³  Fator := { 0.2 x [ 6/2 ] } + ( 50 - 40 )                    ³
+	 //ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+		  linha := linha + 1
+		  @ linha, 117 PSay xVALOR_MERC   Picture "@E@Z 99,999,999.99"
+
+                  linha := linha + 10
+
+	 //ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	 //³ Estas Condicoes Abaixo, sao Para a Impressao de Varios Tes   ³
+	 //³ Numa Unica Nota de Saida.                                    ³
+	 //ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		 
+	Coluna  := 2
+	xBarra  := ""
+	xUltima := ""
+	
+	For xContador := 1 To Len( xNatureza )
+
+		 If xUltima <> xNatureza[xContador]
+
+			 @ linha, Coluna PSay xBarra + AllTrim(SubStr(xNATUREZA[xContador],1,10))
+			 Coluna  := Coluna + Len( SubStr(xNatureza[xContador] ,1,10) )
+			 xBarra  := "/"
+			 xUltima := xNatureza[xContador]
+
+		 EndIf
+						
+	Next
+
+	Linha := Linha + 3
+	
+	@ linha, 002 PSay xNOME_CLI
+	
+	If !Empty(xCGC_CLI)
+		@ linha, 090 PSay xCGC_CLI Picture "@R 99.999.999/9999-99" // Linha 15
+	EndIf
+	
+	@ linha, 124 PSay xEMISSAO                                    // Linha 15
+	
+	linha:=Linha + 2
+	@ linha, 002 PSay xEND_CLI   // 17
+	@ linha, 070 PSay xBAIRRO    // 17
+	
+	If !Empty(xCEP)
+		@ linha, 101 PSay xCEP Picture "@R 99999-999" // 17
+	EndIf
+	
+	linha := linha + 2
+	@ linha, 002 PSay xMUN_CLI     //19
+	@ linha, 050 PSay ALLTRIM(xTEL) + " / " + xFAX 
+	@ linha, 080 PSay xEST_CLI     //19
+	@ linha, 088 PSay xINSC_CLI    //19
+	@ linha, 124 PSay Time()       //19
+
+	linha := linha + 3
+	
+	// DEVERAO SER INPRESSAS AS PARCELAS DAS DUPLICATAS
+
+	x := 1
+	BB:= 1
+
+	For x := 1 to 2
+
+		 nCol := 22
+		 DUPLIC()
+		 nCol := 60
+		 DUPLIC()
+		 nCol := 101
+		 DUPLIC()
+		 
+		 linha := linha + 1
+
+	Next
+	
+	linha := linha + 1
+
+	@ linha, 002 PSay ALLTRIM(xCOB_CLI) + " " + ALLTRIM(xBR_CLI) 
+	Linha := Linha + 1
+	@ linha, 002 PSay xCEPPAG PICTURE "@R 99999-999" 
+	@ Linha, 012 PSay ALLTRIM(xCIPAG) + "-" + ALLTRIM(xEST_CLI)
+	linha := linha + 5
+
+	ImpDet()
+	 
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Testa se Houve Desconto nos Itens da Nota.                   ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+	linha := linha + 1
+	
+	@ linha, 005 PSay xBASE_ISS  Picture "@E@Z 9,999,999.99"
+	@ Linha, 046 PSay xVALOR_ISS*100/xBASE_ISS "@E 9"
+	@ Linha, 047 PSay "%" 
+	@ linha, 062 PSay xVALOR_ISS Picture "@E@Z 9,999,999.99"
+	@ Linha, 098 PSay xVALOR_MERC   Picture "@E@Z 99,999,999.99"
+	  
+  //ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+  //³ Termino da Impressao da Nota Fiscal                          ³
+  //ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	
+	Linha := Linha + 11
+ 
+ EndIf 
+
+	dbSelectArea("SF2")     //
+	dbSetOrder(1)           // Reestabelece Area Principal de Pesquisa
+	dbSkip()                // e passa para a proxima Nota Fiscal
+	Incregua()
+End
+
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³                                                              ³
+//³                      FIM DA IMPRESSAO                        ³
+//³                                                              ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Fechamento do Programa da Nota Fiscal                        ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+@ Linha, 002 PSay " "+chr(18) // Descompressao de Impressao
+@ Linha, 002 PSay " "
+DbCommitAll()
+SetPrc(0,0)
+
+dbSelectArea("SF2")
+dbSetOrder(1)
+Set Device To Screen
+// RestScreen( 03, 00, 24, 79, cSavScr1 )
+If aReturn[5] == 1
+	Set Printer TO
+	dbcommitAll()
+	ourspool(wnrel)
+Endif
+
+MS_FLUSH()
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Fim do Programa                                              ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³                                                              ³
+//³                   FUNCOES ESPECIFICAS                        ³
+//³                                                              ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ VERIMP   ³ Autor ³   Moacir Carvalho     ³ Data ³ 05/09/95 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Verifica posicionamento de papel na Impressora             ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ NOVEL                                                      ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Inicio da Funcao    ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+// Substituido pelo assistente de conversao do AP5 IDE em 10/05/02 ==> Function VerImp
+Static Function VerImp()
+
+nLin:= 0                // Contador de Linhas
+nLinIni:=0
+If aReturn[5]==2
+
+   nOpc       := 1
+	#IFNDEF WINDOWS
+	   cCor       := "B/BG"
+	#ENDIF
+   While .T.
+
+      SetPrc(0,0)
+      dbCommitAll()
+
+      @ nLin ,000 PSAY " "
+      @ nLin ,004 PSAY "*"
+      @ nLin ,022 PSAY "."
+		#IFNDEF WINDOWS
+	      Set Device to Screen
+	      DrawAdvWindow(" Formulario ",10,25,14,56)
+	      SetColor(cCor)
+	      @ 12,27 Say "Formulario esta posicionado?"
+	      nOpc:=Menuh({"Sim","Nao","Cancela Impressao"},14,26,"b/w,w+/n,r/w","SNC","",1)
+			Set Device to Print
+		#ELSE
+			IF MsgYesNo("Fomulario esta posicionado ? ")
+				nOpc := 1
+			ElseIF MsgYesNo("Tenta Novamente ? ")
+				nOpc := 2
+			Else
+				nOpc := 3
+			Endif
+		#ENDIF
+
+      Do Case
+         Case nOpc==1
+            lContinua:=.T.
+            Exit
+         Case nOpc==2
+            Loop
+         Case nOpc==3
+            lContinua:=.F.
+            Return
+      EndCase
+   End
+Endif
+
+Return
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Fim da Funcao       ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ IMPDET   ³ Autor ³   Moacir Carvalho     ³ Data ³ 05/09/95 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Impressao de Linhas de Detalhe da Nota Fiscal              ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ NOVEL                                                      ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Inicio da Funcao    ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+// Substituido pelo assistente de conversao do AP5 IDE em 10/05/02 ==> Function IMPDET
+Static Function IMPDET()
+
+xTamDet := 25
+I2  := 1
+I   := 1
+
+For I := 1 to xTamDet
+	  
+	  If I2 <= Len( xITEM_PED )
+
+	 @ Linha, 002 PSay xDESC_PRO[I]
+	 @ Linha, 070 PSay xQTD_PRO[I]              Picture "@E@Z 99,999.99"
+	 @ Linha, 087 PSay xPRE_UNI[I]              Picture "@E@Z 99,999.99"
+	 @ Linha, 108 PSay xVAL_MERC[I]             Picture "@E@Z 99,999.99"
+
+	  EndIf  
+	 
+	  Linha := Linha + 1
+	  I2 := I2 + 1 
+
+Next
+
+Return
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Fim da Funcao       ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ DUPLIC   ³ Autor ³   Moacir Carvalho     ³ Data ³ 05/09/95 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Impressao do Parcelamento das Duplicacatas                 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ SIGAFAT NOVEL                                              ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Inicio da Funcao    ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+// Substituido pelo assistente de conversao do AP5 IDE em 10/05/02 ==> Function DUPLIC
+Static Function DUPLIC()
+
+If xDUPLICATAS == .T. .and. BB <= Len( xVALOR_DUP )
+	
+	@ Linha, nCol      PSay xVALOR_DUP[BB] Picture ("@E 999,999.99")
+	@ Linha, nCol+19   PSay xVENC_DUP[BB]
+
+Endif
+
+BB := BB + 1
+
+Return
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Fim da Funcao       ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ F I M   D E   P R O G R A M A                                ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ

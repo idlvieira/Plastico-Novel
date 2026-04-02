@@ -1,0 +1,137 @@
+00001#STR0001#ALL#Emissão dos pedidos de compras ou autorizações de entrega
+00002#STR0002#ALL#Registados e que ainda não foram impressos
+00003#STR0003#ALL#Emissão Dos Pedidos De Compras Ou Autorizações De Entrega
+00004#STR0004#ALL#Código de barras
+00005#STR0005#ALL#Administração
+00006#STR0006#ALL#Cancelado Pelo Operador
+00007#STR0007#ALL#D e s c o n t o s -->
+00008#STR0008#ALL#Local de entrega  : 
+00009#STR0009#ALL#CEP :
+00010#STR0010#ALL#Local de cobrança : 
+00011#STR0011#ALL#Condicao de Pagto 
+00012#STR0012#ALL#|data De Emissão|
+00013#STR0013#ALL#Total das mercadorias : 
+00014#STR0014#ALL#Reajuste :
+00015#STR0015#ALL#| IPI   :
+00016#STR0016#ALL#| Observações
+00017#STR0017#ALL#| grupo :
+00018#STR0018#ALL#| Total Geral : 
+00019#STR0019#ALL#|           Autorização Do Pedido
+00020#STR0020#ALL#| obs. do frete: 
+00021#STR0021#ALL#Comprador
+00022#STR0022#ALL#Gerência
+00023#STR0023#ALL#Diretoria
+00024#STR0024#ALL#| NOTA: So aceitaremos a mercadoria se na sua Nota Fiscal constar o numero do nosso Pedido de Compras.: 
+00025#STR0025#ALL#| Observacoes
+00026#STR0026#ALL#| Comprador    
+00027#STR0027#ALL#| Gerencia     
+00028#STR0028#ALL#| Diretoria    
+00029#STR0029#ALL#|   NOTA: So aceitaremos a mercadoria se na sua Nota Fiscal constar o numero da Autorizacao de Entrega.
+00030#STR0030#ALL#Continua ...
+00031#STR0031#ALL#| P E D I D O  D E  C O M P R A S
+00032#STR0032#ALL#| A U T.   D E   E N T R E G A   
+00033#STR0033#ALL# - continuacao
+00034#STR0034#ALL#a.Emissao 
+00035#STR0035#ALL#a.VIA
+00036#STR0036#ALL# I.E.: 
+00037#STR0037#ALL#TEL: 
+00038#STR0038#ALL#FAX: 
+00039#STR0039#ALL#CNPJ: 
+00040#STR0040#ALL#CNPJ: 
+00041#STR0041#ALL#IE: 
+00042#STR0042#ALL#FONE: 
+00043#STR0043#ALL#
+00044#STR0044#ALL#Codigo      
+00045#STR0045#ALL#|Descricao do Material
+00046#STR0046#ALL#|UM|  Quant.
+00047#STR0047#ALL#|Valor Unitario|IPI  |  Valor Total   | Entrega  |  C.C.              | S.C. |
+00048#STR0048#ALL#|Valor Unitario|  Valor Total   | Entrega  | Numero da OP  ou  CC 
+00049#STR0049#ALL#| Frete :
+00050#STR0050#ALL#      P E D I D O   L I B E R A D O
+00051#STR0051#ALL#     P E D I D O   B L O Q U E A D O 
+00052#STR0052#ALL#Comprador Responsavel :
+00053#STR0053#ALL#Compradores Alternativos :
+00054#STR0054#ALL#Aprovador(es) :
+00055#STR0055#ALL#|Valor Unitario|IPI  |  Valor Total   | Entrega  |  C.C.   | S.C. |
+00056#STR0056#ALL#|Valor Unitario|      Valor Total     | Entrega  |  C.C.              | S.C. |
+00057#STR0057#ALL#|Valor Unitario|      Valor Total     | Entrega  |  C.C.   | S.C. |
+00058#STR0058#ALL#| Despesas :
+00059#STR0059#ALL#| SEGURO :
+00060#STR0060#ALL#BLQ:Bloqueado
+00061#STR0061#ALL#Ok:Liberado
+00062#STR0062#ALL#??:Aguar.Lib
+00063#STR0063#ALL#Total dos Impostos:    
+00064#STR0064#ALL#Total com Impostos:    
+00065#STR0065#ALL#OP 
+00066#STR0066#ALL#CC 
+00067#STR0067#ALL###:Nivel Lib
+00068#STR0068#ALL#P E D I D O  D E  C O M P R A S
+00069#STR0069#ALL#A U T O R I Z A C A O  D E  E N T R E G A
+00070#STR0070#ALL#Data de Emissao
+00071#STR0071#ALL#IPI      :
+00072#STR0072#ALL#ICMS     :
+00073#STR0073#ALL#Frete    :
+00074#STR0074#ALL#Despesas :
+00075#STR0075#ALL#Grupo    :
+00076#STR0076#ALL#SEGURO   :
+00077#STR0077#ALL#Observacoes 
+00078#STR0078#ALL#Total Geral :
+00079#STR0079#ALL#Liberacao do Pedido
+00080#STR0080#ALL#Obs. do Frete: 
+00081#STR0081#ALL#NOTA: So aceitaremos a mercadoria se na sua Nota Fiscal constar o numero do nosso Pedido de Compras.
+00082#STR0082#ALL#Legendas da Aprovacao : 
+00083#STR0083#ALL#NOTA: So aceitaremos a mercadoria se na sua Nota Fiscal constar o numero da Autorizacao de Entrega.
+00084#STR0084#ALL#Liber. Autorizacao 
+00085#STR0085#ALL#AUTORIZACAO DE ENTREGA LIBERADA    
+00086#STR0086#ALL#AUTORIZACAO DE ENTREGA BLOQUEADA   
+00087#STR0087#ALL#Empresa:
+00088#STR0088#ALL#Endereco:
+00089#STR0089#ALL#CEP:
+00090#STR0090#ALL#Cidade:
+00091#STR0091#ALL#UF:
+00092#STR0092#ALL#TEL:
+00093#STR0093#ALL#FAX:
+00094#STR0094#ALL#FONE:
+00095#STR0095#ALL#Ins. Estad.:
+00096#STR0096#ALL#CNPJ/CPF:
+00097#STR0097#ALL#Descricao
+00098#STR0098#ALL#Valor Unitario
+00099#STR0099#ALL#Valor Total
+00100#STR0100#ALL#Numero da OP ou CC
+00101#STR0101#ALL#Continua na Proxima Pagina .... 
+00102#STR0102#ALL#Pedido de Compras / Autorização de Entrega
+00103#STR0103#ALL#Pedido de Compras / Autorização de Entrega (Produtos)
+00104#STR0104#ALL#Atenção
+00105#STR0105#ALL#Verifique os parâmetros definidos para esse relatório no configurador para o usuário corrente.
+00106#STR0106#ALL#Razão Social:
+00107#STR0107#ALL#Codigo:
+00108#STR0108#ALL#Loja:
+00109#STR0109#ALL#Bairro:
+00110#STR0110#ALL#Municipio:
+00111#STR0111#ALL#Estado:
+00112#STR0112#ALL#CEP:
+00113#STR0113#ALL#CNPJ/CPF:
+00114#STR0114#ALL#FAX:
+00115#STR0115#ALL#UM
+00116#STR0116#ALL#Dt. Entrega
+00117#STR0117#ALL#Entrega
+00118#STR0118#ALL#2a.UM
+00119#STR0119#ALL#% IPI
+00120#STR0120#ALL#Quant.
+00121#STR0121#ALL#C.C.
+00122#STR0122#ALL#S.C.
+00123#STR0123#ALL#Nro.SC
+00124#STR0124#ALL#CNPJ/CPF
+00125#STR0125#ALL#O pedido de compras chegou ao seu limite de reemissões.
+00126#STR0126#ALL#Reimprimir 99ª emissão
+00127#STR0127#ALL#Voltar a 1ª emissão
+00128#STR0128#ALL#Cancelar
+00129#STR0129#ALL#PC / AE
+00130#STR0130#ALL#A Novel do Brasil somente recebe materiais e/ou serviços cujo a emissão dos documentos fiscais (NF-e e arquivo xml) esteja, dentro do mês corrente."
+00131#STR0031B#ALL#Se constatarem no momento na pesagem do material de 0,5% para mais ou menos a NF será recusada e o material será devolvido com o frete por vossa conta.
+00132#STR0132#ALL#HORARIO     DE     DESCARGA     NA      MYERS     08:00     AS     17:00     HORAS.
+00133#STR0133#ALL#| A MYERS do Brasil somente recebe materiais e/ou serviços cujo a emissão dos documentos fiscais (NF-e e arquivo xml) esteja,
+00134#STR0134#ALL#| dentro do mês corrente. Se constatarem no momento na pesagem do material de 0,5% para mais ou menos a NF será recusada e o 
+00135#STR0135#ALL#| material será devolvido com o frete por vossa conta.
+00136#STR0136#ALL#| HORARIO     DE     DESCARGA     NA      MYERS     08:00     AS     17:00     HORAS.
+00137#STR0137#ALL#POLITICA: O grupo NOVEL, informar que conf. nossa política de controles, os pagamentos só serão realizados nos dias 10 e 25 de cada mês.

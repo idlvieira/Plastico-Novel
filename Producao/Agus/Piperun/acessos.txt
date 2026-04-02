@@ -1,0 +1,13 @@
+﻿Novel
+IP Servidores
+Aplicação: 10.8.3.5
+Banco: 10.8.3.2
+
+Acesso Protheus
+Usuário: piperun
+Senha: novel10
+
+produção
+Link: https://app.pipe.run/v2/login?referer=%2Fpipeline 
+Login: leandro@agusconsultoria.com.br
+Senha: @Novel123

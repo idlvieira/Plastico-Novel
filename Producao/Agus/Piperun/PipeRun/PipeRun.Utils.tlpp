@@ -1,0 +1,426 @@
+#include 'tlpp-core.th'
+
+namespace PipeRun.utils
+
+#define BASE_URL    SUPERGETMV("ES_PORTAL", .F., "https://api.pipe.run") // url base
+#define TOKEN       "c53697da076fbc5928803181d19d8444" //token
+#define SUCCESS     "200"
+#define CRLF        chr(13) + chr(10)
+#define MAX_ERROR_SIZE  100
+#define MAX_DET_ERROR_SIZE  200
+
+/*/{Protheus.doc} getRestObject
+    Retorna um objeto FWRest genérico para integração com PipeRun
+    @type  Function
+    @author Lucas Silva Vieira
+    @since 05/01/2024
+    @version 1.0
+    @return oRest, object, instância da classe FWRest
+/*/
+user function getRestObject() as object
+	local oRest as object // instância da classe FWRest
+
+	oRest := FWRest():new(BASE_URL)
+	oRest:setChkStatus(.T.)
+
+return oRest
+
+/*/{Protheus.doc} getBaseHeader
+    Retorna um array com headers base para requisições
+    @type  Function
+    @author Lucas Silva Vieira
+    @since 05/01/2024
+    @version 1.0
+    @return aHeader, array, header base
+/*/
+user function getBaseHeader() as array
+	local aHeader as array // header base
+
+	aHeader := {}
+	aAdd(aHeader, "Accept: application/json")
+	aAdd(aHeader, "token: " + TOKEN )
+	aAdd(aHeader, "Content-Type: application/json; charset=utf-8")
+
+return aHeader
+
+/*/{Protheus.doc} ValidToken
+    Retorna token
+    @type  Function
+    @author Lucas Silva Vieira
+    @since 05/01/2024
+    @version 1.0
+    @return lToken, logical, token valido?
+/*/
+user function ValidToken()
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath            := "/v1/auth"                                    as character
+	local cStatus          := ""                                            as character
+	local cBodyStr         := ""                                            as character
+	local cError           := ""                                            as character
+	local oReturn          := Nil                                           as object
+	local lToken           := .T.                                           as logical
+
+	oRest:setPath(cPath)
+
+	if (oRest:get(aHeader))
+
+		cStatus  := oRest:getHttpCode()
+		cBodyStr := oRest:getResult()
+		oReturn := JsonObject():new()
+		cError := oReturn:fromJson(cBodyStr)
+
+		if cStatus == SUCCESS
+			if (oReturn:hasProperty('message'))
+				if oReturn['message'] == "OK"
+					lToken := .F.
+				endif
+			endif
+		else
+			FWAlertError("ERROR: "+cStatus)
+			lToken := .F.
+		endif
+	else
+		FWAlertError("ERROR: Não possivel estabelecer a conexão!" + CRLF + "Verifique os parâmetros de conexão.")
+		lToken := .F.
+	endif
+
+return lToken
+
+/*/{Protheus.doc} GetCodCity
+    Retorna codigo da cidade
+    @type  Function
+    @author Lucas Silva Vieira
+    @since 05/01/2024
+    @version 1.0
+	@param cUF,   character, sigla do estado
+	@param cCity, character, Nome da cidade
+    @return nCodCity, numeric, codigo da cidade
+/*/
+user function GetCodCity(cUF, cCity) as numeric
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath            := "/v1/cities"                                  as character
+	local cParam 		   := ""                                            as character
+	local cStatus          := ""                                            as character
+	local cBodyStr         := ""                                            as character
+	local nCodCity		   := 0                                             as numeric
+
+	cParam := "?name="+cCity+"&uf="+cUF
+
+	oRest:setPath(cPath+cParam)
+
+	if (oRest:get(aHeader))
+		cStatus  := oRest:getHttpCode()
+		cBodyStr := oRest:getResult()
+		oReturn := JsonObject():new()
+		cError := oReturn:fromJson(cBodyStr)
+
+		if cStatus == SUCCESS
+			if (oReturn:hasProperty('message'))
+				if oReturn['message'] == "OK" .AND. oReturn:hasProperty('data') .AND. len(oReturn['data']) > 0
+					nCodCity := oReturn['data'][01]['id']
+				else
+					conOut("ERROR: Cidade Não Localizada")
+				endif
+			endif
+		else
+			conOut("ERROR: "+cStatus)
+		endif
+	endif
+
+return nCodCity
+
+user function GetCompany(cCNPJ)
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath            := "/v1/companies"                               as character
+	local cParam 		   := ""                                            as character
+	local cStatus          := ""                                            as character
+	local cBodyStr         := ""                                            as character
+	local nCompany 		   := 0 											as numeric
+
+	cParam := "?cnpj="+cCNPJ
+
+	oRest:setPath(cPath+cParam)
+
+	if (oRest:get(aHeader))
+		cStatus  := oRest:getHttpCode()
+		cBodyStr := oRest:getResult()
+		oReturn := JsonObject():new()
+		cError := oReturn:fromJson(cBodyStr)
+
+		if cStatus == SUCCESS
+			if (oReturn:hasProperty('message'))
+				if oReturn['message'] == "OK" .AND. oReturn:hasProperty('data') .AND. len(oReturn['data']) > 0
+					nCompany := oReturn['data'][01]['id']
+				else
+					conOut("ERROR: CNPJ não localizado!")
+				endif
+			endif
+		else
+			conOut("ERROR: "+cStatus)
+		endif
+	endif
+return nCompany
+
+/*/{Protheus.doc} GetCodUser
+    Retorna codigo do usuario
+    @type  Function
+    @author Lucas Silva Vieira
+    @since 11/01/2024
+    @version 1.0
+    @return nCodCity, numeric, codigo da cidade
+/*/
+user function GetCodUser(cName) as numeric
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath            := "/v1/users"                                    as character
+	local cParam 		   := ""                                            as character
+	local cStatus          := ""                                            as character
+	local cBodyStr         := ""                                            as character
+	local nCodUser		   := 0                                             as numeric
+
+	cParam := "?name="+cName
+
+	oRest:setPath(cPath+cParam)
+
+	if (oRest:get(aHeader))
+		cStatus  := oRest:getHttpCode()
+		cBodyStr := oRest:getResult()
+		oReturn := JsonObject():new()
+		cError := oReturn:fromJson(cBodyStr)
+
+		if cStatus == SUCCESS
+			if (oReturn:hasProperty('message'))
+				if oReturn['message'] == "OK" .AND. len(oReturn['data']) > 0
+					nCodUser := oReturn['data'][01]['id']
+				endif
+			endif
+		else
+			FWAlertError("ERROR: "+cStatus)
+			lToken := .F.
+		endif
+	endif
+
+return nCodUser
+
+/*/{Protheus.doc} compSit
+    Função para retornar uma lista de opções da situação da empresa
+    @author Lucas da Silva Vieira
+    @since 01/02/2024
+    @version 1.0
+    @type function
+/*/
+User Function compSit()
+	Private cCompSit := ""
+	cCompSit := "1=Carteira de Clientes;"+;
+		"2=Download de Catálogo;"+;
+		"3=E-mail;"+;
+		"4=Feiras;"+;
+		"5=Fornecedores/Clientes de Cliente;"+;
+		"6=Ligação;"+;
+		"7=Prospecção;"+;
+		"8=Redes Sociais;"+;
+		"9=Site;"+;
+		"10=WhatsApp;"
+Return cCompSit
+
+/*/{Protheus.doc} compSit
+    Função para retornar uma lista de opções da situação da empresa
+    @author Lucas da Silva Vieira
+    @since 01/02/2024
+    @version 1.0
+    @type function
+/*/
+User Function returnOrigins()
+	Private cOrigins := ""
+	cOrigins := "486973=INATIVO;"+;
+		"422579=Fornecedores/Clientes de Cliente;"+;
+		"421754=Feiras;"+;
+		"421753=Prospecção;"+;
+		"421752=Download de Catálogo;"+;
+		"421751=WhatsApp;"+;
+		"421750=Ligação;"+;
+		"421749=Site;"+;
+		"421748=Redes Sociais;"+;
+		"359221=E-mail;"+;
+		"359220=Carteira de Clientes;"
+Return cOrigins
+
+/*/{Protheus.doc} GetCodSegment
+    Retorna codigo do seguimento do cliente
+    @type  Function
+    @author Lucas Silva Vieira
+    @since 01/02/2024
+    @version 1.0
+    @return nCodSegment, numeric, codigo da cidade
+/*/
+user function GetCodSegment(cSegment) as numeric
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath            := "/v1/segments"                                as character
+	local cParam 		   := ""                                            as character
+	local cStatus          := ""                                            as character
+	local cBodyStr         := ""                                            as character
+	local cDesc 		   := ""											as character
+	local nCodSegment	   := 0                                             as numeric
+
+	dbSelectArea("ZZZ")
+	cDesc := Posicione("ZZZ", 1, xFilial("ZZZ")+"FAT000005"+Right(cSegment,3), "ZZZ_RETORN")
+
+	cParam := "?name="+Alltrim(cDesc)
+
+	oRest:setPath(cPath+cParam)
+
+	if (oRest:get(aHeader))
+		cStatus  := oRest:getHttpCode()
+		cBodyStr := oRest:getResult()
+		oReturn := JsonObject():new()
+		cError := oReturn:fromJson(cBodyStr)
+
+		if cStatus == SUCCESS
+			if (oReturn:hasProperty('message'))
+				if oReturn['message'] == "OK" .AND. len(oReturn['data']) > 0
+					nCodSegment := oReturn['data'][01]['id']
+				endif
+			endif
+		else
+			FWAlertError("ERROR: "+cStatus)
+			lToken := .F.
+		endif
+	endif
+
+return nCodSegment
+
+/*/{Protheus.doc} GetCodCnae
+    Retorna codigo do cnae do cliente
+    @type  Function
+    @author Lucas Silva Vieira
+    @since 01/02/2024
+    @version 1.0
+    @return nCodSegment, numeric, codigo da cidade
+/*/
+user function GetCodCnae(cCnae) as numeric
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath            := "/v1/cnaes"                                   as character
+	local cParam 		   := ""                                            as character
+	local cStatus          := ""                                            as character
+	local cBodyStr         := ""                                            as character
+	local nCodCnae	       := 0                                             as numeric
+
+	cParam := "?code="+substr(cCnae,0,2)+"."+substr(cCnae,3,2)+"-"+substr(cCnae,6,1)+"-"+substr(cCnae,8,2)
+
+	oRest:setPath(cPath+cParam)
+
+	if (oRest:get(aHeader))
+		cStatus  := oRest:getHttpCode()
+		cBodyStr := oRest:getResult()
+		oReturn := JsonObject():new()
+		cError := oReturn:fromJson(cBodyStr)
+
+		if cStatus == SUCCESS
+			if (oReturn:hasProperty('message'))
+				if oReturn['message'] == "OK" .AND. len(oReturn['data']) > 0
+					nCodCnae := oReturn['data'][01]['id']
+				endif
+			endif
+		else
+			FWAlertError("ERROR: "+cStatus)
+			lToken := .F.
+		endif
+	endif
+
+return nCodCnae
+
+user function SincPropesct()
+	Local cTemp			:= ""	As Character
+	Local cQuery 		:= ""   As Character
+	//Local codPropesct	:= ""	As Character
+	//Local Lojapropesct  := ""	As Character
+	//Local cType 		:= "F"  As Character
+	Local oStatement 	:= nil  As Object
+
+	cQuery := "SELECT  SA1.A1_COD, SA1.A1_LOJA " +;
+		"FROM " + RetSqlName("SUA") + "SUA" +;
+		"INNER JOIN " + RetSqlName("SA1") + " SA1 ON SA1.A1_COD = SUA.UA_CLIENTE AND SA1.A1_LOJA = SUA.UA_LOJA AND SA1.D_E_L_E_T_ = '' " +;
+		"WHERE SUA.D_E_L_E_T_ = '' " +;
+		"AND UA_PROSPEC = ? " +;
+		"GROUP BY SA1.A1_COD, SA1.A1_LOJA "
+
+	oStatement := FWPreparedStatement():New()
+	oStatement:SetQuery(cQuery)
+	oStatement:SetString(1,xFilial("ZZ1"))
+	oStatement:SetString(2,__EmpAbast)
+
+	cQuery := oStatement:GetFixQuery()
+	cTemp := mpsysopenquery(cQuery)
+	cTimeStamp 	:= substr(Alltrim((cTemp)->MAX_TIME),1,10)+substr(Alltrim((cTemp)->MAX_TIME),12,5)
+
+	if empty(cTimeStamp)
+		cTimeStamp := "2023-10-0100:00"
+	endif
+return
+
+user function SincCodCity()
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath            := "/v1/cities"                                  as character
+	local oReturn 		   := JsonObject():new()							as object
+	local cStatus          := ""                                            as character
+	local cBodyStr         := ""                                            as character
+	local cView 		   := ""											as character
+	local cError 		   := ""											as character
+
+	cView := getCity()
+	
+	dbSelectArea('CC2')
+	while (cView)->(!Eof())
+		oRest:setPath(cPath+"?name="+escape(allTrim((cView)->CC2_MUN))+"&uf="+allTrim((cView)->CC2_EST))
+		if (oRest:get(aHeader))
+			cStatus  := oRest:getHttpCode()
+			cBodyStr := oRest:getResult()
+			oReturn:fromJson(cBodyStr)
+			if cStatus == SUCCESS
+				if (oReturn:hasProperty('message'))
+					if oReturn['message'] == "OK" .AND. oReturn:hasProperty('data') .AND. len(oReturn['data']) > 0
+						CC2->(dbSetOrder(1)) //CC2_FILIAL+CC2_EST+CC2_CODMUN 	
+						if CC2->(dbSeek(FwXFilial('CC2')+(cView)->CC2_EST+(cView)->CC2_CODMUN))
+							if empty(CC2->CC2_IDCITY)
+								RecLock('CC2', .F.)
+								CC2->CC2_IDCITY := cValToChar(oReturn['data'][1]['id'])
+								CC2->(msUnlock())
+							endIf	
+						endIf
+					endif
+				endif
+			endif
+		else
+			cStatus  := oRest:getHttpCode()
+			cBodyStr := oRest:getResult()
+			cError += BASE_URL+cPath+"?name="+alltrim(lower((cView)->CC2_MUN))+"&uf="+alltrim(lower((cView)->CC2_EST)) + CRLF
+		endif
+		(cView)->(dbSkip())
+	endDo
+	if !empty(cError)
+		ShowLog(cError)
+	endIf
+return 
+
+static function getCity()
+	local cQuery 		:= ""				as character
+	local oStatement 	:= Nil				as object
+	local cView			:= ""				as character
+
+	cQuery := "SELECT CC2_EST, CC2_MUN, CC2_CODMUN " + CRLF
+	cQuery += "FROM " + RetSqlName('CC2') + CRLF
+	cQuery += "WHERE D_E_L_E_T_ = ' '  " + CRLF
+
+	oStatement := FWPreparedStatement():New(cQuery)
+	cQuery := oStatement:GetFixQuery()
+	cView  := mpsysopenquery(cQuery)
+
+	freeObj(oStatement)
+
+return cView

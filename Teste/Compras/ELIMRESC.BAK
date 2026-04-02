@@ -1,0 +1,57 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP6 IDE em 18/03/04
+
+User Function ELIMRESC()        // incluido pelo assistente de conversao do AP6 IDE em 18/03/04
+
+/*/
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±³ Programa ³ ELIMRESC  ³ Autor ³   Eliene Cerqueira   ³ Data ³ 11.11.04 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Elimina pedidos de compra com residuo                      ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Compras                                                    ³±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+
+SetPrvt("CPROG1,AROTINA,CCADASTRO")
+
+wPed:=Space(6)
+wItem:=Space(2)
+@ 0,0 TO 120,210 DIALOG oDlg5 TITLE "Elimina Pedidos de Compra com resíduo"
+@ 3,5 TO 35,100
+
+@ 12,14 SAY "Nº Pedido : "
+@ 22,14 SAY "Item      : "
+
+@ 12,60 GET  wPed   SIZE 40,20 PICTURE X3Picture("C7_NUM")  VALID NaoVazio() F3 "SC7"
+@ 22,60 GET  wItem  SIZE 40,20 PICTURE X3Picture("C7_ITEM") VALID NaoVazio()
+
+@ 40,40 BMPBUTTON TYPE 1 ACTION OkProc1()// Substituido pelo assistente de conversao do AP6 IDE em 23/03/04 ==> @ 105,155 BMPBUTTON TYPE 1 ACTION Execute(OkProc2)
+@ 40,70 BMPBUTTON TYPE 2 ACTION Close(oDlg5)
+ACTIVATE DIALOG oDlg5 CENTER
+
+Return
+
+****************
+// Substituido pelo assistente de conversao do AP6 IDE em 23/03/04 ==> Function OkProc2
+Static Function OkProc1()
+****************
+DbSelectArea("SC7")
+DbSetOrder(1) // C7_NUM+C7_ITEM+C7_SEQUEN
+Dbgotop()
+DbSeek(xFilial("SC7")+wPed+wItem,.T.)
+While !EOF() .AND. C7_NUM = wPed .AND. C7_ITEM = wItem
+  If C7_QUJE<>0
+     Reclock("SC7",.F.)
+     C7_QUANT:=C7_QUJE
+     C7_RESIDUO:=" "
+     Dbunlock()     
+  Endif
+  If C7_QUJE=0
+     Reclock("SC7",.F.)
+     SC7->( DBDELETE( ) )
+     Dbunlock()
+  Endif
+  DbSkip()
+End
+Close(oDlg5)
+Return

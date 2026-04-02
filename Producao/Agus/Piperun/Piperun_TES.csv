@@ -1,0 +1,93 @@
+filial;cod;cod_fiscal;descricao
+  ;501;5101;Venda de produção do estabelecimento
+  ;502;5101;Venda de produção do estabelecimento
+  ;503;5101;Venda de produção do estabelecimento
+  ;505;5101;Venda de produção do estabelecimento
+  ;506;5101;Venda de produção do estabelecimento
+  ;507;5101;Venda de produção do estabelecimento
+  ;509;5101;Venda de produção do estabelecimento
+  ;50B;5101;Venda de produção do estabelecimento
+  ;50C;5101;Venda de produção do estabelecimento
+  ;50D;5101;Venda de produção do estabelecimento
+  ;50E;5101;Venda de produção do estabelecimento
+  ;50F;5101;Venda de produção do estabelecimento
+  ;50H;5101;Venda de produção do estabelecimento
+  ;50I;5101;Venda de produção do estabelecimento
+  ;50K;5101;Venda de produção do estabelecimento
+  ;50L;5101;Venda de produção do estabelecimento
+  ;50M;5101;Venda de produção do estabelecimento
+  ;50P;5101;Venda de produção do estabelecimento
+  ;50Q;5101;Venda de produção do estabelecimento
+  ;50R;5101;Venda de produção do estabelecimento
+  ;50S;5101;Venda de produção do estabelecimento
+  ;50Z;5101;Venda de produção do estabelecimento
+  ;999;5101;Venda de produção do estabelecimento
+  ;XXI;5101;Venda de produção do estabelecimento
+  ;510;5102;Venda de mercadoria adquirida ou recebida de terceiros
+  ;511;5102;Venda de mercadoria adquirida ou recebida de terceiros
+  ;512;5102;Venda de mercadoria adquirida ou recebida de terceiros
+  ;513;5102;Venda de mercadoria adquirida ou recebida de terceiros
+  ;514;5102;Venda de mercadoria adquirida ou recebida de terceiros
+  ;519;5102;Venda de mercadoria adquirida ou recebida de terceiros
+  ;51A;5102;Venda de mercadoria adquirida ou recebida de terceiros
+  ;51B;5102;Venda de mercadoria adquirida ou recebida de terceiros
+  ;51C;5102;Venda de mercadoria adquirida ou recebida de terceiros
+  ;51D;5102;Venda de mercadoria adquirida ou recebida de terceiros
+  ;51E;5102;Venda de mercadoria adquirida ou recebida de terceiros
+  ;51F;5102;Venda de mercadoria adquirida ou recebida de terceiros
+  ;51I;5102;Venda de mercadoria adquirida ou recebida de terceiros
+  ;51J;5102;Venda de mercadoria adquirida ou recebida de terceiros
+  ;555;5102;Venda de mercadoria adquirida ou recebida de terceiros
+  ;9ZZ;5102;Venda de mercadoria adquirida ou recebida de terceiros
+  ;50U;5106;Venda de mercadoria adquirida ou recebida de terceiros, que não deva por ele transitar 
+  ;50V;5106;Venda de mercadoria adquirida ou recebida de terceiros, que não deva por ele transitar 
+  ;50Y;5106;Venda de mercadoria adquirida ou recebida de terceiros, que não deva por ele transitar 
+  ;573;5109;Venda de produção do estabelecimento destinada à ZFM ou ALC
+  ;580;5118;Venda de produção do estabelecimento entregue ao destinatário por conta e ordem do adquirente originário, em venda à ordem
+  ;581;5118;Venda de produção do estabelecimento entregue ao destinatário por conta e ordem do adquirente originário, em venda à ordem
+  ;584;5118;Venda de produção do estabelecimento entregue ao destinatário por conta e ordem do adquirente originário, em venda à ordem
+  ;585;5118;Venda de produção do estabelecimento entregue ao destinatário por conta e ordem do adquirente originário, em venda à ordem
+  ;586;5118;Venda de produção do estabelecimento entregue ao destinatário por conta e ordem do adquirente originário, em venda à ordem
+  ;518;5119;Venda de mercadoria adquirida ou recebida de terceiros entregue ao destinatário por conta e ordem do adquirente originário, em venda à ordem
+  ;582;5119;Venda de mercadoria adquirida ou recebida de terceiros entregue ao destinatário por conta e ordem do adquirente originário, em venda à ordem
+  ;583;5120;Venda de mercadoria adquirida ou recebida de terceiros entregue ao destinatário pelo vendedor remetente, em venda à ordem
+  ;587;5120;Venda de mercadoria adquirida ou recebida de terceiros entregue ao destinatário pelo vendedor remetente, em venda à ordem
+  ;588;5120;Venda de mercadoria adquirida ou recebida de terceiros entregue ao destinatário pelo vendedor remetente, em venda à ordem
+  ;589;5120;Venda de mercadoria adquirida ou recebida de terceiros entregue ao destinatário pelo vendedor remetente, em venda à ordem
+  ;560;5124;Industrialização efetuada p/ outra empresa
+  ;561;5124;Industrialização efetuada p/ outra empresa
+  ;562;5124;Industrialização efetuada p/ outra empresa
+  ;563;5124;Industrialização efetuada p/ outra empresa
+  ;565;5124;Industrialização efetuada p/ outra empresa
+  ;566;5124;Industrialização efetuada p/ outra empresa
+  ;51H;5251;Venda de energia elétrica p/ distribuição ou comercialização
+  ;50A;5401;Venda de produção do estabelecimento quando o produto esteja sujeito a ST
+  ;50N;5401;Venda de produção do estabelecimento quando o produto esteja sujeito a ST
+  ;50T;5401;Venda de produção do estabelecimento quando o produto esteja sujeito a ST
+  ;591;5501;Remessa de produção do estabelecimento, com fim específico de exportação
+  ;520;5551;Venda de bem do ativo imobilizado
+  ;51G;5656;Venda de combustível ou lubrificante, adquiridos ou recebidos de terceiros, destinados a consumidor ou usuário final
+  ;541;5922;Lançamento efetuado a título de simples faturamento decorrente de venda p/ entrega futura
+  ;793;5922;Lançamento efetuado a título de simples faturamento decorrente de venda p/ entrega futura
+  ;79H;5922;Lançamento efetuado a título de simples faturamento decorrente de venda p/ entrega futura
+  ;5A2;5933;Prestação de serviço tributado pelo Imposto Sobre Serviços de Qualquer Natureza
+  ;550;5949;Outra saída de mercadoria ou prestação de serviço não especificado
+  ;551;5949;Outra saída de mercadoria ou prestação de serviço não especificado
+  ;552;5949;Outra saída de mercadoria ou prestação de serviço não especificado
+  ;553;5949;Outra saída de mercadoria ou prestação de serviço não especificado
+  ;554;5949;Outra saída de mercadoria ou prestação de serviço não especificado
+  ;556;5949;Outra saída de mercadoria ou prestação de serviço não especificado
+  ;557;5949;Outra saída de mercadoria ou prestação de serviço não especificado
+  ;5A0;5949;Outra saída de mercadoria ou prestação de serviço não especificado
+  ;50O;6107;Venda de produção do estabelecimento, destinada a não contribuinte
+  ;570;6109;Venda de produção do estabelecimento destinada à ZFM ou ALC
+  ;571;6109;Venda de produção do estabelecimento destinada à ZFM ou ALC
+  ;574;6109;Venda de produção do estabelecimento destinada à ZFM ou ALC
+  ;504;7101;Venda de produção do estabelecimento
+  ;50J;7101;Venda de produção do estabelecimento
+  ;50X;7101;Venda de produção do estabelecimento
+  ;515;7102;Venda de mercadoria adquirida ou recebida de terceiros
+  ;516;7102;Venda de mercadoria adquirida ou recebida de terceiros
+  ;517;7102;Venda de mercadoria adquirida ou recebida de terceiros
+  ;590;7102;Venda de mercadoria adquirida ou recebida de terceiros
+  ;592;7949;Outra saída de mercadoria ou prestação de serviço não especificado

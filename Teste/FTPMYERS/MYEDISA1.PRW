@@ -1,0 +1,127 @@
+#INCLUDE "PROTHEUS.CH"
+#INCLUDE "TOPCONN.CH"
+#INCLUDE "TBICONN.CH"  
+/*                       
+        
+
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³MYEDISA1  ºAutor  ³Mario F. Silveira   º Data ³  15/07/06   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³ Geração do arquivo TXT para o cadastro de clientes.        º±±
+±±º          ³                                                            º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ GENÉRICO.                                                  º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+USER FUNCTION MYEDISA1() 
+
+  Local cNameFil := "cifnov1.txt"
+  
+  Local oFilTXT
+  Local cQuery
+  Local oFTP
+  Local oEmail
+  Local cTexto := ""
+  
+  Prepare Environment Empresa "01" Filial "01" TABLES "SA1"
+  
+ oFilTXT  := GRVTXT():New( cNameFil )
+  If !(oFilTXT:CRIARTXT())
+    Return
+  Endif
+  
+  dbSelectArea("SA1")
+  dbSelectArea("SX5")
+  
+  cQuery := " SELECT "
+  cQuery += "   A1.A1_COD , A1.A1_LOJA , LEFT(A1.A1_NOME,40) A1_NOME , LEFT(A1.A1_END,40) A1_END , "
+  cQuery += "   LEFT(A1.A1_ENDCOB,40) A1_ENDCOB , LEFT(A1.A1_ENDREC,40) A1_ENDREC , LEFT(A1.A1_ENDENT,40) A1_ENDENT , "
+  cQuery += "   A1_ENDCOB='' , A1_ENDREC='' , A1_ENDENT='',"
+  cQuery += "   A1.A1_MUN , A1.A1_CEP , A1.A1_ZZPAIS , "
+  cQuery += "   X5_DESCRI "
+  cQuery += " FROM "
+  cQuery += "   "+ RetSQLName("SA1") +" A1 INNER JOIN "+ RetSQLName("SX5") +" X5 ON "
+  cQuery += "   X5.X5_FILIAL = '"+ xFILIAL("SX5") +"' AND X5.X5_TABELA = '12' AND "
+  cQuery += "   X5.X5_CHAVE = A1.A1_EST AND X5.D_E_L_E_T_ = ' ' "
+  cQuery += " WHERE "
+  cQuery += "   A1.A1_FILIAL = '"+ xFILIAL("SA1") +"' AND A1.D_E_L_E_T_ = ' ' "
+  cQuery += " ORDER BY "
+  cQuery += "   A1.A1_COD , A1.A1_LOJA "
+  TcQuery cQuery Alias TSA1 New
+  TSA1->(dbGoTop())
+  While !(TSA1->(EOF()))
+
+    /*  
+    **************************************************
+    **              Layout do TXT                   **
+    **************************************************
+    ** Customer - Number	Alphanumeric  -    30   **
+    ** Name     - Alphanumeric	          -    40   **
+    ** Address  - Line 1 Alphanumeric	  -    40   **
+    ** Address  - Line 2 Alphanumeric	  -    40   **
+    ** Address  - Line 3 Alphanumeric	  -    40   **
+    ** Address  - Line 4 Alphanumeric	  -    40   **
+    ** City	    - Alphanumeric	          -    40   **
+    ** State	- Alphanumeric	          -    40   **
+    ** Zip	    - Alphanumeric	          -    20   **
+    ** Country  - Alphanumeric	          -    40   **
+    **************************************************
+    */   
+  
+/*    oFilTXT:INCLINHA( TSA1->A1_COD+TSA1->A1_LOJA+SPACE(22) ;
+                     +Alltrim(TSA1->A1_NOME)   +SPACE((40 - Len(Alltrim(TSA1->A1_NOME))))    ;
+                     +Alltrim(TSA1->A1_END)    +SPACE((40 - Len(Alltrim(TSA1->A1_END))))     ;
+                     +Alltrim(TSA1->A1_ENDCOB) +SPACE((40 - Len(Alltrim(TSA1->A1_ENDCOB))))  ;
+                     +Alltrim(TSA1->A1_ENDREC) +SPACE((40 - Len(Alltrim(TSA1->A1_ENDREC))))  ;
+                     +Alltrim(TSA1->A1_ENDENT) +SPACE((40 - Len(Alltrim(TSA1->A1_ENDENT))))  ;
+                     +Alltrim(TSA1->A1_MUN)    +SPACE((40 - Len(Alltrim(TSA1->A1_MUN))))     ;
+                     +Alltrim(TSA1->X5_DESCRI) +SPACE((40 - Len(Alltrim(TSA1->X5_DESCRI))))  ;
+                     +Alltrim(TSA1->A1_CEP)    +SPACE((20 - Len(Alltrim(TSA1->A1_CEP))))     ;
+                     +Alltrim(TSA1->A1_ZZPAIS) +SPACE((40 - Len(Alltrim(TSA1->A1_ZZPAIS))))  ;
+                    )  */
+                                               
+                    
+                    
+    oFilTXT:INCLINHA(TSA1->A1_COD+TSA1->A1_LOJA+CHR(9)  ;                      
+    				 +Alltrim(TSA1->A1_NOME)   +CHR(9)  ;
+                     +Alltrim(TSA1->A1_END)    +CHR(9)  ;
+                     +""                       +CHR(9)  ;
+                     +""                       +CHR(9)  ;
+                     +""                       +CHR(9)  ;
+                     +Alltrim(TSA1->A1_MUN)    +CHR(9)  ;
+                     +Alltrim(TSA1->X5_DESCRI) +CHR(9)  ;
+                     +Alltrim(TSA1->A1_CEP)    +CHR(9)  ;
+                     +Alltrim(TSA1->A1_ZZPAIS) +SPACE((40 - Len(Alltrim(TSA1->A1_ZZPAIS))))  ;
+                    )   
+  
+    TSA1->(dbSkip())
+  Enddo
+  TSA1->(dbCloseArea())
+  
+  If !(oFilTXT:FECHATXT())
+    Return
+  Endif
+  
+  Conout("Início da transmissão para o FTP: "+ DTOS(dDataBase) + " Hr " + Time())
+  //oFTP := CONEXFTP():NEW( "208.178.227.188" , , "cifmdb1" , "mdb1cif" , ) Modificado em 26/01/07 por Michel  
+  //oFTP := CONEXFTP():NEW( "67.36.254.44" , , "cifmdb1" , "mdb1cif" , )  
+  oFTP := CONEXFTP():NEW( GETMV("MV_ZZEDFTP") , GETMV("MV_ZZPTFTP") , GETMV("MV_ZZUSFTP") , GETMV("MV_ZZPWFTP") , )
+  oFTP:CONECTAR()
+  oFTP:DELARQ( cNameFil )
+  If oFTP:UPLOAD( "\system\"+cNameFil , cNameFil )
+    oEmail := CONEMAIL():NEW( GETMV("MV_RELSERV") , GETMV("MV_RELACNT") , GETMV("MV_RELPSW") )  
+    If oEmail:CONECTAR()
+      cTexto := " Arquivo do diretório \system\"+ cNameFil +" foi copiado para o ftp: 67.36.254.44/"+ cNameFil +". "+DTOC(dDataBase) + " Hr " + Time()
+      oEmail:EnviarMail( GETMV("MV_RELACNT") , GETMV("MV_ZZEMFTP") , , , "Log. de Upload : "+ DTOC(dDatabase) , cTexto)    
+      oEmail:DESCONEC()
+    Endif  
+  Endif
+  oFTP:DESCONEC()
+  Conout("Término da transmissão para o FTP: "+ DTOS(dDataBase) + " Hr " + Time())
+  
+  Reset Environment
+RETURN

@@ -1,0 +1,550 @@
+#INCLUDE "rwmake.ch"
+
+User Function ETIQAUT()
+
+/*/
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ºPrograma  ³ ETIQAUT   º Autor ³ 				     º Data ³  23/12/02   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDescricao ³ IMPRESSAO DE ETIQUETAS AUTOMATICAS PELO PEDIDO             º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ FATURAMENTO                                                º±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+Private cString
+Private aOrd         := {}
+Private CbTxt        := ""
+Private cDesc1       := "Este programa tem como objetivo imprimir relatorio "
+Private cDesc2       := "de acordo com os parametros informados pelo usuario."
+Private cDesc3       := "Relacao de Etiquetas"
+Private cPict        := ""
+Private lEnd         := .F.
+Private lAbortPrint  := .F.
+Private limite       := 132
+Private tamanho      := "M"
+Private nomeprog     := "ETIQAUT" // Coloque aqui o nome do programa para impressao no cabecalho
+Private nTipo        := 15
+Private aReturn      := { "Zebrado", 1, "Administracao", 2, 2, 1, "", 1}
+Private nLastKey     := 0
+Private cPerg        := "NOV004"
+Private titulo       := "Relacao de Etiquetas" 
+
+Private nLin         := 1
+private TQtdVen      := 0
+Private Cabec1       := ""
+Private Cabec2       := ""
+Private cbtxt        := Space(10)
+Private cbcont       := 00
+Private CONTFL       := 01
+Private m_pag        := 01
+Private imprime      := .T.
+Private wnrel        := "ETIQAUT" // Coloque aqui o nome do arquivo usado para impressao em disco
+Private nomeant      := Space(35)  // para pegar nome anterior do produto no caso capacete e
+                  
+Private auxetq1      :=0                      
+Private auxetq2      :=0
+Private QtdCarneiras :=0    
+Private QtdETQCAR    :=0                    
+Private cString      := "SC6"
+Private NUMPED       := Space(6)
+nEmbalCar := 0
+dbSelectArea("SC6")
+dbSetOrder(1)
+dbGotop()
+Recomeco := "S"
+
+pergunte(cPerg,.T.)
+
+//	wnrel := SetPrint(cString,NomeProg,cPerg,@titulo,cDesc1,cDesc2,cDesc3,.F.,aOrd,.F.,Tamanho,,.F.)
+wnrel:=SetPrint(cString,wnrel,cPerg,Titulo,cDesc1,cDesc2,cDesc3,.F.,,,,,.F.)
+
+If nLastKey == 27
+   Return
+Endif
+
+SetDefault(aReturn,cString)
+
+If nLastKey == 27
+   Return
+Endif
+nTipo := If(aReturn[4]==1,15,18)
+
+RptStatus({|| RunReport(Cabec1,Cabec2,Titulo,nLin) },Titulo)
+
+Return
+
+Static Function RunReport(Cabec1,Cabec2,Titulo,nLin)
+Local nOrdem
+
+@ 0,0 PSay AvalImp(limite)
+
+If !Empty(MV_PAR01)
+   EtiqPed(MV_PAR01)
+Else
+   xPED := {}
+   dbSelectArea("SC6")
+   dbSetOrder(9) // romaneio+pedido+item
+   dbSeek(xFilial("SC6")+MV_PAR02,.F.)	
+   While !EOF() .AND. C6_ROMAN=MV_PAR02
+      If ( aScan(xPED,C6_NUM)==0 )
+         Aadd(xPED,C6_NUM)
+      EndIf
+	  SC6->(dbSkip()) // Avanca o ponteiro do registro no arquivo
+   Enddo
+   Tam:=Len(xPED)
+   For I:=1 to Tam           
+      EtiqPed(xPED[I])
+   Next
+
+Endif
+DbCommitAll()
+
+SetPrc(0,0)
+SET DEVICE TO SCREEN
+
+If aReturn[5]==1
+	dbCommitAll()
+	SET PRINTER TO
+	OurSpool(wnrel)
+Endif
+
+SetPgEject(.F.)
+
+MS_FLUSH()
+
+Return
+
+Static Function EtiqPed(NUMPED)
+	dbSelectArea("SC5")
+	dbSetOrder(1)
+	if !DBSEEK(XFILIAL()+NUMPED)
+		return
+	ELSE
+		cCliente    := SC5->C5_CLIENTE
+		cLoja       := SC5->C5_LOJAENT
+		dbSelectArea("SA1")
+		dbSetOrder(1)
+		DBSEEK(XFILIAL()+cCliente+cLoja)
+		cNome       := SA1->A1_NOME
+	    If  !Empty(SA1->A1_CEPE)
+			cCEPE   := SA1->A1_CEPE
+		Else
+			cCEPE   := SA1->A1_CEP
+		Endif
+		cTel        := SA1->A1_TEL        
+	    If  !Empty(SA1->A1_ENDENT)
+	  		cEndEnt := SA1->A1_ENDENT
+	  	Else
+	  		cEndEnt := SA1->A1_END
+	  	Endif
+	  	If  !Empty(SA1->A1_BAIRROE)
+	  		cBairroe := SA1->A1_BAIRROE
+	  	Else
+	  		cBairroe := SA1->A1_BAIRRO
+	  	Endif
+	  	If !Empty(SA1->A1_MUNE)
+			cMune	 := SA1->A1_MUNE
+		Else
+			cMune    := SA1->A1_MUN
+		Endif
+		If !Empty(SA1->A1_ESTE)
+	   		ceste	 := SA1->A1_ESTE
+	    Else
+	        ceste    := SA1->A1_EST
+	    Endif
+	 Endif
+    AcessaSC6(NUMPED)
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ SETREGUA -> Indica quantos registros serao processados para a regua ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	SetRegua(RecCount())
+	nQtdVen  := 0
+	nQtdEmb  := 0
+	xCalc1   := 0
+	xCalc2   := 0
+	nQtdEtq  := 0
+
+// IMPRIME CLASSE 031 e 035
+	Grupo33 := 0
+    AcessaSC6(NUMPED)
+  	SetRegua(RecCount())
+	nQtdven1 := 0
+	While sc6->(!EOF()) .and. sc6->c6_num <= NUMPED
+		dbSelectArea("SB1")
+		dbSetOrder(1)     
+		dbgotop()
+		DBSEEK(XFILIAL()+SC6->C6_PRODUTO,.T.)
+		If  trim(SB1->B1_CLASSE1) = "031" .or. trim(SB1->B1_CLASSE1) = "035" .or. trim(SB1->B1_CLASSE1) = "039"
+			nQtdEmb  := SB1->B1_QE    // QUANTIDADE POR EMBALAGEM
+			nQtdVen1 := nQtdVen1 + SC6->C6_QTDVEN // quantidade de itens nos produtos
+			cDesc := SB1->B1_DESC
+		Endif
+		SC6->(dbSkip()) // Avanca o ponteiro do registro no arquivo
+	End       
+	Imprime_grupo(NUMPED)
+
+// IMPRIME CLASSE 033
+	AcessaSC6(NUMPED)
+	nQtdven1 := 0
+	While sc6->(!EOF()) .and. sc6->c6_num <= NUMPED
+		dbSelectArea("SB1")
+		dbSetOrder(1)
+		dbgotop()
+		DBSEEK(XFILIAL()+SC6->C6_PRODUTO,.T.)
+		If  trim(SB1->B1_CLASSE1) = "033" 
+		    Grupo33 := 1
+			nQtdEmb  := SB1->B1_QE    // QUANTIDADE POR EMBALAGEM
+			nQtdVen1 := nQtdVen1 + SC6->C6_QTDVEN // quantidade de itens nos produtos
+			cDesc := SB1->B1_DESC
+		Endif
+		SC6->(dbSkip()) // Avanca o ponteiro do registro no arquivo
+	End                           
+	Imprime_grupo(NUMPED)        
+//
+// IMPRIME CLASSE 034 - CONE 500
+//  
+	AcessaSC6(NUMPED)
+	nQtdven1 := 0
+	While sc6->(!EOF()) .and. sc6->c6_num <= NUMPED
+		dbSelectArea("SB1")
+		dbSetOrder(1)
+		dbgotop()
+		DBSEEK(XFILIAL()+SC6->C6_PRODUTO,.T.)
+		If  trim(SB1->B1_CLASSE1) = "034" 
+		    Grupo33 := 1
+			nQtdEmb  := SB1->B1_QE    // QUANTIDADE POR EMBALAGEM
+			nQtdVen1 := nQtdVen1 + SC6->C6_QTDVEN // quantidade de itens nos produtos
+			cDesc := SB1->B1_DESC
+		Endif
+		SC6->(dbSkip()) // Avanca o ponteiro do registro no arquivo
+	End                           
+	Imprime_grupo(NUMPED)                           
+//
+// IMPRIME CLASSE 036, 037, 038 - CONE 750
+//
+	AcessaSC6(NUMPED)
+	nQtdven1 := 0
+	While sc6->(!EOF()) .and. sc6->c6_num <= NUMPED
+		dbSelectArea("SB1")
+		dbSetOrder(1)
+		dbgotop()
+		DBSEEK(XFILIAL()+SC6->C6_PRODUTO,.T.)
+		If  trim(SB1->B1_CLASSE1) = "036" .or.  trim(SB1->B1_CLASSE1) = "037" .or. trim(SB1->B1_CLASSE1) = "038"
+		    Grupo33 := 1
+			nQtdEmb  := SB1->B1_QE    // QUANTIDADE POR EMBALAGEM
+			nQtdVen1 := nQtdVen1 + SC6->C6_QTDVEN // quantidade de itens nos produtos
+			cDesc := SB1->B1_DESC
+		Endif
+		SC6->(dbSkip()) // Avanca o ponteiro do registro no arquivo
+	End                           
+	Imprime_grupo(NUMPED)                           
+//
+	Imp_outros(NUMPED)
+//
+// Ler carneiras do Pedido  CLASSE 032
+    AcessaSC6(NUMPED)
+	qtde_car := 0
+	While sc6->(!EOF()) .and. sc6->c6_num <= NUMPED
+		dbSelectArea("SB1")
+		dbSetOrder(1)
+		dbgotop()
+		DBSEEK(XFILIAL()+SC6->C6_PRODUTO,.T.)
+		If  trim(SB1->B1_CLASSE1) = "031" 
+			nQtdEmbcar := SB1->B1_QE    // QUANTIDADE POR EMBALAGEM
+			nEmbalCar:=SB1->B1_QE
+			qtde_car := qtde_car + SC6->C6_QTDVEN // quantidade de itens nos produtos
+			cDesc := SB1->B1_DESC
+		Endif  
+		If  trim(SB1->B1_CLASSE1) = "032" 
+			nQtdEmbcar := SB1->B1_QE    // QUANTIDADE POR EMBALAGEM
+			nEmbalCar:=SB1->B1_QE
+			qtde_car := qtde_car + SC6->C6_QTDVEN // quantidade de itens nos produtos
+			cDesc := SB1->B1_DESC
+		Endif
+		
+		If  trim(SB1->B1_CLASSE1) = "035" 
+			nQtdEmbcar := SB1->B1_QE    // QUANTIDADE POR EMBALAGEM
+			nEmbalCar:=SB1->B1_QE
+			qtde_car := qtde_car + SC6->C6_QTDVEN // quantidade de itens nos produtos
+			cDesc := SB1->B1_DESC
+		Endif
+
+		If  trim(SB1->B1_CLASSE1) = "039" 
+			nQtdEmbcar := SB1->B1_QE    // QUANTIDADE POR EMBALAGEM
+			nEmbalCar:=SB1->B1_QE
+			qtde_car := qtde_car + SC6->C6_QTDVEN // quantidade de itens nos produtos
+			cDesc := SB1->B1_DESC
+		Endif
+
+		SC6->(dbSkip()) // Avanca o ponteiro do registro no arquivo
+	End                         
+	If  qtde_car > 0
+	    IF MOD( Qtde_car,nqtdEmbcar ) > 0
+	       qtdetqcar := INT( Qtde_car / nqtdEmbcar )+1
+	    ELSE
+	       qtdetqcar := ( Qtde_car / nqtdEmbcar )   
+	    ENDIF   
+	Endif
+//  Imprime as Carneiras
+	ImpCarneiras(NUMPED)                                 
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Finaliza a execucao do relatorio...                                 ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+return      
+
+//
+//  Acessa SC6
+//
+Static Function	AcessaSC6(NUMPED)
+	dbSelectArea("SC6")
+	dbSetOrder(1)
+	dbGotop()
+	if !DBSEEK(XFILIAL()+NUMPED)
+		return
+	endif
+Return nil
+
+//
+//  Imprime o grupo
+//
+Static Function Imprime_grupo(NUMPED)
+  IF  Nqtdven1 > 0   
+	xCalc1   := ROUND( nQtdVen1 / nQtdEmb,0)
+	xCalc2   := ROUND( (nQtdVen1 / nQtdEmb) + .5, 0 )
+	nQtdEtq  := Iif( xCalc1 * nQtdEmb == nQtdVen1, xCalc1, xCalc2 )
+	xAux5 := 0    // Inicializa contador de Etiquetas impressas
+	Setregua(nQtdEtq)
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Inicia loop de Impressao das Etqtas  ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	While xAux5 <  nQtdEtq  //numero de etiquetas a serem impressas
+		ImpCabec()
+		@ nLin,02 PSay NUMPED
+		If xCalc1 <> Int(xCalc1)
+		   xCalc1 := Int(xCalc1)+1
+		Endif
+		//renata 270203
+		@ nLin,12 Psay nQtdetq Picture "@E 999"
+		@ nlin,16 Psay "VOL/"
+		@ nLin,20 Psay ROUND((nQtdVen1/nQtdetq),0) 
+		@ nLin,24 Psay "UN/CX"
+
+		@ nLin,31 PSay substr(cDesc,1,35)
+
+	    If xAux5 = nQtdEtq - 1
+ 	       SC6->(dbSkip())
+ 	       If sc6->c6_num <= NUMPED
+ 	          nLin := nLin + 7
+ 	       Else               
+   	          nLin := nLin + 7//6
+    	   Endif
+    	   SC6->(dbSkip(-1))   
+		ElseIf xAux5 < nQtdEtq - 1 
+    	   nLin := nLin + 7         
+		Endif  
+
+		xAux5 := xAux5 + 1       
+		IncRegua()   
+    	@ nLin, 000 PSAY " "//CHR(18)
+	Enddo           
+
+	nomeant := cDesc
+	If  Grupo33 = 0
+        qtdCarneiras := ( nqtdetq / 2 )     
+    Endif
+	cDesc := nomeant 		         
+  Endif
+
+Return nil         
+
+//
+//  Data : 12/08/02
+//  Rotina para imprimir carneiras
+//  ============================================  //     
+Static Function ImpCarneiras(NUMPED)
+    nSaldo  := qtde_car
+/*
+			xCalc1   := ROUND( nQtdVen / nQtdEmb,0)
+			xCalc2   := ROUND( (nQtdVen / nQtdEmb) + .5, 0 )
+			nQtdEtq  := Iif( xCalc1 * nQtdEmb == nQtdVen, xCalc1, xCalc2 )
+
+*/
+
+    auxetq1 :=  qtdetqcar //( qtdCarneiras + qtdetqcar ) 
+	if auxetq1 < 1 .and. auxetq1 > 0
+	   auxetq1 := 1
+	endif        
+	auxetq2 := 0//1
+
+  	If Auxetq1 <> Int(AuxEtq1)
+	   Auxetq1 := Int(Auxetq1)+1
+    Endif 
+
+//    auxetq1 := Iif(mod(auxetq1,2)=0,auxetq1,auxetq1+.5)
+//          xCalc1   := ROUND( qtde_car / nEmbalcar,0)
+//	      xCalc2   := ROUND( (qtde_car / nEmbalcar) + .5, 0 )
+//	      nQtdEtq  := Iif( xCalc1 * nEmbalcar == qtde_car, xCalc1, xCalc2 )
+    
+    dbSelectArea("SB1")
+    dbsetOrder(1)
+    dbseek(xFilial()+"10103240001")
+    nEmbalcar := SB1->B1_QE
+    cDesc := "CARNEIRA PARA CAPACETE INC-00"
+            
+    nQtdEtq := Int(nSaldo/SB1->B1_QE)
+    If mod(nSaldo,SB1->B1_QE) <> 0
+//       If nQtdEtq = 1
+          nQtdEtq := nQtdEtq + 1
+//       Else
+//          nQtdEtq := nQtdEtq// + 1
+ //      Endif   
+    Endif
+
+    
+    while auxetq2 < nQtdEtq //auxetq1 
+        If nSaldo>0
+          IncRegua()         
+         
+          // Incluido por Monica em 27/06/03
+//          xCalc1   := ROUND( qtde_car / nEmbalcar,0)
+//	      xCalc2   := ROUND( (qtde_car / nEmbalcar) + .5, 0 )
+//	      nQtdEtq  := Iif( xCalc1 * nEmbalcar == qtde_car, xCalc1, xCalc2 )
+          
+          
+          if Grupo33 = 0
+             qtdCarneiras := nQtdEtq    
+          endif   
+
+          ImpCabec()
+	      @ nLin,02 PSay NUMPED    
+    	  //RENATA 270203            
+//    	  If nSaldo < nEmbalCar
+//         	  @ nLin,12 Psay 1 Picture "@E 999"
+//          Else	  
+//    	      @ nLin,12 Psay qtdCarneiras Picture "@E 999"
+    	      @ nLin,12 Psay nQtdEtq Picture "@E 999"
+//    	  Endif
+    	 
+		  @ nlin,16 Psay "VOL/"
+    	  If nSaldo < nEmbalCar
+         	  @ nLin,20 Psay ROUND(nSaldo,0)//qtdCarneiras*
+          Else	  
+    	      @ nLin,20 Psay ROUND(nEmbalCar,0)//qtdCarneiras*
+    	  Endif
+    	  nSaldo := nSaldo - nEmbalCar    
+          @ nLin,24 Psay "UN/CX"
+          
+    	  @ nLin,31 PSay substr(cDesc,1,35)   
+   	      If auxetq2 = nQtdEtq - 1 //auxetq1 - 1
+		 	       SC6->(dbSkip())
+		 	       If sc6->c6_num < NUMPED
+		 	          nLin := nLin + 7
+		 	       Else 
+		 	       //a ultima etiqueta impressa tem que passar por aqui  
+		    	      nLin := nLin + 6//re
+		    	   Endif
+		    	   SC6->(dbSkip(-1))   
+
+    	  ElseIf auxetq2 < nQtdEtq -1 //auxetq1
+    	     nLin := nLin + 7                   
+    	  Endif  
+        
+        Else
+          
+		Endif
+	    auxetq2 := auxetq2 + 1
+		@ nLin, 000 PSAY " "//CHR(18)
+	
+	End
+
+Return nil
+
+//
+// Imprime outros Grupos   
+//
+Static Function Imp_outros(NUMPED)
+	dbSelectArea("SC6")
+	dbSetOrder(1)
+	DBGOTOP()
+	if !DBSEEK(XFILIAL()+NUMPED)
+		return
+	endif
+   
+	While sc6->(!EOF()) .and. sc6->c6_num <= NUMPED
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Verifica o cancelamento pelo usuario...                             ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		If lAbortPrint
+			@nLin,00 PSAY "*** CANCELADO PELO OPERADOR ***"
+			Exit
+		Endif
+		nQtdVen  := SC6->C6_QTDVEN // quantidade de itens nos produtos
+		dbSelectArea("SB1")
+		dbSetOrder(1)
+		dbgotop()
+		DBSEEK(XFILIAL()+SC6->C6_PRODUTO)
+		If  SB1->B1_CLASSE1 <> "031" .and. SB1->B1_CLASSE1 <> "033" .and. SB1->B1_CLASSE1 <> "035" .and. ;
+			SB1->B1_CLASSE1 <> "032" .and. SB1->B1_CLASSE1 <> "034".and. SB1->B1_CLASSE1 <> "036" ;
+			.and. SB1->B1_CLASSE1 <> "037" .and. SB1->B1_CLASSE1 <> "038" .and. SB1->B1_CLASSE1 <> "039"
+			nQtdEmb  := SB1->B1_QE    // QUANTIDADE POR EMBALAGEM
+			cDesc    := left(SB1->B1_DESC,len(rtrim(SB1->B1_DESC))-5)
+			xCalc1   := ROUND( nQtdVen / nQtdEmb,0)
+			xCalc2   := ROUND( (nQtdVen / nQtdEmb) + .5, 0 )
+			nQtdEtq  := Iif( xCalc1 * nQtdEmb == nQtdVen, xCalc1, xCalc2 )
+			xAux5 := 0    // Inicializa contador de Etiquetas impressas
+			Setregua(nQtdEtq)
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Inicia loop de Impressao das Etqtas  ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+			While xAux5 <  nQtdEtq  //numero de etiquetas a serem impressas
+			    Impcabec()
+				@ nLin,02 PSay NUMPED
+                //renata 270203
+				@ nLin,12 Psay nQtdEtq Picture "999"
+				@ nLin,16 Psay "VOL/"
+				@ nLin,20 Psay ROUND((nQtdVen/nQtdEtq),0)
+                @ nLin,24 Psay "UN/CX"
+				@ nLin,31 PSay substr(cDesc,1,35)
+		 	    If xAux5 = nQtdEtq - 1
+		 	       SC6->(dbSkip())
+		 	       If sc6->c6_num = NUMPED
+		 	          nLin := nLin + 7
+		 	       Else   
+  	    	          nLin := nLin + 6//re
+		    	   Endif
+		    	   SC6->(dbSkip(-1))   
+    			ElseIf xAux5 < nQtdEtq - 1
+		    	   nLin := nLin + 7         
+    			Endif  
+
+				xAux5 := xAux5 + 1       
+				IncRegua()
+			Enddo
+	    Endif               
+	    
+	    @ nLin, 000 PSAY " "//CHR(18)  renata
+		SC6->(dbSkip()) // Avanca o ponteiro do registro no arquivo
+	EndDo   
+		
+Return nil
+// Imprime Cabecalho da etiqueta
+Static Function ImpCabec
+// 	nLin:=1  
+  	@ nLin, 000 PSAY CHR(15) 
+	nCol := 0   
+	nLin := nLin + 2
+	@ nLin, nCol  PSay AllTrim(CNome)
+	nLin := nLin + 1
+	@ nLin, nCol  PSay AllTrim(cEndEnt) + " - " + cBairroe
+	If !Empty(cCEPE)
+		nLin := nLin + 2
+		@ nLin, nCol PSay cCEPE Picture "@R 99999-999"
+    	@ nLin, 16 PSay alltrim(cMune) + "-" + trim(cESTE) + " Tel: "+alltrim(cTel)
+	EndIf       
+	If  Empty(cCepe)
+		nLin := nLin + 2
+		@ nLin, 16 PSay alltrim(cMune) + "-" + trim(cESTE) + " Tel: "+alltrim(cTel)
+	Endif
+    nLin := nLin + 6
+Return nil

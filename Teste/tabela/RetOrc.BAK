@@ -1,0 +1,180 @@
+#INCLUDE "rwmake.ch"
+/* Workflow de Retorno de email 
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³RETCOTFOR ºAutor  ³Microsiga           º Data ³  10/01/09   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³                                                            º±±
+±±º          ³                                                            º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ AP                                                         º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+User Function RetOrc(oProcess)
+
+
+Local cCod1 	:= oProcess:oHtml:RetByName('NUM_SC')
+Local cNum		:= oProcess:oHtml:RetByName('NUM_SC')
+MsgAlert("teste")
+If cResult == "LIB"
+	SUA->(DbSetorder(1))
+	if SUA->(DbSeek(xFilial("SUA")+cNum)) 
+			RecLock("SUA", .f.)
+			SUA->UA_STATU2 := "LIB"
+			SUA->(MsUnLock())
+   			U_EMAPRDES()
+    Endif
+Else
+	SUA->(DbSetorder(1))
+	if SUA->(DbSeek(xFilial("SUA")+cNum)) 
+			RecLock("SUA", .f.)
+			SUA->UA_STATU2 := "REJ"
+			SUA->(MsUnLock())
+			U_EMARJDES
+    Endif
+
+
+
+Endif    
+
+
+
+Return  
+
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³EMARJDES  ºAutor  ³Fernando Amorim     º Data ³  22/01/10   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³Envio de e-mail para informar a aprovacao  do desconto.	  º±±
+±±º          ³para o operador                                             º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³Callcenter						                          º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+User Function EMAPRDES()
+
+	Local oHtml
+	Local oEmail
+	Local cServidor	:=	GetMv("MV_RELSERV")
+	Local cConta	:=	GetMv("MV_RELACNT")
+	Local cPassWord	:=	GetMv("MV_RELPSW")
+	Local cAutentic	:=	GetMv("MV_RELAUTH")
+	Local cAnexo    := '' 	
+	Local cTitulo 	:= ""
+	Local aCorpo  	:= {}
+	Local aRodape 	:= {} 
+	Local cAssunto  := "Foi aprovado o desconto do Orçamento de numero "+SUA->UA_NUM
+	Local cPara 	:= Posicione("SU7",1,xFilial("SU7")+SUA->UA_OPERADO,"U7_MAIL") //"fernando.amorim@qsdobrasil.com"
+	Local cCC		:= Posicione("SA3",1,xFilial("SA3")+SUA->UA_VEND,"A3_EMAIL")
+	Local cCCo		:= ""  
+	Local cRemet 	:= GetMv("MV_RELACNT")
+	
+    //cRemet := EMAILUSR()
+	
+	
+	DbSelectarea("SF2")  
+	
+
+	
+		
+		aAdd(aCorpo, 'O Desconto do Oçamento abaixo:')
+		aAdd(aCorpo, '')
+		aAdd(aCorpo, 'Numero '+SUA->UA_NUM )
+		aAdd(aCorpo, '')
+		aAdd(aCorpo, 'Foi aprovado pela analise de Desconto. ')
+		aAdd(aRodape, '')
+		aAdd(aRodape, 'Obrigado')
+	
+			
+	oHtml:= CorpoEmail():New(cTitulo, aCorpo, aRodape)	
+	oHtml:GeraHtml()	
+	&&Enviando E-mail		
+	oEmail:=ConEmail():New(cServidor, cConta, cPassWord, ,cAutentic, )
+	oEmail:EmailUsr()
+	oEmail:Conectar()    
+	If oEmail:Enviar(AllTrim(cRemet), AllTrim(cPara), AllTrim(cCC), AllTrim(cCCO), AllTrim(cAssunto), oHtml:cHtml, cAnexo)
+		lRetorno	:=	.t.
+		Aviso(FunDesc(),"E-mail enviado com SUCESSO.",{"OK"})
+	EndIf
+	oEmail:Desconec()    
+	
+
+	
+Return      
+
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³EMARJDES  ºAutor  ³Fernando Amorim     º Data ³  22/01/10   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³Envio de e-mail para informar a rejeicao do desconto do 	  º±±
+±±º          ³orcamento para o operador                                   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³Callcenter						                          º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+User Function EMARJDES()
+
+	Local oHtml
+	Local oEmail
+	Local cServidor	:=	GetMv("MV_RELSERV")
+	Local cConta	:=	GetMv("MV_RELACNT")
+	Local cPassWord	:=	GetMv("MV_RELPSW")
+	Local cAutentic	:=	GetMv("MV_RELAUTH")
+	Local cAnexo    := '' 	
+	Local cTitulo 	:= ""
+	Local aCorpo  	:= {}
+	Local aRodape 	:= {} 
+	Local cAssunto  := " Foi rejeitado o desconto do Orçamento de numero " + SUA->UA_NUM
+	Local cPara 	:= Posicione("SU7",1,xFilial("SU7")+SUA->UA_OPERADO,"U7_MAIL") //"fernando.amorim@qsdobrasil.com"
+	Local cCC		:= Posicione("SA3",1,xFilial("SA3")+SUA->UA_VEND,"A3_EMAIL")
+	Local cCCo		:= ""  
+	Local cRemet 	:= GetMv("MV_RELACNT")
+	
+    //cRemet := EMAILUSR()
+	
+	
+	DbSelectarea("SF2")  
+	
+
+	
+		
+		aAdd(aCorpo, 'O Desconto do Oçamento abaixo:')
+		aAdd(aCorpo, '')
+		aAdd(aCorpo, 'Numero '+SUA->UA_NUM )
+		aAdd(aCorpo, '')
+		aAdd(aCorpo, 'Foi rejeitado pela analise de Desconto. ')  
+		aAdd(aCorpo, '')
+		aAdd(aCorpo, 'Verifique o motivo da rejeição no campo de observação da analise de Desconto.')
+		aAdd(aRodape, '')
+		aAdd(aRodape, 'Obrigado')
+	
+			
+	oHtml:= CorpoEmail():New(cTitulo, aCorpo, aRodape)	
+	oHtml:GeraHtml()	
+	&&Enviando E-mail		
+	oEmail:=ConEmail():New(cServidor, cConta, cPassWord, ,cAutentic, )
+	oEmail:EmailUsr()
+	oEmail:Conectar()    
+	If oEmail:Enviar(AllTrim(cRemet), AllTrim(cPara), AllTrim(cCC), AllTrim(cCCO), AllTrim(cAssunto), oHtml:cHtml, cAnexo)
+		lRetorno	:=	.t.
+		Aviso(FunDesc(),"E-mail enviado com SUCESSO.",{"OK"})
+	EndIf
+	oEmail:Desconec()    
+	
+
+	
+Return    

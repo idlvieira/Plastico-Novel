@@ -1,0 +1,20 @@
+#include "rwmake.ch"
+USER FUNCTION PNVCC07() 
+
+//----------------------------------------------------------------------------
+//|Programa  | PNVCC06     | Autor | wellington carvalho    |Criado| 11.set.2008|  
+//----------------------------------------------------------------------------
+//|Descricao | Gatilho de diversos campos para verificar se o pedido encontra-se liberado|
+//----------------------------------------------------------------------------
+//|Uso       | SIGATMK                                                       |
+//----------------------------------------------------------------------------
+
+
+mqtdv:=acols[n][7]   //M->UB_QUANT
+DbSelectArea("SUA")
+If SUA->UA_STATUS="LIB"
+   msgBox("Pedido Liberado,Alteração, Não Permitida!!!")
+   mqtdv := 0.00
+endif
+
+return(mqtdv)

@@ -1,0 +1,198 @@
+#INCLUDE 'PROTHEUS.CH'
+#INCLUDE 'RWMAKE.CH'
+#INCLUDE 'FONT.CH'
+#INCLUDE 'COLORS.CH'        
+
+
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Programa  ³ GQREENTR ³ Autor ³ TBA085                 ³ Data ³03/08/11  ³±±
+±±³          ³          ³       ³ Manoel Crispim         ³      ³          ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Desc      ³ Gerar titulo no contas a pagar com o valor do ICMS          ³±±
+±±³          ³ Substituto para os titulos cujo campo F1_ICMSRET for maior  ³±±
+±±³          ³ que zero nas Notas de Conhecimento de Frete                 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ Sigacom - Plasticos Novel                                   ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Parametros³ Nao existe                                                  ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³                            ALTERACOES                                  ³±±
+±±ÃÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Data   ³ Progamador  ³Solic Cliente ³Alteracoes                        ³±±
+±±ÃÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³        ³             ³              ³                                  ³±±
+±±ÀÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+
+User Function GQREENTR       
+Local c_Alias, n_Ord, n_Reg
+
+Private c_Doc, c_Ser, c_For, c_Loj, c_NFant, n_Icms, d_Emis, c_VAno, c_VMes, d_Venc, c_NatICMS
+
+GRAVSF3()
+GRAVSFT()
+
+If SF1->F1_ICMSRET > 0
+   c_Alias := Alias()
+   n_Ord   := DbSetOrder()
+   n_Reg   := Recno()
+
+   c_Doc     := SF1->F1_DOC
+   c_Ser     := SF1->F1_SERIE  
+   c_For     := SF1->F1_FORNECE
+   c_Loj     := SF1->F1_LOJA
+   c_NFant   := Alltrim(Posicione("SA2",1,xFilial("SA2")+c_For+c_Loj,"A2_NREDUZ"))
+   n_Icms    := SF1->F1_ICMSRET
+   d_Emis    := SF1->F1_DTDIGIT
+   c_VAno    := IIF(Month(d_Emis)=12,Str(Year(d_Emis)+1,4),Str(Year(d_Emis),4))
+   c_VMes    := IIF(Month(d_Emis)=12,"01",Strzero(Month(d_Emis)+1,2))        
+   d_Venc    := Ctod(Alltrim(GETMV("TB_DIAVENC"))+"/"+c_VMes+"/"+c_VAno)
+   c_NatICMS := IIF(Alltrim(SF1->F1_FORNECE)="003797","   1040003", "   1040004")
+
+   f_GrvNfImp()
+
+   dbSelectArea(c_Alias)
+   dbSetOrder(n_Ord)
+   dbGoTo(n_Reg)
+EndIf    
+
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Programa  ³ f_GrvNfImp ³ Autor ³ TBA085               ³ Data ³03/08/11  ³±±
+±±³          ³            ³       ³ Manoel Crispim       ³      ³          ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Desc      ³ Funcao para gravar o titulo no contas a pagar               ³±±
+±±³          ³                                                             ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ Sigacom - Plasticos Novel                                   ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Parametros³ Nao existe                                                  ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³                            ALTERACOES                                  ³±±
+±±ÃÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Data   ³ Progamador  ³Solic Cliente ³Alteracoes                        ³±±
+±±ÃÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³        ³             ³              ³                                  ³±±
+±±ÀÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+Static Function f_GrvNfImp
+Local c_ForIcms, c_LojIcms
+
+//c_ForIcms := Alltrim(GETMV("MV_RECEST"))
+c_ForIcms  := "BA"+SUBSTR(C_FOR,3,4)
+c2_ForIcms := C_FOR                           
+
+c_LojIcms := "00"
+
+dbSelectArea("SE2")
+dbSetOrder(1)
+dbSeek(xFilial("SE2")+"ICM"+c_Doc+"   "+"ICM"+c_ForIcms+c_LojIcms,.F.)
+If  SE2->( Found() )=.T. .And. SE2->E2_SALDO = SE2->E2_VALOR
+	RecLock("SE2",.F.)
+	SE2->( DbDelete() )
+	SE2->( MsUnLock())              
+Endif
+
+RecLock("SE2",.T.)       
+SE2->E2_FILIAL  := xFilial("SE2")
+SE2->E2_PREFIXO := "ICM"
+SE2->E2_NUM     := c_Doc
+SE2->E2_PARCELA := "   "
+SE2->E2_TIPO    := "ICM"
+SE2->E2_NATUREZ := c_NatIcms
+SE2->E2_FORNECE := c_ForIcms
+SE2->E2_LOJA    := c_LojIcms
+SE2->E2_NOMFOR  := Posicione("SA2",1,xFilial("SA2")+c2_ForIcms+c_LojIcms,"A2_NREDUZ")  
+SE2->E2_EMISSAO := d_Emis
+SE2->E2_VENCTO  := d_Venc
+SE2->E2_VENCREA := DataValida(d_Venc)
+SE2->E2_VALOR   := n_Icms
+SE2->E2_EMIS1   := d_Emis
+SE2->E2_SALDO   := n_Icms
+SE2->E2_VLCRUZ  := n_Icms
+SE2->E2_ORIGEM  := "FINA050"
+SE2->E2_RATEIO  := "N"
+SE2->E2_VENCORI := DataValida(d_Venc)
+SE2->E2_MOEDA   := 1               
+SE2->E2_OCORREN := "01"
+SE2->E2_FLUXO   := "S"
+SE2->E2_DESDOBR := "N"
+SE2->E2_MULTNAT := "2"
+SE2->E2_PROJPMS := "2"
+SE2->E2_DIRF    := "2"
+SE2->E2_MODSPB  := "1"
+SE2->E2_CONTAD  := Posicione("SED",1,xFilial("SED")+c_NatIcms,"ED_CONTA")
+SE2->E2_FILORIG := xFilial("SE2")
+SE2->E2_HIST    := "ICMS SUBST NF "+Alltrim(c_Doc)+" - "+c_NFant
+SE2->( MsUnLock())              
+
+Return
+
+/*
+A customizacao abaixo foi desenvolvida pelo consultor Jefferson Moreira em 06/07/2009
+para realizar tratamento de impostos nos Livros Fiscais, em virtude da criação da
+customização para tratar a inclusão de título a pagar do ICMS Substituto para o Frete as 
+funções GRAVSF3() e GRAVSFT() foram realocadas para o final do fonte. Esse procedimento
+nao afeta a funcionalidade delas porque a mudanca e apenas para organizar o ponto de entrada, as 
+funcoes estao sendo chamadas logo no inicio do ponto antes da execucao da customizacao do titulo a pagar
+
+--------------------------------------------------------------------------------------------------------
+O texto acima foi escrito pelo consultor Crispim em 09/08/2011
+*/
+
+STATIC FUNCTION GRAVSF3()
+DBSELECTAREA("SF3")
+DBSETORDER(5)
+DBGOTOP()
+DBSEEK(XFILIAL("SF3")+SF1->F1_SERIE+SF1->F1_DOC+SF1->F1_FORNECE+SF1->F1_LOJA)
+IF FOUND()
+	WHILE !EOF() .AND. SF3->F3_NFISCAL == SF1->F1_DOC .AND. SF3->F3_SERIE == SF1->F1_SERIE;
+	 .AND. SF3->F3_CLIEFOR == SF1->F1_FORNECE .AND. SF3->F3_LOJA == SF1->F1_LOJA;
+	 .AND. SF3->F3_FORMUL == "S" .AND. SUBSTR(SF3->F3_CFO,1,1) <= "3" .AND. SF3->F3_ESTADO == "EX"
+	 	RECLOCK("SF3",.F.)
+	 	REPLACE SF3->F3_REPROC WITH "N"
+	 	REPLACE SF3->F3_BASIMP5 WITH SF1->F1_BASIMP5
+	 	REPLACE SF3->F3_BASIMP6 WITH SF1->F1_BASIMP6
+	 	REPLACE SF3->F3_VALIMP5 WITH SF1->F1_VALIMP5
+	 	REPLACE SF3->F3_VALIMP6 WITH SF1->F1_VALIMP6
+	 	REPLACE SF3->F3_ALQIMP5 WITH 7.6
+	 	REPLACE SF3->F3_ALQIMP6 WITH 1.65
+	 	MSUNLOCK()
+	 	DBSKIP()
+	 END
+ENDIF
+RETURN()
+
+STATIC FUNCTION GRAVSFT()
+DBSELECTAREA("SFT")
+DBSETORDER(1)
+DBGOTOP()
+DBSEEK(XFILIAL("SFT")+"E"+SF1->F1_SERIE+SF1->F1_DOC+SF1->F1_FORNECE+SF1->F1_LOJA)
+IF FOUND()
+	WHILE !EOF() .AND. SFT->FT_NFISCAL == SF1->F1_DOC .AND. SFT->FT_SERIE == SF1->F1_SERIE;
+	 .AND. SFT->FT_CLIEFOR == SF1->F1_FORNECE .AND. SFT->FT_LOJA == SF1->F1_LOJA;
+	 .AND. SFT->FT_TIPOMOV == "E" .AND. SFT->FT_ESTADO == "EX"
+	 	RECLOCK("SFT",.F.)
+	 	REPLACE SFT->FT_BASECOF WITH SF1->F1_BASIMP5
+	 	REPLACE SFT->FT_BASEPIS WITH SF1->F1_BASIMP6
+	 	REPLACE SFT->FT_VALCOF WITH SF1->F1_VALIMP5
+	 	REPLACE SFT->FT_VALPIS WITH SF1->F1_VALIMP6
+	 	REPLACE SFT->FT_ALIQCOF WITH 7.6
+	 	REPLACE SFT->FT_ALIQPIS WITH 1.65
+	 	MSUNLOCK()
+	 	DBSKIP()
+	 END
+ENDIF
+RETURN()

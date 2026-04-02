@@ -1,0 +1,554 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP6 IDE em 11/03/03
+
+User Function CANROMAN()        // incluido pelo assistente de conversao do AP6 IDE em 11/03/03
+
+/*/
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±³ Programa ³ CANROMAN  ³ Autor ³   Eliene Cerqueira   ³ Data ³ 05.05.05    ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Rotina para cancelar romaneio                                 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Faturamento                                                   ³±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+
+wnrel  	:= "ROMANEIO"    
+titulo 	:= "ROMANEIO"
+cDesc1 	:= "Este programa ira emitir o romaneio"
+cDesc2 	:= ""
+cDesc3 	:= ""
+tamanho	:= "G"
+limite 	:= 80
+cString := "SC6"
+lEnd    := .F.
+cabec1 	:= "" 
+cabec2 	:= ""
+lContinua  := .T.
+LI       := 80
+m_pag      := 1
+nLastKey := 0
+PRIVATE aReturn  := { "Zebrado", 1,"Administracao", 1, 2, 1, "",1 }		//"Zebrado"###"Administracao"
+
+cArqTrb1:=cArqTrb2:=cArqTrb3:=""
+WCONTINUA:=.T.
+WHILE WCONTINUA
+   TLPROD()
+   If !Empty( cArqTrb1 )
+      dbSelectArea("QUERY1")
+      dbCloseArea()
+      FErase( cArqTrb1+".*")
+   Endif
+   If !Empty( cArqTrb2 )
+      dbSelectArea("QUERY2")
+      dbCloseArea()
+      FErase( cArqTrb2+".*")
+   Endif
+   If !Empty( cArqTrb3 )
+      dbSelectArea("QUERY3")
+      dbCloseArea()
+      FErase( cArqTrb3+".*")
+   Endif
+ENDDO
+
+REturn
+
+Static Function TLPROD()
+cArqTrb1:=cArqTrb2:=cArqTrb3:=""
+dbSelectArea("SC6")
+dbSetOrder(9) // romaneio+pedido+item
+dbGoBottom()
+NRom:=SPACE(5)
+@ 0,0 TO 100,430 DIALOG oDlg1 TITLE "Cancelamento Romaneio"
+@ 3,5 TO 30,210
+// Montagem dos titulos dos campos
+@ 15,10 say "Romaneio"
+
+@ 15,35 GET NRom PICTURE "99999"
+
+// Botoes
+@  38,070 BMPBUTTON TYPE 1 ACTION nseqOk1()// Substituido pelo assistente de conversao do AP6 IDE em 20/04/04 ==>     @  60,65 BMPBUTTON TYPE 1 ACTION Execute(BotOk1)
+@  38,100 BMPBUTTON TYPE 2 ACTION ncanc1(oDlg1)// Substituido pelo assistente de conversao do AP6 IDE em 20/04/04 ==>     @  60,95 BMPBUTTON TYPE 2 ACTION Execute(BotCan1)
+ACTIVATE DIALOG oDlg1 CENTER
+REturn
+
+Static Function ncanc1()
+***************
+WCONTINUA:=.F.
+Close(oDlg1)
+Return
+
+Static Function nseqOk1()
+***************
+
+dbSelectArea("SC6")
+dbSetOrder(9) // romaneio+pedido+item
+dbSeek(xFilial("SC6")+NROM,.F.)	
+If !Found()
+   msgBox("Romaneio não existe.")
+   Close(oDlg1)
+   Return
+Endif
+
+aStru:={}
+AADD( aStru, {"PEDIDO"  ,"C" ,6 ,0} )
+AADD( astru, {"CLIENTE" ,"C" ,6 ,0} )
+AADD( astru, {"CIDADE"  ,"C" ,20,0} )
+AADD( astru, {"UF"      ,"C" ,2 ,0} )
+AADD( aStru, {"STATUS"  ,"C" ,1 ,0} ) // Parcial, Total ou Branco
+AADD( aStru, {"TOTQTD"  ,"N" ,18,2} ) 
+AADD( aStru, {"TOTPESO" ,"N" ,18,2} ) 
+AADD( aStru, {"TOTCUB"  ,"N" ,18,2} ) 
+AADD( astru, {"MARCA"   ,"C" ,2 ,0} )
+AADD( astru, {"FAT"    ,"C" ,1,0} ) 
+AADD( aStru, {"FRETE"   ,"C" ,30 ,0} ) 
+AADD( aStru, {"OBS1"    ,"C" ,200,0} ) 
+AADD( astru, {"ENTREGA" ,"D" ,8 ,0} ) // A menor data de entrega dos itens
+cArqTrb1:=CriaTrab(aStru,.T.)
+DbUseArea(.T.,"DBFCDX",cArqTrb1,"QUERY1",.F.)
+IndRegua("QUERY1",cArqTrb1,"PEDIDO")
+
+aStru:={}
+AADD( aStru, {"PEDIDO"  ,"C" ,6 ,0} )
+AADD( astru, {"ITEM"    ,"C" ,2 ,0} )
+AADD( astru, {"PRODUTO" ,"C" ,14 ,0} )
+AADD( astru, {"DESCPRO" ,"C" ,40,0} )
+AADD( astru, {"TPEMB"   ,"C" ,10,0} )
+AADD( astru, {"QTDPED"  ,"N" ,18,2} ) 
+AADD( astru, {"QUANT"   ,"N" ,18,2} ) 
+AADD( astru, {"PESO"    ,"N" ,18,2} ) 
+AADD( astru, {"CUB"    ,"N" ,18,2} ) 
+AADD( astru, {"FAT"    ,"C" ,1,0} ) 
+cArqTrb2:=CriaTrab(aStru,.T.)
+DbUseArea(.T.,"DBFCDX",cArqTrb2,"QUERY2",.F.)
+IndRegua("QUERY2",cArqTrb2,"PEDIDO+ITEM")
+
+aStru:={}
+AADD( aStru, {"PEDIDO"  ,"C" ,6 ,0} )
+AADD( astru, {"ITEM"    ,"C" ,2 ,0} )
+AADD( astru, {"PRODUTO" ,"C" ,14 ,0} )
+AADD( astru, {"DESCPRO" ,"C" ,40,0} )
+AADD( astru, {"TPEMB"   ,"C" ,10,0} )
+AADD( astru, {"QTDPED"  ,"N" ,18,2} ) 
+AADD( astru, {"QUANT"   ,"N" ,18,2} ) 
+AADD( astru, {"PESO"    ,"N" ,18,2} ) 
+AADD( astru, {"CUB"     ,"N" ,18,2} ) 
+AADD( astru, {"FAT"    ,"C" ,1,0} ) 
+cArqTrb3:=CriaTrab(aStru,.T.)
+DbUseArea(.T.,"DBFCDX",cArqTrb3,"QUERY3",.F.)
+IndRegua("QUERY3",cArqTrb3,"PRODUTO+PEDIDO+ITEM")
+
+dbSelectArea("SC6")
+XNUM:=C6_NUM
+TQtd:=TPESO:=TCUB:=0
+wQtdGer:=wPesoGer:=wCubGer:=0
+XFAT:="N"
+DtEntr:=CTOD("31/12/2090")
+While !EOF() .AND. C6_ROMAN=NROM
+   XQUANT:=0
+   dbSelectArea("SC5")
+   dbSetOrder(1) 
+   dbSeek(xFilial("SC5")+SC6->C6_NUM,.F.)	
+   If !Found()
+      dbSelectArea("SC6")
+   	  dbSkip()
+	  Loop
+   Endif
+   DbSelectArea("SA1") 
+   DbSetOrder(1) 
+   DbSeek( xFilial("SA1") + SC5->C5_CLIENTE + SC5->C5_LOJACLI, .T.)
+   DbSelectArea("SC9")
+   dbSetOrder(1)
+   dbSeek(xFilial("SC9")+SC6->C6_NUM+SC6->C6_ITEM,.F.)
+   While !EOF() .AND. SC6->C6_NUM=SC9->C9_PEDIDO .AND. SC6->C6_ITEM=SC9->C9_ITEM
+      BLCRED:=C9_BLCRED               
+      BLEST :=C9_BLEST           
+      XQUANT:=SC9->C9_QTDLIB
+      dbSkip()
+   Enddo
+   If BLCRED="10" .and. BLEST="10" // Já faturado
+      XFAT:="S"
+   Endif
+   DbSelectArea("SB1") 
+   DbSeek( xFilial("SB1") + SC6->C6_PRODUTO, .T.)
+   DbSelectArea("SX5")
+   DbSetOrder(1)
+   DbSeek( xFilial()+"97" + SB1->B1_TPEMB )
+   DbSelectArea("QUERY2")
+   Reclock("QUERY2",.T.)
+   QUERY2->PEDIDO := SC6->C6_NUM
+   QUERY2->ITEM   := SC6->C6_ITEM
+   QUERY2->PRODUTO:= SC6->C6_PRODUTO
+   QUERY2->DESCPRO:= SB1->B1_DESC
+   QUERY2->TPEMB  := Alltrim( SX5->X5_DESCRI )
+   QUERY2->QTDPED := XQUANT
+   QUERY2->QUANT  := XQUANT/SB1->B1_QE
+   QUERY2->PESO   := (SB1->B1_PESO*XQUANT)+(SB1->B1_PESOEMB*(XQUANT/SB1->B1_QE))
+   QUERY2->CUB    := SB1->B1_PSE*(XQUANT/SB1->B1_QE)
+   QUERY2->FAT    := XFAT
+   MSUnlock()
+   If SC6->C6_ENTREG < DtEntr
+      DtEntr:=SC6->C6_ENTREG
+   Endif
+   If  trim(SB1->B1_CLASSE1) = "031" .or. trim(SB1->B1_CLASSE1) = "035" .or. trim(SB1->B1_CLASSE1) = "039"
+       DbSelectArea("SB1") 
+       DbSeek( xFilial("SB1") + "10103240003   ", .T.)
+       Reclock("QUERY2",.F.)
+       QUERY2->QUANT  := QUERY2->QUANT+(XQUANT/SB1->B1_QE)
+       QUERY2->PESO   := QUERY2->PESO+(SB1->B1_PESO*XQUANT)+(SB1->B1_PESOEMB*(XQUANT/SB1->B1_QE))
+       QUERY2->CUB    := QUERY2->CUB+SB1->B1_PSE*(XQUANT/SB1->B1_QE)
+       MSUnlock()
+   Endif
+   TQtd :=TQtd+QUERY2->QUANT                                           //QUANT / QTDE. EMBALAGEM
+   TPESO:=TPESO+QUERY2->PESO  //(PESO LIQ. * QUANT)+(PESO EMBALAGEM * QUANT de embalagem)
+   TCUB :=TCUB+QUERY2->CUB                             //CUBAGEM * CUBAGEM
+   dbSelectArea("SC6")
+   dbSkip()
+   If SC6->C6_NUM<>XNUM .AND. XFAT="N"
+      DbSelectArea("QUERY1")
+      Reclock("QUERY1",.T.)
+      QUERY1->PEDIDO := XNUM
+      QUERY1->CLIENTE:= SC5->C5_CLIENTE
+      QUERY1->CIDADE := SA1->A1_MUN
+      QUERY1->UF     := SA1->A1_EST
+      QUERY1->STATUS := " "
+      QUERY1->TOTQTD := TQtd
+      QUERY1->TOTPESO:= TPESO
+      QUERY1->TOTCUB := TCUB
+      QUERY1->MARCA  := "  "
+      QUERY1->FAT    := XFAT
+      QUERY1->FRETE  := IIF(SC5->C5_TPFRETE="C","CIF ate "+AllTrim(SC5->C5_CIF_ATE),"FOB")
+      QUERY1->OBS1   := ALLTRIM(SC5->C5_OBS1)+" "+ALLTRIM(SC5->C5_OBS2)+" "+ALLTRIM(SC5->C5_OBS3)
+      QUERY1->ENTREGA:= DtEntr
+      MSUnlock()
+   Endif
+   If SC6->C6_NUM<>XNUM
+      XFAT:="N"
+      DtEntr:=CTOD("31/12/2090")
+      XNUM:=SC6->C6_NUM
+      TQtd:=TPESO:=TCUB:=0
+   Endif
+Enddo
+
+DbSelectArea("QUERY1")
+DbGoTop()
+IF EOF()
+   msgBox("Romaneio todo faturado.")
+   Close(oDlg1)
+   Return
+Endif
+
+//DbSelectArea("QUERY1")
+//IndRegua("QUERY1",cArqTrb1,"DTOS(ENTREGA)")
+
+aCampos := {}
+AADD(aCampos,{"MARCA"," ","@!"})
+AADD(aCampos,{"ENTREGA","ENTREGA","@!"})
+AADD(aCampos,{"PEDIDO","PEDIDO","@!"})
+AADD(aCampos,{"TOTQTD","QUANT.","@E 99,999.99"})
+AADD(aCampos,{"TOTPESO","PESO","@E 99,999.99"})
+AADD(aCampos,{"TOTCUB","CUBAGEM","@E 99,999.99"})
+AADD(aCampos,{"CIDADE","CIDADE",})
+AADD(aCampos,{"UF","UF",})
+
+cMarca:=GetMark()
+
+@ 200,1 TO 500,765 DIALOG oDlg7 TITLE "Romaneio "+NRom
+@ 6,5 TO 130,380 BROWSE "QUERY1" MARK "MARCA" FIELDS aCampos Object _oMark
+//@ 135,005 BUTTON "_Exclui" SIZE 40,15 ACTION Marca()
+@ 135,160 BUTTON "_Conclui"  SIZE 40,15 ACTION Bloq()
+@ 135,340 BUTTON "_Fecha"  SIZE 40,15 ACTION Fecha()
+
+cMarca:=GetMark()
+DbSelectArea("QUERY1")
+DbGoTop()
+Do  While !EOF()
+    If  !Marked("MARCA")     //Registro nao esta marcado
+        Reclock("QUERY1",.F.)
+        QUERY1->MARCA := cMarca
+        MsUnlock()
+    Endif
+    DbSkip()
+Enddo
+DbGoTop()
+_oMark:oBrowse:Refresh()
+
+ACTIVATE DIALOG oDlg7 CENTER
+
+Close(oDlg1)
+
+Return
+
+Static Function Bloq()        // incluido pelo assistente de conversao do AP6 IDE em 20/04/04
+
+wQtdGer:=wPesoGer:=wCubGer:=0
+dbSelectArea("QUERY1")
+dbGoTop()
+While !EOF()
+
+   If !Marked("MARCA")     //Registro nao esta marcado
+   	  dbSkip()
+	  Loop
+   Endif
+   wQtdGer :=wQtdGer+QUERY1->TOTQTD
+   wPesoGer:=wPesoGer+QUERY1->TOTPESO
+   wCubGer :=wCubGer+QUERY1->TOTCUB
+   dbSkip()
+Enddo
+dbSelectArea("QUERY1")
+dbGoTop()
+
+@ 0,0 TO 100,430 DIALOG oDlg2
+@ 3,5 TO 30,210
+@ 15,010 SAY "Total Romaneio : "  + Transform(wQtdGer,"@E 99,999.99") + "    " + Transform(wPesoGer,"@E 99,999.99") + "    " + Transform(wCubGer,"@E 99,999.99")
+@ 38,070 BMPBUTTON TYPE 1 ACTION Ok1()// Substituido pelo assistente de conversao do AP6 IDE em 20/04/04 ==>     @  60,65 BMPBUTTON TYPE 1 ACTION Execute(BotOk1)
+@ 38,100 BMPBUTTON TYPE 2 ACTION Can1()// Substituido pelo assistente de conversao do AP6 IDE em 20/04/04 ==>     @  60,95 BMPBUTTON TYPE 2 ACTION Execute(BotCan1)
+ACTIVATE DIALOG oDlg2 CENTER
+
+Return
+
+Static Function Ok1()
+
+dbSelectArea("QUERY1")
+dbGoTop()
+While !EOF()
+   If !Marked("MARCA")     //Registro nao esta marcado
+      DbSelectArea("QUERY2") 
+      DbSeek( QUERY1->PEDIDO, .T.)
+      While !EOF() .AND. QUERY2->PEDIDO=QUERY1->PEDIDO
+         dbSelectArea("SC6")
+         dbSetOrder(1)
+         dbGoTop()
+         dbSeek(xFilial("SC6")+QUERY2->PEDIDO+QUERY2->ITEM,.F.)
+         Reclock("SC6",.F.)
+         C6_ROMAN  := SPACE(5)
+         MSUnlock()
+         dbSelectArea("QUERY2")
+         dbSkip()
+      Enddo
+   Else
+      DbSelectArea("QUERY2") 
+      DbSeek( QUERY1->PEDIDO, .T.)
+      While !EOF() .AND. QUERY2->PEDIDO=QUERY1->PEDIDO
+         DbSelectArea("QUERY3")
+         Reclock("QUERY3",.T.)
+         QUERY3->PEDIDO := QUERY2->PEDIDO
+         QUERY3->ITEM   := QUERY2->ITEM
+         QUERY3->PRODUTO:= QUERY2->PRODUTO
+         QUERY3->DESCPRO:= QUERY2->DESCPRO
+         QUERY3->TPEMB  := QUERY2->TPEMB
+         QUERY3->QTDPED := QUERY2->QTDPED
+         QUERY3->QUANT  := QUERY2->QUANT
+         QUERY3->PESO   := QUERY2->PESO
+         QUERY3->CUB    := QUERY2->CUB
+         QUERY3->FAT    := QUERY2->FAT
+         MSUnlock()
+         dbSelectArea("QUERY2")
+         dbSkip()
+      Enddo
+   Endif
+   dbSelectArea("QUERY1")
+   dbSkip()
+Enddo
+
+wnrel:=SetPrint(cString,wnrel,,titulo,cDesc1,cDesc2,cDesc3,.F.,,.T.,Tamanho)
+
+If nLastKey == 27
+    Close(oDlg2)
+    Close(oDlg7)
+	Set Filter to
+	Return
+Endif
+
+SetDefault(aReturn,cString)
+
+If nLastKey==27
+    Close(oDlg2)
+    Close(oDlg7)
+	Set Filter to
+	Return
+Endif
+
+xCod:=Space(6)
+Ok:=.F.
+xQuant:=xEmb:=xPeso:=xCub:=0    
+tQuant:=tEmb:=tPeso:=tCub:=0    
+DbselectArea("QUERY3")
+dbGoTop()
+While !EOF()
+
+  If xCod<>QUERY3->PRODUTO
+     If Ok
+        @ LI,04        PSAY "TOTAL"
+        @ LI,PCOL()+3  PSAY xQuant     Picture "@E 999,999.99"
+        @ LI,PCOL()+2  PSAY xEmb       Picture "@E 9,999.99"
+        @ LI,PCOL()+1  PSAY xTPEmb
+   	    @ LI,PCOL()+2  PSAY xPeso      Picture "@E 999,999.999"
+   	    @ LI,PCOL()+2  PSAY xCub      Picture "@E 999,999.99"
+        tQuant:=tQuant+xQuant
+        tEmb:=tEmb+xEmb
+        tPeso :=tPeso+xPeso
+        tCub  :=tCub+xCub
+     	LI := LI + 2
+     Endif
+     If LI < 64
+        @ LI,001 PSAY "  PRODUTO: " +ALLTRIM(QUERY3->PRODUTO)+" - "+QUERY3->DESCPRO
+        xCod:=QUERY3->PRODUTO
+        xEmb:=QUERY3->TPEMB
+        LI := LI + 1
+     Endif
+     xQuant:=xEmb:=xPeso:=xCub:=0
+  Endif
+
+  If LI > 64
+    LI:=0
+    @ LI,000 Psay "PLASTICOS NOVEL DO NORDESTE S.A                                                 "   
+//    @ LI,000 BITMAP SIZE 13,218 FILE lgrl01
+    @ LI+01,000 Psay "--------------------------------------------------------------------------------"   
+    @ LI+02,000 Psay "| ROMANEIO N.: " + NROM + SPACE(42)+"DATA: "+SubStr(Dtos(Date()),7,2)+"/"+SubStr(Dtos(Date()),5,2)+"/"+SubStr(Dtos(Date()),1,4)+" |"
+    @ LI+03,000 Psay "|                                                                              |"   
+    @ LI+04,000 Psay "| SEPARADOR  : _________________________________/____________________________  |"   
+    @ LI+05,000 Psay "|                                                                              |"   
+    @ LI+06,000 Psay "| CONFERENTE : _____________________________________PLACA : _________________  |"   
+    @ LI+07,000 Psay "|                                                                              |"   
+    @ LI+08,000 Psay "| HORA INICIO : _______________ HORA FIM : _______________                     |"   
+    @ LI+09,000 Psay "--------------------------------------------------------------------------------"   
+    @ LI+10,000 PSAY "    PEDIDO      QTD.     EMBAL.              PESO BRUTO      CUBAGEM    QT/AT"
+    @ LI+11,000 Psay "--------------------------------------------------------------------------------"   
+    @ LI+13,001 PSAY "  PRODUTO: " +ALLTRIM(QUERY3->PRODUTO)+" - "+QUERY3->DESCPRO
+    xCod:=QUERY3->PRODUTO
+    xTPEmb:=QUERY3->TPEMB
+    Li:=14
+  Endif   
+
+  @ LI,04  PSAY QUERY3->PEDIDO
+  @ LI,PCOL()+2  PSAY QUERY3->QTDPED Picture "@E 999,999.99"
+  @ LI,PCOL()+2  PSAY QUERY3->QUANT  Picture "@E 9,999.99"
+  @ LI,PCOL()+13 PSAY QUERY3->PESO   Picture "@E 999,999.999"
+  @ LI,PCOL()+2  PSAY QUERY3->CUB    Picture "@E 999,999.99"
+  @ LI,PCOL()+3 PSAY "________"
+  xQuant:=xQuant+QUERY3->QTDPED
+  xEmb:=xEmb+QUERY3->QUANT
+  xPeso :=xPeso+QUERY3->PESO
+  xCub  :=xCub+QUERY3->CUB
+  Ok:=.T. 
+  LI := LI + 1
+  dbSelectArea("QUERY3")
+  dbSkip()
+EndDo
+If Ok
+   @ LI,04 PSAY "TOTAL"
+   @ LI,PCOL()+3 PSAY xQuant     Picture "@E 999,999.99"
+   @ LI,PCOL()+2 PSAY xEmb       Picture "@E 9,999.99"
+   @ LI,PCOL()+1 PSAY xTPEmb
+   @ LI,PCOL()+2 PSAY xPeso      Picture "@E 999,999.999"
+   @ LI,PCOL()+2 PSAY xCub       Picture "@E 999,999.99"
+   LI := LI + 1
+   tQuant:=tQuant+xQuant
+   tEmb:=tEmb+xEmb
+   tPeso :=tPeso+xPeso
+   tCub  :=tCub+xCub
+Endif
+If tQuant<>0 .or. tEmb<>0 .or. tPeso<>0 .or. tCub<>0
+   LI := LI + 1
+   @ LI,02 PSAY "GERAL"
+   @ LI,PCOL()+3  PSAY tQuant     Picture "@E 9,999,999.99"
+   @ LI,PCOL()+2  PSAY tEmb       Picture "@E 9,999.99"
+   @ LI,PCOL()+13 PSAY tPeso/1000 Picture "@E 999,999.999"
+   @ LI,PCOL()+1  PSAY "(t)
+   @ LI,PCOL()+1  PSAY tCub       Picture "@E 9999.99"
+Endif
+LI := LI + 1
+@ LI,01 PSAY "."
+SET DEVICE TO SCREEN
+
+If aReturn[5]==1
+	dbCommitAll()
+	SET PRINTER TO
+	OurSpool(wnrel)
+Endif
+
+MS_FLUSH()
+
+wnrel  	:= "PEDFAT"    
+titulo 	:= "PEDIDOS A FATURAR - ROMANEIO Nº " + NROM
+cDesc1 	:= "Este programa ira emitir a relacao dos Pedidos selecionados"
+cDesc2 	:= "para o romaneio."
+cDesc3 	:= ""
+tamanho	:= "G"
+limite 	:= 220
+cString 	:= "SC6"
+lEnd      := .F.
+cabec1 	 := " PEDIDO  CLIENTE CIDADE/UF                TIPO FRETE                     VOLUMES     OBSERVACOES             "
+cabec2 	 := ""
+lContinua  := .T.
+nTipo		 := GetMv("MV_COMP")
+LI       := 80
+m_pag      := 1
+nLastKey := 0
+PRIVATE aReturn  := { "Zebrado", 1,"Administracao", 1, 2, 1, "",1 }		//"Zebrado"###"Administracao"
+
+wnrel:=SetPrint(cString,wnrel,,titulo,cDesc1,cDesc2,cDesc3,.F.,,.T.,Tamanho)
+
+If nLastKey == 27
+    Close(oDlg2)
+    Close(oDlg7)
+	Set Filter to
+	Return
+Endif
+
+SetDefault(aReturn,cString)
+
+If nLastKey==27
+    Close(oDlg2)
+    Close(oDlg7)
+	Set Filter to
+	Return
+Endif
+
+LI:=70
+DbSelectArea("QUERY1")
+DbGoTop()   
+While !EOF()
+
+//   If MARCA<>cMarca
+   If !Marked("MARCA")     //Registro nao esta marcado
+   	  dbSkip()
+	  Loop
+   Endif
+   If LI > 68
+      Cabec(Titulo,Cabec1,Cabec2,wnrel,Tamanho,nTipo)
+   Endif   
+   @ LI,01 PSAY QUERY1->PEDIDO +"  "+QUERY1->CLIENTE+"  "+ALLTRIM(QUERY1->CIDADE)+"-"+QUERY1->UF
+   @ LI,42 PSAY ALLTRIM(QUERY1->FRETE)
+   @ LI,74 PSAY QUERY1->TOTQTD Picture "@E 99,999.99"
+   @ LI,85 PSAY ALLTRIM(QUERY1->OBS1)
+   LI := LI + 1
+   dbSelectArea("QUERY1")
+   Reclock("QUERY1",.F.)
+   QUERY1->( DbDelete() )
+   MsUnlock()
+   dbSkip()
+EndDo
+@ LI,01 PSAY "."
+SET DEVICE TO SCREEN
+
+If aReturn[5]==1
+	dbCommitAll()
+	SET PRINTER TO
+	OurSpool(wnrel)
+Endif
+
+MS_FLUSH()
+
+Close(oDlg2)
+Close(oDlg7)
+Return
+
+Static Function Can1()
+//Close(oDlg1)
+Close(oDlg2)
+Return
+
+Static Function Fecha()
+Close(oDlg7)
+Return

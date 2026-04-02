@@ -1,0 +1,88 @@
+#Include "Protheus.CH"
+
+User function fDuplPonto()
+
+Local _cAlias		:= "RFHAlias"
+Local _cAliasDUP	:= "DUP"
+Local _lFirst		:= .T.
+
+dbSelectArea( "RFH" )
+RFH->( dbSetOrder( 01 ) )
+
+ConOut( "fDuplPonto - Selecionando registros com duplicidade 0401 ..." )
+
+BeginSQL Alias _cAlias
+	Select Distinct
+		RFH_FILIAL+RFH_ORIG+RFH_CRACHA+RFH_DATA+Str(RFH_HORA)+RFH_CC+RFH_RELOGI+RFH_FUNCAO+RFH_GIRO+RFH_FLAG+RFH_NUMREP+RFH_DTHRLI+RFH_DTHRG+RFH_DATAAP+RFH_EMPORG+RFH_FILORG+RFH_MATORG+RFH_DHORG+RFH_IDORG+RFH_NATU+RFH_PERAPO+RFH_LINHA+RFH_RELSP0+RFH_PIS As Linha
+	From
+		RFH010 
+	Where RFH_DATA >= '20190101'
+		And RFH_FILIAL = '0401'
+		And D_E_L_E_T_ = ' '
+		And RFH_FILIAL+RFH_ORIG+RFH_CRACHA+RFH_DATA+Str(RFH_HORA)+RFH_CC+RFH_RELOGI+RFH_FUNCAO+RFH_GIRO+RFH_FLAG+RFH_NUMREP+RFH_DTHRLI+RFH_DTHRG+RFH_DATAAP+RFH_EMPORG+RFH_FILORG+RFH_MATORG+RFH_DHORG+RFH_IDORG+RFH_NATU+RFH_PERAPO+RFH_LINHA+RFH_RELSP0+RFH_PIS
+		In (
+				Select
+					RFH_FILIAL+RFH_ORIG+RFH_CRACHA+RFH_DATA+Str(RFH_HORA)+RFH_CC+RFH_RELOGI+RFH_FUNCAO+RFH_GIRO+RFH_FLAG+RFH_NUMREP+RFH_DTHRLI+RFH_DTHRG+RFH_DATAAP+RFH_EMPORG+RFH_FILORG+RFH_MATORG+RFH_DHORG+RFH_IDORG+RFH_NATU+RFH_PERAPO+RFH_LINHA+RFH_RELSP0+RFH_PIS
+				From
+					RFH010 
+				Where RFH_DATA >= '20190101'
+					And RFH_FILIAL = '0401' 
+					And D_E_L_E_T_ = ' '
+				Group By
+					RFH_FILIAL+RFH_ORIG+RFH_CRACHA+RFH_DATA+Str(RFH_HORA)+RFH_CC+RFH_RELOGI+RFH_FUNCAO+RFH_GIRO+RFH_FLAG+RFH_NUMREP+RFH_DTHRLI+RFH_DTHRG+RFH_DATAAP+RFH_EMPORG+RFH_FILORG+RFH_MATORG+RFH_DHORG+RFH_IDORG+RFH_NATU+RFH_PERAPO+RFH_LINHA+RFH_RELSP0+RFH_PIS
+				Having Count(*) > 01 )
+EndSQL
+
+conout( "Finalizou selecao dos registros com duplicidade" )
+
+While ( _cAlias )->( !Eof() )
+
+	_lFirst := .T.
+
+	ConOut( "Analisando registro: " + ( _cAlias )->Linha )
+
+	BeginSQL Alias _cAliasDUP
+		Select
+			R_E_C_N_O_ As RegDUP
+		From
+			RFH010
+		Where RFH_FILIAL+RFH_ORIG+RFH_CRACHA+RFH_DATA+Str(RFH_HORA)+RFH_CC+RFH_RELOGI+RFH_FUNCAO+RFH_GIRO+RFH_FLAG+RFH_NUMREP+RFH_DTHRLI+RFH_DTHRG+RFH_DATAAP+RFH_EMPORG+RFH_FILORG+RFH_MATORG+RFH_DHORG+RFH_IDORG+RFH_NATU+RFH_PERAPO+RFH_LINHA+RFH_RELSP0+RFH_PIS = %Exp:( _cAlias )->Linha%
+			And D_E_L_E_T_ = ' '
+		Order By 
+			RFH_FILIAL+RFH_ORIG+RFH_CRACHA+RFH_DATA+Str(RFH_HORA)+RFH_CC+RFH_RELOGI+RFH_FUNCAO+RFH_GIRO+RFH_FLAG+RFH_NUMREP+RFH_DTHRLI+RFH_DTHRG+RFH_DATAAP+RFH_EMPORG+RFH_FILORG+RFH_MATORG+RFH_DHORG+RFH_IDORG+RFH_NATU+RFH_PERAPO+RFH_LINHA+RFH_RELSP0+RFH_PIS,
+			R_E_C_N_O_ 
+	EndSQL
+		
+	While ( _cAliasDUP )->( !Eof() )
+	
+		If !_lFirst
+
+			RFH->( dbGoTo( ( _cAliasDUP )->RegDUP ) )
+		
+			If RFH->( Recno() ) == ( _caliasDUP )->RegDUP
+
+				ConOut( "Atualizado registro: " + AllTrim( Str( ( _cAliasDUP )->RegDUP ) ) )
+
+				RecLock( "RFH", .F. )
+				RFH->RFH_FILIAL:= "XXXX"
+				RFH->( MsUnLock() )
+
+			EndIf
+		
+		else
+			_lFirst := .F.
+		EndIf
+
+		( _cAliasDUP )->( dbSkip() )
+		
+	EndDo
+
+	( _cAliasDUP )->( dbCloseArea() )
+	
+	( _cAlias )->( dbSkip() )
+	
+EndDo
+
+( _cAlias )->( dbCloseArea() )
+
+Return ( Nil )

@@ -1,0 +1,952 @@
+#INCLUDE "PROTHEUS.CH"
+#INCLUDE "TOPCONN.CH"
+#INCLUDE "AP5MAIL.CH"
+
+#DEFINE PAE_LEFT		0
+#DEFINE PAE_RIGHT	1
+#DEFINE PAE_CENTER	2
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³SCFAT02R  ºAutor  ³Natanael            º Data ³  29/05/06   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³ Relatorio Faturamento Mensal                               º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ Protheus 8.11 - TopConnect - MYERS                         º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+
+User Function scfat02r()
+
+	Local cPerg    := "SCFAT3"
+	Local nOpc     := 4
+	Local lPreview := .F.
+	Local lExcel   := .F.
+	
+	Private cTitulo := "RELATORIO FATURAMENTO MENSAL NOVEL-BA"
+	Private nPagina := 0
+	Private oPrint  := TMSPrinter():New(cTitulo)
+	Private oExcel  := Myex001():New()
+	
+	cPerg := PadR(cPerg,10)
+	
+	SX1->(dbSetOrder(1))
+	If !SX1->(dbSeek(cPerg))
+		ValidPerg(@cPerg)
+	EndIf
+	
+	If !Pergunte(cPerg,.T.)
+		Return
+	EndIf
+	
+	While nOpc == 4
+		nOpc := Aviso("Emissão de Relatório",cTitulo,{"Disco","Imprimir","Excel","Configurar"})
+		If nOpc == 4
+			oPrint:Setup()
+		EndIf
+	EndDo
+	
+	If nOpc == 1
+		lPreview := .T.
+	ElseIf nOpc == 3
+		lExcel := .T.
+	ElseIf nOpc == 0
+		Return
+	EndIf
+	
+	Processa( { |lEnd| ImprimeRel(cTitulo,@lPreview,@lExcel),"Gerando o Relatório"},"Aguarde...")
+
+Return
+
+&&
+Static Function ImprimeRel(cTitulo,lPreview,lExcel)
+
+	Local oDlg
+	Local oBmp
+	Local nPag          := 0
+	Local nTot          := 0
+	Local cQuery        := ""
+	Local nSaltoDetalhe := 0
+	Local cProduto      := ""
+	Local aEstrut       := {}
+	Local nValTmp		:= 0
+	Local nTotTmp		:= 0
+	
+	Local cGarNac	 :=	GetMv("SC_GARNAC")  && Garantia Nacional
+	Local cGarExp	 :=	GetMv("SC_GAREXP")  && Garantia Exportacao
+	Local cAmoNac	 :=	GetMv("SC_AMONAC")  && Amostra Gratis Nacional
+	Local cAmoExp	 :=	GetMv("SC_AMOEXP")  && Amostra Gratis Exportacao
+	Local cNaoImp	 :=	GetMv("SC_NAOIMP")
+	Local cNaoImp2	 :=	GetMv("SC_NAOIMP2")
+	Local cNaoImp3	 :=	GetMv("SC_NAOIMP3")
+	Local oExcelApp  :=  Nil
+	Local cDocumento := ""
+	Local nTotItens  := 0
+	Local nVlrDesp   := 0
+	
+	Private nItens	  := 0
+	Private cFLogo   := "lgrl01.bmp"
+	Private oFont08  := tFont():New("Arial",,08,,.f.,,,,.f.,.f.)
+	Private oFont08b := tFont():New("Arial",,08,,.T.,,,,.f.,.f.)
+	Private oFont09  := tFont():New("Arial",,09,,.f.,,,,.f.,.f.)
+	Private oFont09b := tFont():New("Arial",,09,,.T.,,,,.f.,.f.)
+	Private oFont10  := tFont():New("Arial",,10,,.f.,,,,.f.,.f.)
+	Private oFont10b := tFont():New("Arial",,10,,.T.,,,,.f.,.f.)
+	Private oFont11  := tFont():New("Arial",,11,,.f.,,,,.f.,.f.)
+	Private oFont11b := tFont():New("Arial",,11,,.T.,,,,.f.,.f.)
+	Private oFont12  := tFont():New("Arial",,12,,.f.,,,,.f.,.f.)
+	Private oFont12b := tFont():New("Arial",,12,,.T.,,,,.f.,.f.)
+	Private oFont14  := tFont():New("Arial",,14,,.f.,,,,.f.,.f.)
+	Private oFont14b := tFont():New("Arial",,14,,.T.,,,,.f.,.f.)
+	Private oFont16b := tFont():New("Arial",,16,,.T.,,,,.f.,.T.)
+	Private	oBrush  := TBrush():New(,4)
+	Private	oPen	  := TPen():New(0,5,CLR_BLACK)
+	
+	Private nColIni	:= 0010
+	Private nColFim	:= 3350
+	Private nLinFim	:= 2350
+	Private nAltura := 0000
+	Private nLinha	:= 5000
+	Private lPula	:= .T.
+	  
+	
+	&& Niveis de quebra
+	&& 1 = Divisao
+	&& 2 = Grupo
+	
+	&& Contadores para cálculo da média das margens de lucro
+	Private nCont1 := nCont2 := nContT := 0
+	
+	&& Variáveis de Totais
+	Private nQtd1 := nVlTotal1 := nIPI1 := nICMS1 := nPisCof1 := nTotNF1 := nTotLiq1 := nCusto1 := nMargem1 := 0.00
+	Private nQtd2 := nVlTotal2 := nIPI2 := nICMS2 := nPisCof2 := nTotNF2 := nTotLiq2 := nCusto2 := nMargem2 := 0.00
+	Private nQtdT := nVlTotalT := nIPIT := nICMST := nPisCofT := nTotNFT := nTotLiqT := nCustoT := nMargemT := 0.00
+	
+	&& Variaveis diversas
+	
+	Private cArray	:= ""		&& Array para processamento
+	Private nTam	:= 0		&& Tamanho do array
+	Private nPos	:= 0		&& Posicao do array
+	
+	&& Cria arrays de cada divisao
+	Private aVendas,aGn,aGe,aAgn,aAge,aDev,aCIcms
+	
+	/*
+	aVendas		Vendas
+	aGn			Garantia Nacional
+	aGe			Garantia Exportaçao
+	aAgn			Amostra Gratis Nacional
+	aAge			Amostra Gratis Exportacao
+	aDev	  		Devolucao
+	aCIcms		Complemento ICMS
+	*/
+	
+	&& Carrega Arrays
+	aVendas := {}  && Vendas
+	aGn		:= {}  && Garantia Nacional
+	aGe		:= {}  && Garantia Exportaçao
+	aAgn	:= {}  && Amostra Gratis Nacional
+	aAge	:= {}  && Amostra Gratis Exportacao
+	aDev	:= {}  && Devolucao
+	aCIcms	:= {}  && Complemento ICMS
+	
+	&& Monta query
+	cQuery 	:= 	"SELECT * "
+	cQuery 	+= 	"FROM " + RetSqlName("SD2") + " D2 "
+	//cQuery 	+= 	"INNER JOIN SF4010 F4 ON F4.F4_CODIGO = D2.D2_TES AND F4.F4_DUPLIC ='S' "
+	cQuery 	+= 	"WHERE   D2_EMISSAO >='" + DtoS(mv_par01)	+ "' AND D2_EMISSAO <='" + DtoS(mv_par02)	+ "' "
+	cQuery 	+= 		"AND D2_CLIENTE >='" + mv_par03			+ "' AND D2_CLIENTE <='" + mv_par05			+ "' "
+	cQuery 	+= 		"AND D2_LOJA    >='" + mv_par04			+ "' AND D2_LOJA    <='" + mv_par06			+ "' "
+	cQuery 	+= 		"AND D2_DOC     >='" + mv_par07			+ "' AND D2_DOC     <='" + mv_par08			+ "' "
+	cQuery 	+= 		"AND D2_GRUPO   != 'TERC' " //Ewerton - 24/09/09
+//	cQuery 	+= 		"AND D2.D_E_L_E_T_ = ' ' "
+	cQuery 	+= 		"AND D2.D_E_L_E_T_ = ' ' AND (SELECT F4_DUPLIC FROM SF4010 WHERE D_E_L_E_T_<>'*' AND D2_TES=F4_CODIGO)='S' " //AND D2_TES<>'557' "        //Verificar
+	cQuery 	+=	"ORDER BY D2_GRUPO, D2_DOC"
+	cQuery 	:= ChangeQuery(cQuery)
+	
+	TcQuery cQuery New Alias "TSD2"
+	
+	aEval(SD2->(dbStruct()),{ |x| IIF( x[2] != "C" , TcSetField("TSD2",x[1],x[2],x[3],x[4]) , Nil ) } )
+	
+	dbSelectArea("TSD2")
+	
+	Count to nTot
+	
+	TSD2->(dbGoTop())
+	
+	SF4->(dbSetorder(1))
+	SBM->(dbSetorder(1))
+	SA1->(dbSetorder(1))
+	SC5->(dbSetorder(1))
+	SA3->(dbSetorder(1))
+	
+	While TSD2->(!Eof())
+		
+		SF4->(dbSeek(xFilial("SF4")+TSD2->D2_TES))			&& Posiciona na TES
+		SBM->(dbSeek(xFilial("SBM")+TSD2->D2_GRUPO))		&& Posiciona Descricao do Grupo
+		SA1->(dbSeek(xFilial("SA1")+TSD2->D2_CLIENTE))		&& Posiciona Nome cliente
+		SC5->(dbSeek(xFilial("SC5")+TSD2->D2_PEDIDO))		&& Posiciona no Pedido
+		SA3->(dbSeek(xFilial("SA3")+SC5->C5_VEND1))
+		
+		dbSelectArea("TSD2")
+		
+		Do Case
+			Case D2_TIPO = "D" .and. SF4->F4_DUPLIC = "S"		&& Devolucao
+				cArray := "aDev"
+			Case D2_TIPO = "I"									&& Complemento de ICMS
+				cArray := "aCIcms"
+			Case Alltrim(D2_CF) $ cGarNac						&& Garantia Nacional
+				cArray := "aGn"
+			Case Alltrim(D2_CF) $ cGarExp						&& Garantia Exportacao
+				cArray := "aGe"
+			Case Alltrim(D2_CF) $ cAmoNac						&& Amostra Gratis Nacional
+				cArray := "aAgn"
+			Case Alltrim(D2_CF) $ cAmoExp						&& Amostra Gratis Exportacao
+				cArray := "aAge"
+			OtherWise											   && Vendas
+				cArray := "aVendas"
+		EndCase
+		
+		If	Alltrim(D2_CF) $ cNaoImp .or. Alltrim(D2_CF) $ cNaoImp2 .or. Alltrim(D2_CF) $ cNaoImp3
+			TSD2->(dbSkip())
+			Loop
+		EndIf
+		
+		nValTmp	:= D2_TOTAL
+		nValTmp	-= IIF( D2_TIPO == 'P' , D2_VALIPI , 0 )
+		nValTmp -= D2_VALICM
+		
+		
+		//customizado - Retira o pis caso seja importacao
+		If Posicione("SF4",1,xFilial("SF4")+D2_TES,"F4_CSTPIS") == "01"
+			nValTmp -= D2_VALIMP5
+			nValTmp -= D2_VALIMP6
+		EndIf
+		
+		nTotTmp	:=	D2_TOTAL + IIF( D2_TIPO != 'P' , D2_VALIPI , 0 )
+		
+                 
+
+		//customizado - Retira o pis caso seja importacao
+		If (Posicione("SF4",1,xFilial("SF4")+D2_TES,"F4_CSTPIS") == "01")
+
+			Aadd( &cArray,{ D2_DOC,;						&& 01 NUM.NOTA&DOCUMENTO
+			D2_EMISSAO,;		   			&& 02 DATA EMISSAO
+			Alltrim(SA1->A1_COD) +" / "+ Substr(SA1->A1_NOME,01,20),;	&& 03 NOME DO CLIENTE
+			D2_COD,;						&& 04 CODIGO DO PRODUTO
+			D2_UM,;							&& 05 UNIDADE DE MEDIDA
+			D2_QUANT,;						&& 06 QUANTIDADE DO ITEM
+			D2_PRCVEN,;						&& 07 PRECO UNITÁRIO
+			D2_TOTAL,;						&& 08 VALOR TOTAL DO ITEM
+			D2_VALIPI,;						&& 09 VALOR DO IPI
+			D2_VALICM,;						&& 10 VALOR DO ICMS
+			D2_VALIMP6+D2_VALIMP5,;			&& 11 VALOR PIS+COFINS
+			nTotTmp,;           			&& 12 VALOR TOTAL DO ITEM
+			nValTmp	,;						&& 13 VALOR LIQ.ITEM
+			If(D2_CUSTO1==0,Posicione("SB1",1,xFilial("SB1") + D2_COD, "B1_CUSTD")*D2_QUANT, D2_CUSTO1),;	&& 14 VALOR CUSTO
+			0.00,;							&& 15 MARGEM DE LUCRO
+			SBM->BM_DESC,;					&& 16 DESCRICAO DO GRUPO
+			D2_GRUPO,;						&& 17 GRUPO DO PRODUTO
+			D2_SERIE,;						&& 18 SERIE DA NOTA
+			AllTrim(SA3->A3_NREDUZ),;		&& 19 VENDEDOR
+			D2_CF ,;						&& 20 CFOP
+			Posicione("SF2",1,xFilial("SF2")+D2_DOC+D2_SERIE+D2_CLIENTE+D2_LOJA,"F2_TPFRETE")})
+		Else
+			Aadd( &cArray,{ D2_DOC,;						&& 01 NUM.NOTA&DOCUMENTO
+			D2_EMISSAO,;		   			&& 02 DATA EMISSAO
+			Alltrim(SA1->A1_COD) +" / "+ Substr(SA1->A1_NOME,01,20),;	&& 03 NOME DO CLIENTE
+			D2_COD,;						&& 04 CODIGO DO PRODUTO
+			D2_UM,;							&& 05 UNIDADE DE MEDIDA
+			D2_QUANT,;						&& 06 QUANTIDADE DO ITEM
+			D2_PRCVEN,;						&& 07 PRECO UNITÁRIO
+			D2_TOTAL,;						&& 08 VALOR TOTAL DO ITEM
+			D2_VALIPI,;						&& 09 VALOR DO IPI
+			D2_VALICM,;						&& 10 VALOR DO ICMS
+			0,;								&& 11 VALOR PIS+COFINS
+			nTotTmp,;           			&& 12 VALOR TOTAL DO ITEM
+			nValTmp	,;						&& 13 VALOR LIQ.ITEM
+			If(D2_CUSTO1==0,Posicione("SB1",1,xFilial("SB1") + D2_COD, "B1_CUSTD")*D2_QUANT, D2_CUSTO1),;	&& 14 VALOR CUSTO
+			0.00,;							&& 15 MARGEM DE LUCRO
+			SBM->BM_DESC,;					&& 16 DESCRICAO DO GRUPO
+			D2_GRUPO,;						&& 17 GRUPO DO PRODUTO
+			D2_SERIE,;						&& 18 SERIE DA NOTA
+			AllTrim(SA3->A3_NREDUZ),;		&& 19 VENDEDOR
+			D2_CF ,;						&& 20 CFOP
+			Posicione("SF2",1,xFilial("SF2")+D2_DOC+D2_SERIE+D2_CLIENTE+D2_LOJA,"F2_TPFRETE")})
+		EndIf	
+		nTam     			:= Len(&cArray)
+		nLiqItem			:=	&cArray[nTam][13]
+		&cArray[nTam][15]	:=	Round( (&cArray[nTam][13] - &cArray[nTam][14]) / &cArray[nTam][13] * 100, 2)
+		
+		cDocumento := TSD2->D2_DOC+TSD2->D2_SERIE+TSD2->D2_CLIENTE+TSD2->D2_LOJA
+		nTotItens  += 1
+		
+		TSD2->(dbSkip())
+		
+		if cDocumento != TSD2->D2_DOC+TSD2->D2_SERIE+TSD2->D2_CLIENTE+TSD2->D2_LOJA
+			SF2->(dbSetOrder(1))
+			SF2->(dbSeek(xFilial("SF2")+cDocumento))
+			
+			if SF2->F2_FRETE+SF2->F2_SEGURO+SF2->F2_DESPESA > 0
+				nVlrDesp  := (SF2->F2_FRETE+SF2->F2_SEGURO+SF2->F2_DESPESA) / nTotItens
+				nTam      := nTam - (nTotItens-1)
+
+				while nTam <= Len(&cArray)
+					&cArray[nTam][13] += nVlrDesp
+					nTam++
+				enddo
+			endif   
+			nTotItens := 0
+		endif
+	EndDo
+	
+	oPrint:SetLandscape()
+	
+	If lExcel
+		oExcel:ImpCabec()
+	Else
+		fImpCabec(cTitulo,@nPagina,.T.,.F.,.T.)  &&Titulo , Num. da Página, Pula Pagina, Imprime Detalhes
+	EndIf
+	
+	&& Imprime Divisão Vendas
+	cArray := "aVendas"
+	cXtitu := "Divisão Vendas"
+	If Len(&cArray) > 0
+		IIF(!lExcel,fImpTit(cXtitu),oExcel:ImpTit(cXtitu))
+		cGrupo :=&cArray[1,17]
+		For nPos = 1 to Len(&cArray)
+			If	cGrupo != &cArray[nPos][17] .and. mv_par13 == 1
+				IIF(!lExcel,fImpT1(),oExcel:ImpT1())
+				cGrupo := &cArray[nPos][17]
+			Else
+				cGrupo := &cArray[nPos][17]
+			EndIf
+			IIF(!lExcel,fImpDet(),oExcel:ImpDet())
+			fAcumT1()	&& Acumula grupo
+			fAcumT2()	&& Acumula total
+			fAcumTG()	&& Acumula total geral
+		Next nPos
+		If	mv_par13 == 1
+			IIF(!lExcel,fImpT1(),oExcel:ImpT1())
+		EndIf
+		IIF(!lExcel,fImpT2(),oExcel:ImpT2())
+	EndIf
+	
+	&& Imprime Garantia Nacional
+	cArray := "aGn"
+	cXtitu := "Garantia Nacional"
+	If Len(&cArray) > 0 .and. mv_par09 == 1
+		IIF(!lExcel,fImpTit(cXtitu),oExcel:ImpTit(cXtitu))
+		cGrupo :=&cArray[1,17]
+		For nPos = 1 to Len(&cArray)
+			If	cGrupo != &cArray[nPos][17] .and. mv_par13 == 1
+				IIF(!lExcel,fImpT1(),oExcel:ImpT1())
+				cGrupo := &cArray[nPos][17]
+			Else
+				cGrupo := &cArray[nPos][17]
+			EndIf
+			IIF(!lExcel,fImpDet(),oExcel:ImpDet())
+			fAcumT1()	&& Acumula grupo
+			fAcumT2()	&& Acumula total
+			fAcumTG()	&& Acumula total geral
+		Next nPos
+		If	mv_par13 == 1
+			IIF(!lExcel,fImpT1(),oExcel:ImpT1())
+		EndIf
+		IIF(!lExcel,fImpT2(),oExcel:ImpT2())
+	EndIf
+	
+	&& Imprime Garantia Exportaccao
+	cArray := "aGe"
+	cXtitu := "Garantia Exportacao"
+	If Len(&cArray) > 0  .and. mv_par10 == 1
+		IIF(!lExcel,fImpTit(cXtitu),oExcel:ImpTit(cXtitu))
+		cGrupo :=&cArray[1,17]
+		For nPos = 1 to Len(&cArray)
+			If	cGrupo != &cArray[nPos][17] .and. mv_par13 == 1
+				IIF(!lExcel,fImpT1(),oExcel:ImpT1())
+				cGrupo := &cArray[nPos][17]
+			Else
+				cGrupo := &cArray[nPos][17]
+			EndIf
+			IIF(!lExcel,fImpDet(),oExcel:ImpDet())
+			fAcumT1()	&& Acumula grupo
+			fAcumT2()	&& Acumula total
+			fAcumTG()	&& Acumula total geral
+		Next nPos
+		If	mv_par13 == 1
+			IIF(!lExcel,fImpT1(),oExcel:ImpT1())
+		EndIf
+		IIF(!lExcel,fImpT2(),oExcel:ImpT2())
+	EndIf
+	
+	&& Imprime Amostra Gratis Nacional
+	cArray := "aAgn"
+	cXtitu := "Amostra Grátis Nacional"
+	If Len(&cArray) > 0 .and. mv_par11 == 1
+		IIF(!lExcel,fImpTit(cXtitu),oExcel:ImpTit(cXtitu))
+		cGrupo :=&cArray[1,17]
+		For nPos = 1 to Len(&cArray)
+			If	cGrupo != &cArray[nPos][17] .and. mv_par13 == 1
+				IIF(!lExcel,fImpT1(),oExcel:ImpT1())
+				cGrupo := &cArray[nPos][17]
+			Else
+				cGrupo := &cArray[nPos][17]
+			EndIf
+			IIF(!lExcel,fImpDet(),oExcel:ImpDet())
+			fAcumT1()	&& Acumula grupo
+			fAcumT2()	&& Acumula total
+			fAcumTG()	&& Acumula total geral
+		Next nPos
+		If	mv_par13 == 1
+			IIF(!lExcel,fImpT1(),oExcel:ImpT1())
+		EndIf
+		IIF(!lExcel,fImpT2(),oExcel:ImpT2())
+	EndIf
+	
+	&& Imprime Amostra Gratis Exportacao
+	cArray := "aAge"
+	cXtitu := "Amostra Grátis Exportacao"
+	If Len(&cArray) > 0 .and. mv_par12 == 1
+		IIF(!lExcel,fImpTit(cXtitu),oExcel:ImpTit(cXtitu))
+		cGrupo :=&cArray[1,17]
+		For nPos = 1 to Len(&cArray)
+			If	cGrupo != &cArray[nPos][17] .and. mv_par13 == 1
+				IIF(!lExcel,fImpT1(),oExcel:ImpT1())
+				cGrupo := &cArray[nPos][17]
+			Else
+				cGrupo := &cArray[nPos][17]
+			EndIf
+			IIF(!lExcel,fImpDet(),oExcel:ImpDet())
+			fAcumT1()	&& Acumula grupo
+			fAcumT2()	&& Acumula total
+			fAcumTG()	&& Acumula total geral
+		Next nPos
+		If	mv_par13 == 1
+			IIF(!lExcel,fImpT1(),oExcel:ImpT1())
+		EndIf
+		IIF(!lExcel,fImpT2(),oExcel:ImpT2())
+	EndIf
+	
+	grvDev(@aDev)
+	&& Imprime Devolucao
+	cArray := "aDev"
+	cXtitu := "Devolução"
+	If Len(&cArray) > 0
+		IIF(!lExcel,fImpTit(cXtitu),oExcel:ImpTit(cXtitu))
+		cGrupo :=&cArray[1,17]
+		For nPos = 1 to Len(&cArray)
+			If	cGrupo != &cArray[nPos][17] .and. mv_par13 == 1
+				IIF(!lExcel,fImpT1(),oExcel:ImpT1())
+				cGrupo := &cArray[nPos][17]
+			Else
+				cGrupo := &cArray[nPos][17]
+			EndIf
+			IIF(!lExcel,fImpDet(),oExcel:ImpDet())
+			fAcumT1()	&& Acumula grupo
+			fAcumT2()	&& Acumula total
+			fAcumTG()	&& Acumula total geral
+		Next nPos
+		If	mv_par13 == 1
+			IIF(!lExcel,fImpT1(),oExcel:ImpT1())
+		EndIf
+		IIF(!lExcel,fImpT2(),oExcel:ImpT2())
+	EndIf
+	
+	&& Imprime Complemento de ICMS
+	cArray := "aCicms"
+	cXtitu := "Complemento de ICMS"
+	If Len(&cArray) > 0
+		IIF(!lExcel,fImpTit(cXtitu),oExcel:ImpTit(cXtitu))
+		cGrupo :=&cArray[1,17]
+		For nPos = 1 to Len(&cArray)
+			If	cGrupo != &cArray[nPos][17] .and. mv_par13 == 1
+				IIF(!lExcel,fImpT1(),oExcel:ImpT1())
+				cGrupo := &cArray[nPos][17]
+			Else
+				cGrupo := &cArray[nPos][17]
+			EndIf
+			IIF(!lExcel,fImpDet(),oExcel:ImpDet())
+			fAcumT1()	&& Acumula grupo
+			fAcumT2()	&& Acumula total
+			fAcumTG()	&& Acumula total geral
+		Next nPos
+		If	mv_par13 == 1
+			IIF(!lExcel,fImpT1(),oExcel:ImpT1())
+		EndIf
+		IIF(!lExcel,fImpT2(),oExcel:ImpT2())
+	EndIf
+	
+	IIF(!lExcel,fImpTG(),oExcel:ImpTG())
+	
+	TSD2->(dbCloseArea())
+	
+	If lExcel
+		oExcelApp := MsExcel():New()
+		MemoWrit("Novel001.xls",oExcel:cArq)  //novel
+	
+		__copyfile("Novel001.xls","c:\temp\Novel001.xls")
+		&&Copy File &("Myers001.xls") to &("c:\Myers001.xls")
+		&&Copy File &("\Myers001.xls") to &("c:\Myers002.xls")
+		&&Copy File &("\system\Myers001.xls") to &("c:\Myers003.xls")
+		oExcelApp:WorkBooks:Open("c:\temp\Novel001.xls")
+		&&oExcelApp:WorkBooks:Open("\\server2\P10_OFICIAL\Protheus_Data\system\myers001.xls")
+		&&oExcelApp:WorkBooks:Open("c:\Myers001.xls")
+		oExcelApp:SetVisible(.T.)
+	
+	Else
+		If lPreview
+			oPrint:Preview()
+		Else
+			oPrint:Print()
+		EndIf
+	EndIf
+
+Return
+
+&& Acumula totais do grupo
+Static Function fAcumT1()
+
+	nQtd1		+= &cArray[nPos][06]		&& Quantidade
+	nVlTotal1	+= &cArray[nPos][08]		&& Valor total do item
+	nIPI1		+= &cArray[nPos][09]		&& IPI
+	nICMS1		+= &cArray[nPos][10]		&& ICMS
+	nPisCof1	+= &cArray[nPos][11]		&& PIS + COFINS
+	nTotNF1		+= &cArray[nPos][12]		&& Total do item
+	nTotLiq1	+= &cArray[nPos][13]		&& Liquido item
+	nCusto1		+= &cArray[nPos][14]		&& Custo item
+	nMargem1	+= &cArray[nPos][15]		&& Margem de lucro
+	
+	nCont2++
+
+Return
+
+&& Acumula totais do grupo
+Static Function fAcumT2()
+
+	nQtd2		+= &cArray[nPos][06]		&& Quantidade
+	nVlTotal2	+= &cArray[nPos][08]		&& Valor total do item
+	nIPI2		+= &cArray[nPos][09]		&& IPI
+	nICMS2		+= &cArray[nPos][10]		&& ICMS
+	nPisCof2	+= &cArray[nPos][11]		&& PIS + COFINS
+	nTotNF2		+= &cArray[nPos][12]		&& Total do item
+	nTotLiq2	+= &cArray[nPos][13]		&& Liquido item
+	nCusto2		+= &cArray[nPos][14]		&& Custo item
+	nMargem2	+= &cArray[nPos][15]		&& Margem de lucro
+	
+	nCont2++
+
+Return
+
+&& Acumula totais do grupo
+Static Function fAcumTG()
+
+	if cArray == "aDev"
+		nQtdT		-= &cArray[nPos][06]		&& Quantidade
+		nVlTotalT	-= &cArray[nPos][08]		&& Valor total do item
+		nIPIT		-= &cArray[nPos][09]		&& IPI
+		nICMST		-= &cArray[nPos][10]		&& ICMS
+		nPisCofT	-= &cArray[nPos][11]		&& PIS + COFINS
+		nTotNFT		-= &cArray[nPos][12]		&& Total do item
+		nTotLiqT	-= &cArray[nPos][13]		&& Liquido item
+		nCustoT		-= &cArray[nPos][14]		&& Custo item
+		nMargemT	-= &cArray[nPos][15]		&& Margem de lucro
+	else
+		nQtdT		+= &cArray[nPos][06]		&& Quantidade
+		nVlTotalT	+= &cArray[nPos][08]		&& Valor total do item
+		nIPIT		+= &cArray[nPos][09]		&& IPI
+		nICMST		+= &cArray[nPos][10]		&& ICMS
+		nPisCofT	+= &cArray[nPos][11]		&& PIS + COFINS
+		nTotNFT		+= &cArray[nPos][12]		&& Total do item
+		nTotLiqT	+= &cArray[nPos][13]		&& Liquido item
+		nCustoT		+= &cArray[nPos][14]		&& Custo item
+		nMargemT	+= &cArray[nPos][15]		&& Margem de lucro
+	endif
+	
+	nCont2++
+
+Return
+
+&& VerIficar as quebras
+Static Function fQuebra()
+
+	nProx := nPos+1
+	If nProx > Len(&cArray)
+		fImpT2()
+	ElseIf cGrupo # &cArray[nProx][17]
+		&& Imprime, acumula e zera totais do grupo
+		fImpT2()
+	EndIf
+
+Return .T.
+
+&&
+Static Function fImpT1()
+
+	If nLinha > 2300
+		fImpCabec(cTitulo,@nPagina,.T.,.T.,.f.)
+	EndIf
+	
+	oPrint:Box(nLinha-2,nColIni,nLinha + 35,nColFim)		&& Tamanho total do quadro em Landscape
+	Imprev(nLinha-2,nLinha + 35)
+	nLinha +=035
+	oPrint:Box(nLinha-2,nColIni,nLinha + 35,nColFim)		&& Tamanho total do quadro em Landscape
+	Imprev(nLinha-2,nLinha + 35)
+	&& Acumula totais da divisao do relatorio
+	nLinha +=004
+	oPrint:Say(nLinha ,0025   	,"Sub-Total"                         		,oFont08b,,CLR_BLACK,,PAE_LEFT)
+	&&oPrint:Say(nLinha ,1250 	,Transform(nQtd1,"@E 999,999.99")	   		,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,1600 	,Transform(nVltotal1,"@E 999,999,999.99")	,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,1800 	,Transform(nIPI1,"@E 9,999,999.99")			,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,2000 	,Transform(nICMS1,"@E 9,999,999.99")		,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,2200 	,Transform(nPisCof1,"@E 9,999,999.99")		,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,2450 	,Transform(nTotNF1,"@E 999,999,999.99")		,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,2700 	,Transform(nTotLiq1,"@E 999,999,999.99")	,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,2900 	,Transform(nCusto1,"@E 999,999,999.99")		,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,3100 	,Transform((nTotLiq1-nCusto1)/nTotLiq1*100,"@E 9999.99")	,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	
+	nLinha +=031
+	oPrint:Box(nLinha,nColIni,nLinha + 35,nColFim)		&& Tamanho total do quadro em Landscape
+	Imprev(nLinha-2,nLinha + 35)
+	nLinha +=035
+	
+	&& Zera acumuladores do grupo
+	nQtd1:=nVlTotal1:=nIPI1:=nICMS1:=nPisCof1:=nTotNF1:=nTotLiq1:=nCusto1:=nMargem1:=nCont1:=0.00
+
+Return .T.
+
+&&
+Static Function fImpT2()
+
+	If nLinha > 2300
+		fImpCabec(cTitulo,@nPagina,.T.,.T.,.f.)
+	EndIf
+	
+	oPrint:Box(nLinha-2,nColIni,nLinha + 35,nColFim)		&& Tamanho total do quadro em Landscape
+	Imprev(nLinha-2,nLinha + 35)
+	nLinha +=035
+	oPrint:Box(nLinha-2,nColIni,nLinha + 35,nColFim)		&& Tamanho total do quadro em Landscape
+	Imprev(nLinha-2,nLinha + 35)
+	
+	&& Acumula totais da divisao do relatorio
+	nLinha +=004
+	oPrint:Say(nLinha ,0025   	,"Total"	                         		,oFont08b,,CLR_BLACK,,PAE_LEFT)
+	&&oPrint:Say(nLinha ,1250 	,Transform(nQtd2,"@E 999,999.99")			,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,1600 	,Transform(nVltotal2,"@E 999,999,999.99")	,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,1800 	,Transform(nIPI2,"@E 9,999,999.99")			,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,2000 	,Transform(nICMS2,"@E 9,999,999.99")		,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,2200 	,Transform(nPisCof2,"@E 9,999,999.99")		,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,2450 	,Transform(nTotNF2,"@E 999,999,999.99")		,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,2700 	,Transform(nTotLiq2,"@E 999,999,999.99")	,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,2900 	,Transform(nCusto2,"@E 999,999,999.99")		,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,3100 	,Transform((nTotLiq2-nCusto2)/nTotLiq2*100,"@E 9999.99")	,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	
+	nLinha +=031
+	oPrint:Box(nLinha-2,nColIni,nLinha + 35,nColFim)		&& Tamanho total do quadro em Landscape
+	Imprev(nLinha-2,nLinha + 35)
+	nLinha +=035
+	
+	&& Zera acumuladores do grupo
+	nQtd2:=nVlTotal2:=nIPI2:=nICMS2:=nPisCof2:=nTotNF2:=nTotLiq2:=nCusto2:=nMargem2:=nCont2:=0.00
+
+Return .T.
+
+&&
+Static Function fImpTG()
+
+	If nLinha > 2300
+		fImpCabec(cTitulo,@nPagina,.T.,.T.,.f.)
+	EndIf
+	
+	oPrint:Box(nLinha-2,nColIni,nLinha + 35,nColFim)		&& Tamanho total do quadro em Landscape
+	Imprev(nLinha-2,nLinha + 35)
+	nLinha +=035
+	oPrint:Box(nLinha-2,nColIni,nLinha + 35,nColFim)		&& Tamanho total do quadro em Landscape
+	Imprev(nLinha-2,nLinha + 35)
+	
+	&& Acumula totais da divisao do relatorio
+	nLinha +=004
+	oPrint:Say(nLinha ,0025    	,"Total Geral"                       		,oFont08b,,CLR_BLACK,,PAE_LEFT)
+	&&oPrint:Say(nLinha ,1250 	,Transform(nQtdT,"@E 999,999.99")			,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,1600 	,Transform(nVltotalT,"@E 999,999,999.99")	,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,1800 	,Transform(nIPIT,"@E 9,999,999.99")			,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,2000 	,Transform(nICMST,"@E 9,999,999.99")		,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,2200 	,Transform(nPisCofT,"@E 9,999,999.99")		,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,2450 	,Transform(nTotNFT,"@E 999,999,999.99")		,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,2700 	,Transform(nTotLiqT,"@E 999,999,999.99")	,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,2900 	,Transform(nCustoT,"@E 999,999,999.99")		,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,3100 	,Transform((nTotLiqT-nCustoT)/nTotLiqT*100,"@E 9999.99")	,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	
+	nLinha +=031
+	oPrint:Box(nLinha-2,nColIni,nLinha + 35,nColFim)		&& Tamanho total do quadro em Landscape
+	Imprev(nLinha-2,nLinha + 35)
+	nLinha +=04
+	
+	//Ewerton - 24/09/09
+	//cQuery := "SELECT SUM(D1_TOTAL-D1_VALICM-D1_VALIMP5-D1_VALIMP6) "
+	/*
+	cQuery := "SELECT * "
+	cQuery += "FROM " + RetSQLName("SD1") 
+	cQuery += " WHERE   D1_DTDIGIT >='" + DtoS(mv_par01)	+ "' AND D1_DTDIGIT <='" + DtoS(mv_par02)	+ "' "
+	cQuery += "AND D1_FORNECE >='" + mv_par03 + "' AND D1_FORNECE <='" + mv_par05 + "' " 
+	cQuery += "AND D1_LOJA    >='" + mv_par04 + "' AND D1_LOJA    <='" + mv_par06 + "' " 
+	cQuery += "AND D1_DOC     >='" + mv_par07 + "' AND D1_DOC     <='" + mv_par08 + "' " 
+	cQuery += "AND D1_CF IN ('1201','1202','1203','1204','2201','2202','2203','2204')  " 
+	cQuery += "AND D_E_L_E_T_ = ' ' " 
+	
+	dbUseArea(.T., "TOPCONN", TcGenQry(,,cQuery),"QRYSD1", .F., .F.)
+	
+	aEval(SD1->(dbStruct()),{ |x| IIF( x[2] != "C" , TcSetField("QRYSD1",x[1],x[2],x[3],x[4]) , Nil ) } )
+	
+	If !QRYSD1->(EOF())      
+		aTot := {0,0,0,0,0,0}
+		nLinha += 50
+		oPrint:Say(nLinha ,1950, "D E V O L U Ç Õ E S",oFont08b,,CLR_BLACK,,PAE_RIGHT)
+		nLinha += 50
+		While !QRYSD1->(EOF())
+			If nLinha > 2300
+				fImpCabec(cTitulo,@nPagina,.T.,.T.,.f.)
+			EndIf
+			oPrint:Box(nLinha-2,nColIni,nLinha + 35,nColFim)		&& Tamanho total do quadro em Landscape
+			Imprev(nLinha-2,nLinha + 35)
+			oPrint:Say(nLinha ,0025 ,QRYSD1->D1_DOC + "/" + QRYSD1->D1_SERIE,oFont08,,CLR_BLACK,,PAE_LEFT)
+			oPrint:Say(nLinha ,0280 ,DtoC(QRYSD1->D1_DTDIGIT),oFont08,,CLR_BLACK,,PAE_CENTER)
+			oPrint:Say(nLinha ,0380 ,SubStr(Posicione("SA1",1,xFilial("SA1") + QRYSD1->D1_FORNECE, "A1_NOME"),1,32),oFont08,,CLR_BLACK,,PAE_LEFT)
+			oPrint:Say(nLinha ,1000 ,QRYSD1->D1_COD    ,oFont08,,CLR_BLACK,,PAE_CENTER)
+			oPrint:Say(nLinha ,1250 ,Transform(QRYSD1->D1_QUANT, "@E 99999999") ,oFont08,,CLR_BLACK,,PAE_RIGHT)
+			oPrint:Say(nLinha ,1400 ,Transform(QRYSD1->D1_VUNIT, "@E 999,999,999.99")   ,oFont08,,CLR_BLACK,,PAE_RIGHT)
+			oPrint:Say(nLinha ,1600 ,Transform(QRYSD1->D1_TOTAL, "@E 999,999,999.99")  ,oFont08,,CLR_BLACK,,PAE_RIGHT)
+			oPrint:Say(nLinha ,1800 ,Transform(QRYSD1->D1_VALIPI, "@E 999,999,999.99") ,oFont08,,CLR_BLACK,,PAE_RIGHT)
+			oPrint:Say(nLinha ,2000 ,Transform(QRYSD1->D1_VALICM, "@E 999,999,999.99") ,oFont08,,CLR_BLACK,,PAE_RIGHT)
+			oPrint:Say(nLinha ,2200 ,Transform(QRYSD1->D1_VALIMP5+QRYSD1->D1_VALIMP6, "@E 999,999,999.99"),oFont08,,CLR_BLACK,,PAE_RIGHT)
+			oPrint:Say(nLinha ,2450 ,Transform(QRYSD1->D1_TOTAL+QRYSD1->D1_VALIPI, "@E 999,999,999.99")  ,oFont08,,CLR_BLACK,,PAE_RIGHT)
+			oPrint:Say(nLinha ,2700 ,Transform(QRYSD1->D1_TOTAL-QRYSD1->D1_VALICM-QRYSD1->D1_VALIMP5-QRYSD1->D1_VALIMP6, "@E 999,999,999.99"),oFont08,,CLR_BLACK,,PAE_RIGHT)
+			oPrint:Say(nLinha ,3170 ,QRYSD1->D1_GRUPO  ,oFont08,,CLR_BLACK,,PAE_LEFT)
+			aTot[1] += QRYSD1->D1_TOTAL
+			aTot[2] += QRYSD1->D1_VALIPI
+			aTot[3] += QRYSD1->D1_VALICM
+			aTot[4] += (QRYSD1->D1_VALIMP5+QRYSD1->D1_VALIMP6)
+			aTot[5] += QRYSD1->D1_TOTAL
+			aTot[6] += (QRYSD1->D1_TOTAL-QRYSD1->D1_VALICM-QRYSD1->D1_VALIMP5-QRYSD1->D1_VALIMP6)
+			QRYSD1->(dbSkip())
+			nLinha +=035
+		End
+		oPrint:Box(nLinha-2,nColIni,nLinha + 35,nColFim)		&& Tamanho total do quadro em Landscape
+		Imprev(nLinha-2,nLinha + 35)
+		oPrint:Say(nLinha ,0025 ,"Sub-Total",oFont08b,,CLR_BLACK,,PAE_LEFT)
+		oPrint:Say(nLinha ,1600 ,Transform(aTot[1], "@E 999,999,999.99")  ,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+		oPrint:Say(nLinha ,1800 ,Transform(aTot[2], "@E 999,999,999.99") ,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+		oPrint:Say(nLinha ,2000 ,Transform(aTot[3], "@E 999,999,999.99") ,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+		oPrint:Say(nLinha ,2200 ,Transform(aTot[4], "@E 999,999,999.99"),oFont08b,,CLR_BLACK,,PAE_RIGHT)
+		oPrint:Say(nLinha ,2450 ,Transform(aTot[5]+aTot[2], "@E 999,999,999.99")  ,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+		oPrint:Say(nLinha ,2700 ,Transform(aTot[6], "@E 999,999,999.99"),oFont08b,,CLR_BLACK,,PAE_RIGHT)
+		
+		nLinha +=050
+		oPrint:Box(nLinha-2,nColIni,nLinha + 35,nColFim)		&& Tamanho total do quadro em Landscape
+		Imprev(nLinha-2,nLinha + 35)
+		oPrint:Say(nLinha ,0025 ,"Total Geral",oFont08b,,CLR_BLACK,,PAE_LEFT)
+		oPrint:Say(nLinha ,2550 ,Transform(nTotLiqT - aTot[6], "@E 999,999,999.99"),oFont08b,,CLR_BLACK,,PAE_LEFT)
+	Else
+		oPrint:Say(nLinha ,2000, "Sem Devoluções",oFont08b,,CLR_BLACK,,PAE_RIGHT)
+	EndIf
+	QRYSD1->(dbCloseArea())
+	*/
+Return .T.
+
+&& Imprime o Cabecalho
+Static Function fImpCabec(cTitulo,nPagina,lPula,lImpd,lPriVez)
+
+	If lPula
+		If	!lPriVez
+			oPrint:EndPage()
+		EndIf
+		oPrint:StartPage()
+		nLinha := 0010
+		nPagina++
+		oPrint:Box(nLinha,nColIni,nLinha + 110,nColFim)		&& Tamanho total do quadro em Landscape
+		oPrint:Say(nLinha + 12, nColFim/2 	,"FATURAMENTO MENSAL NOVEL-BA",oFont14b,,CLR_BLUE,,PAE_CENTER)
+		oPrint:Say(nLinha + 72, nColFim/2 	,"Período de Emissão das Notas Fiscais - De: "+Dtoc(mv_par01)+" - Até "+Dtoc(mv_par02),oFont10b,,CLR_BLUE,,PAE_CENTER)
+		OPrint:Say(nLinha + 72, nColFim-30  ,"Página: "+Strzero(nPagina,3),oFont10b,,CLR_BLUE,,PAE_RIGHT)
+		nLinha += 120
+	EndIf
+	
+	If lImpD
+		oPrint:Box(nLinha,nColIni,nLinha + 60,nColFim)		&& Tamanho total do quadro em Landscape
+		Imprev(nLinha,nLinha + 60)
+		nLinha +=025
+		oPrint:Say(nLinha ,0025 ,"N.F. / Serie"	,oFont08b,,CLR_BLACK,,PAE_LEFT)
+		oPrint:Say(nLinha ,0280 ,"Data"       		,oFont08b,,CLR_BLACK,,PAE_CENTER)
+		oPrint:Say(nLinha ,0380 ,"Cliente"			,oFont08b,,CLR_BLACK,,PAE_LEFT)
+		oPrint:Say(nLinha ,1000 ,"P/N"				,oFont08b,,CLR_BLACK,,PAE_CENTER)
+		oPrint:Say(nLinha ,1250 ,"Qtd."				,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+		oPrint:Say(nLinha ,1400 ,"Vl.Unit."			,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+		oPrint:Say(nLinha ,1600 ,"Vl.Total"			,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+		oPrint:Say(nLinha ,1800 ,"IPI"				,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+		oPrint:Say(nLinha ,2000 ,"ICMS"				,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+		oPrint:Say(nLinha ,2200 ,"PIS/Cofins"		,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+		oPrint:Say(nLinha ,2450 ,"Total NF"			,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+		oPrint:Say(nLinha ,2700 ,"Total Liquido R$"	,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+		oPrint:Say(nLinha ,2900 ,"CUSTO"			,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+		oPrint:Say(nLinha ,3100 ,"% MARGEM"			,oFont08b,,CLR_BLACK,,PAE_RIGHT)
+		oPrint:Say(nLinha ,3170 ,"GRUPO"			,oFont08b,,CLR_BLACK,,PAE_LEFT)
+		nLinha +=050
+	EndIf
+
+Return .T.
+
+&&
+Static Function fImpDet()
+
+	If nLinha > 2300
+		fImpCabec(cTitulo,@nPagina,.T.,.T.)
+	EndIf
+	oPrint:Box(nLinha-2,nColIni,nLinha + 35,nColFim)		&& Tamanho total do quadro em Landscape
+	Imprev(nLinha-2,nLinha + 35)
+	nLinha +=004
+	oPrint:Say(nLinha ,0025 ,&cArray[nPos][01]+"/"+&cArray[nPos][18]			,oFont08,,CLR_BLACK,,PAE_LEFT)
+	oPrint:Say(nLinha ,0280 ,DtoC(&cArray[nPos][02])      						,oFont08,,CLR_BLACK,,PAE_CENTER)
+	oPrint:Say(nLinha ,0380 ,&cArray[nPos][03]									,oFont08,,CLR_BLACK,,PAE_LEFT)
+	oPrint:Say(nLinha ,1000 ,&cArray[nPos][04]									,oFont08,,CLR_BLACK,,PAE_CENTER)
+	oPrint:Say(nLinha ,1250 ,Transform(&cArray[nPos][06],"@E 999,999.99")		,oFont08,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,1400 ,Transform(&cArray[nPos][07],"@E 999,999.99")		,oFont08,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,1600 ,Transform(&cArray[nPos][08],"@E 999,999,999.99")	,oFont08,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,1800 ,Transform(&cArray[nPos][09],"@E 9,999,999.99")	,oFont08,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,2000 ,Transform(&cArray[nPos][10],"@E 9,999,999.99")	,oFont08,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,2200 ,Transform(&cArray[nPos][11],"@E 9,999,999.99")	,oFont08,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,2450 ,Transform(&cArray[nPos][12],"@E 999,999,999.99")	,oFont08,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,2700 ,Transform(&cArray[nPos][13],"@E 999,999,999.99")	,oFont08,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,2900 ,Transform(&cArray[nPos][14],"@E 999,999,999.99")	,oFont08,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,3100 ,Transform(&cArray[nPos][15],"@E 9999.99")			,oFont08,,CLR_BLACK,,PAE_RIGHT)
+	oPrint:Say(nLinha ,3120 ,Substr(&cArray[nPos][16],01,12)					,oFont08,,CLR_BLACK,,PAE_LEFT)
+	
+	nLinha +=031
+
+Return .T.
+
+&&
+Static Function ValidPerg(cPerg)
+
+	Local _sAlias := Alias()
+	Local aRegs := {}
+	Local i,j
+	
+	dbSelectArea("SX1")
+	dbSetOrder(1)
+	cPerg := PADR(cPerg,10)
+	
+	&& Grupo/Ordem/Pergunta/Variavel/Tipo/Tamanho/Decimal/Presel/GSC/Valid/Var01/Def01/Cnt01/Var02/Def02/Cnt02/Var03/Def03/Cnt03/Var04/Def04/Cnt04/Var05/Def05/Cnt05
+	aAdd(aRegs, {cPerg, "01", "Data emissao NF de"  ,"" ,"" ,"mv_ch1", "D", 08, 0, 0, "G", "", "mv_par01","   ", "", "", "", "", "   ", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""})
+	aAdd(aRegs, {cPerg, "02", "Data emissao NF ate" ,"" ,"" ,"mv_ch2", "D", 08, 0, 0, "G", "", "mv_par02","   ", "", "", "", "", "   ", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""})
+	aAdd(aRegs, {cPerg, "03", "Cliente de"          ,"" ,"" ,"mv_ch3", "C", 06, 0, 0, "G", "", "mv_par03","   ", "", "", "", "", "   ", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""})
+	aAdd(aRegs, {cPerg, "04", "Loja de"             ,"" ,"" ,"mv_ch4", "C", 02, 0, 0, "G", "", "mv_par04","   ", "", "", "", "", "   ", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""})
+	aAdd(aRegs, {cPerg, "05", "Cliente ate"         ,"" ,"" ,"mv_ch5", "C", 06, 0, 0, "G", "", "mv_par05","   ", "", "", "", "", "   ", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""})
+	aAdd(aRegs, {cPerg, "06", "Loja ate"            ,"" ,"" ,"mv_ch6", "C", 02, 0, 0, "G", "", "mv_par06","   ", "", "", "", "", "   ", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""})
+	aAdd(aRegs, {cPerg, "07", "NF de"               ,"" ,"" ,"mv_ch7", "C", 06, 0, 0, "G", "", "mv_par07","   ", "", "", "", "", "   ", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""})
+	aAdd(aRegs, {cPerg, "08", "NF ate"              ,"" ,"" ,"mv_ch8", "C", 06, 0, 0, "G", "", "mv_par08","   ", "", "", "", "", "   ", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""})
+	aAdd(aRegs, {cPerg, "09", "Imp Garantia Nac ?"  ,"" ,"" ,"mv_ch9", "N", 01, 0, 0, "C", "", "mv_par09","Sim", "", "", "", "", "Nao", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""})
+	aAdd(aRegs, {cPerg, "10", "Imp Garantia Exp ?"  ,"" ,"" ,"mv_cha", "N", 01, 0, 0, "C", "", "mv_par10","Sim", "", "", "", "", "Nao", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""})
+	aAdd(aRegs, {cPerg, "11", "Imp Amo Grat Nac ?"  ,"" ,"" ,"mv_chb", "N", 01, 0, 0, "C", "", "mv_par11","Sim", "", "", "", "", "Nao", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""})
+	aAdd(aRegs, {cPerg, "12", "Imp Amo Grat Exp ?"  ,"" ,"" ,"mv_chc", "N", 01, 0, 0, "C", "", "mv_par12","Sim", "", "", "", "", "Nao", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""})
+	aAdd(aRegs, {cPerg, "13", "Totaliza por Grupo"  ,"" ,"" ,"mv_chd", "N", 01, 0, 0, "C", "", "mv_par13","Sim", "", "", "", "", "Nao", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""})
+	
+	For i:=1 to Len(aRegs)
+		If !dbSeek(cPerg+aRegs[i,2])
+			RecLock("SX1",.T.)
+			For j:=1 to FCount()
+				If j <= Len(aRegs[i])
+					FieldPut(j,aRegs[i,j])
+				EndIf
+			Next
+			MsUnlock()
+		EndIf
+	Next
+	
+	dbSelectArea(_sAlias)
+
+Return .T.
+
+&&
+Static Function Imprev(nDalin,nAteLin)
+
+	oPrint:Line(nDaLin,0210,nAtelin,0210)
+	oPrint:Line(nDaLin,0370,nAtelin,0370)
+	oPrint:Line(nDaLin,0855,nAtelin,0855)
+	oPrint:Line(nDaLin,1145,nAtelin,1145)
+	oPrint:Line(nDaLin,1255,nAtelin,1255)
+	oPrint:Line(nDaLin,1405,nAtelin,1405)
+	oPrint:Line(nDaLin,1605,nAtelin,1605)
+	oPrint:Line(nDaLin,1805,nAtelin,1805)
+	oPrint:Line(nDaLin,2005,nAtelin,2005)
+	oPrint:Line(nDaLin,2205,nAtelin,2205)
+	oPrint:Line(nDaLin,2455,nAtelin,2455)
+	oPrint:Line(nDaLin,2705,nAtelin,2705)
+	oPrint:Line(nDaLin,2905,nAtelin,2905)
+	oPrint:Line(nDaLin,3105,nAtelin,3105)
+
+Return
+
+&&
+Static Function fImpTit(cXtitu)
+
+	nLinha +=50
+	oPrint:Say(nLinha + 15, nColFim/2 ,cXtitu ,oFont12b,,CLR_RED,,PAE_CENTER)
+	nLinha +=070
+	fImpCabec(cTitulo,@nPagina,.F.,.T.)
+
+Return
+
+static function grvDev(aDev)
+
+	local cQuery := ""
+	local cCfop  := getMv("MV_ZZCFREL")
+
+	cQuery := "SELECT * "
+	cQuery += "FROM " + RetSQLName("SD1") 
+	cQuery += " WHERE   D1_DTDIGIT >='" + DtoS(mv_par01)	+ "' AND D1_DTDIGIT <='" + DtoS(mv_par02)	+ "' "
+	cQuery += "AND D1_FORNECE >='" + mv_par03 + "' AND D1_FORNECE <='" + mv_par05 + "' " 
+	cQuery += "AND D1_LOJA    >='" + mv_par04 + "' AND D1_LOJA    <='" + mv_par06 + "' " 
+	cQuery += "AND D1_DOC     >='" + mv_par07 + "' AND D1_DOC     <='" + mv_par08 + "' " 
+	cQuery += "AND D1_CF IN ("+cCfop+")  " 
+	cQuery += "AND D_E_L_E_T_ = ' ' " 
+	
+	dbUseArea(.T., "TOPCONN", TcGenQry(,,cQuery),"QRYSD1", .F., .F.)
+	
+	aEval(SD1->(dbStruct()),{ |x| IIF( x[2] != "C" , TcSetField("QRYSD1",x[1],x[2],x[3],x[4]) , Nil ) } )
+		
+	While !QRYSD1->(EOF())	
+	
+		Posicione("SB1",1,xFilial("SB1") + QRYSD1->D1_COD  ,"B1_GRUPO")
+		Posicione("SBM",1,xFilial("SBM") + QRYSD1->D1_GRUPO,"BM_DESC")
+
+		Aadd( aDev,{ QRYSD1->D1_DOC,;			&& 01 NUM.NOTA&DOCUMENTO
+		QRYSD1->D1_DTDIGIT,;		   			&& 02 DATA EMISSAO
+		SubStr(Posicione("SA1",1,xFilial("SA1") + QRYSD1->D1_FORNECE, "A1_NOME"),1,32),;	&& 03 NOME DO CLIENTE
+		QRYSD1->D1_COD,;						&& 04 CODIGO DO PRODUTO
+		QRYSD1->D1_UM,;							&& 05 UNIDADE DE MEDIDA
+		QRYSD1->D1_QUANT,;						&& 06 QUANTIDADE DO ITEM
+		QRYSD1->D1_VUNIT,;						&& 07 PRECO UNITÁRIO
+		QRYSD1->D1_TOTAL,;						&& 08 VALOR TOTAL DO ITEM
+		QRYSD1->D1_VALIPI,;						&& 09 VALOR DO IPI
+		QRYSD1->D1_VALICM,;						&& 10 VALOR DO ICMS
+		QRYSD1->D1_VALIMP5+QRYSD1->D1_VALIMP6,;			&& 11 VALOR PIS+COFINS
+		QRYSD1->D1_TOTAL+QRYSD1->D1_VALIPI,;           			&& 12 VALOR TOTAL DO ITEM
+		QRYSD1->D1_TOTAL-QRYSD1->D1_VALICM-QRYSD1->D1_VALIMP5-QRYSD1->D1_VALIMP6,;						&& 13 VALOR LIQ.ITEM
+		0,;	&& 14 VALOR CUSTO
+		0.00,;							&& 15 MARGEM DE LUCRO
+		SBM->BM_DESC,;					&& 16 DESCRICAO DO GRUPO
+		SB1->B1_GRUPO,;						&& 17 GRUPO DO PRODUTO
+		QRYSD1->D1_SERIE,;						&& 18 SERIE DA NOTA
+		D1_CF ,;						&& 20 CFOP
+		Posicione("SF1",1,xFilial("SF1")+D1_DOC+D1_SERIE+D1_FORNECE+D1_LOJA,"F1_TPFRETE"),;						&& 21 FRETE
+		""} )		&& 19 VENDEDOR
+	
+			QRYSD1->(dbSkip())
+	Enddo
+	
+	QRYSD1->(dbCloseArea())
+
+return

@@ -1,0 +1,90 @@
+
+#INCLUDE "RWMAKE.CH"
+
+
+USER FUNCTION MT120OK()
+ Local lRet  :=  .T.
+ 
+ lRet := ValAprov()
+ 
+RETURN(lRet)
+
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³ValAprov  ºAutor  ³        º Data ³                         º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³  Verificar se há mais de um grupo aprovador.               º±±
+±±º          ³                                                            º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ Pedido de Compras                                          º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+
+STATIC FUNCTION ValAprov()
+ Local lRet  :=  .T.
+ Local nUsado  := 0
+ Local nPosCC  := 0
+ Local nPosTab :=  0
+ Local nPosCC  := 0
+ Local nI   := 0
+ Local cCCusto := ''
+ Local cGrpAprv := ''
+ Local cMsgErro := ''
+ Local cAliasCTT := GetNextAlias() 
+ 
+ nUsado := Len(aHeader)
+ nPosCC := aScan(aHeader,{|x| AllTrim(x[2])=='C7_CC'})
+
+  // Relaciona os Centros de Custo utilizados no Pedido de Compra
+  For nI:=1 to Len(aCols)
+   If !(aCols[nI][nPosCC] $ cCCusto) .and. !aCols[nI][nUsado+1]
+    cCCusto += If(Empty(cCCusto),'',',') +"'"+AllTrim(aCols[nI][nPosCC])+"'"
+   EndIf
+     Next nI 
+     cCCusto := '%'+cCCusto+'%'
+                       
+     // Busca Grupo de Aprovação de acordo com os Centro de Custo relacionados         
+     BeginSQL Alias cAliasCTT
+   SELECT 
+       CTT.CTT_CUSTO AS CCUSTO,
+       SAL.AL_COD AS APROV
+      FROM
+    %Table:CTT% CTT
+   LEFT JOIN %Table:SAL% SAL
+    ON  SAL.AL_FILIAL = %xFilial:SAL% AND SAL.%notdel% AND CTT_ZZAPRO=AL_COD
+      WHERE              
+    CTT.CTT_FILIAL = %xFilial:CTT% AND 
+    CTT.%notdel% AND
+    CTT.CTT_CUSTO IN (%Exp:cCCusto%)
+   GROUP BY 
+    CTT.CTT_CUSTO,SAL.AL_COD
+     EndSQL 
+                 
+     cGrpAprv := ''
+     While !(cAliasCTT)->(EOF()) 
+      If Empty((cAliasCTT)->APROV)
+       cMsgErro += "- O Centro de Custo "+(cAliasCTT)->CCUSTO+" não está amarradao à um Grupo de Aprovadores"  
+       lRet:=.F.
+      ElseIf Empty(cGrpAprv)
+       cGrpAprv := (cAliasCTT)->APROV
+      EndIf
+      If (cAliasCTT)->APROV != cGrpAprv .AND. !Empty((cAliasCTT)->APROV)
+          Alert('Este pedido possui mais de um Grupo Aprovador. Verifique e separe os centros de custo!')
+       lRet:=.F.           
+    Exit
+      EndIf
+      (cAliasCTT)->(dbSkip())
+     EndDo
+     
+     If !Empty(cMsgErro)
+      Aviso('Pedido não Validado',cMsgErro,{'Ok'},,'PE: MT120OK')
+      lRet:=.F.           
+  EndIf                   
+  (cAliasCTT)->(dbCloseArea())
+  
+RETURN(lRet)

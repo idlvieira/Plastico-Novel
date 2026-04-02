@@ -1,0 +1,73 @@
+#line 1 "D:\TOTVS_~2\PROTHEUS\OFICIAL\PROTHE~1\INCLUDE\rwmake.ch"
+#line 1 "D:\TOTVS_~2\PROTHEUS\OFICIAL\PROTHE~1\INCLUDE\stdwin.ch"
+#line 14 "rwmake.ch"
+#line 3 "d:\TOTVS_~2\protheus\oficial\PROTHE~1\MYPROJ~2\novel\gatilhos\novest04.prw"
+Function U_NovEst04()
+
+SetPrvt("_CGRUPO,_CSUB,_CCLAS1,_CCLAS2,CALIAS,CORD")
+SetPrvt("CREG,_CCODANT,_CCOD,_CSEQTEMP,_CSEQ,")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+_cGrupo := M->B1_GRUPO
+_cSub   := M->B1_SUBGRUP
+_cClas1 := M->B1_CLASSE1
+_cClas2 := M->B1_CLASSE2
+
+cAlias := Alias()
+cOrd   := IndexOrd()
+cReg   := Recno()
+
+
+If Empty(_cGrupo) .or.  Empty(_cSub) .or.  Empty(_cClas1) .or.  Empty(_cClas2)
+
+ IW_MsgBox("Favor preencher todos os campos necessarios!")
+ Return()
+
+Endif
+
+_cCodAnt := Substr(_cGrupo,4,1) + _cSub + _cClas1 + _cClas2
+
+DbSelectArea("SB1")
+DbSetOrder(1)
+DbSeek(xFilial()+_cCodAnt, .T. )
+
+If found()
+
+ While substr(SB1->B1_COD,1,8) == _cCodAnt
+
+   _cSeqTemp := substr(SB1->B1_COD,9,3)
+
+ Dbskip()
+
+ End
+
+Else
+
+ _cSeqTemp := "000"
+
+Endif
+
+_cSeq := strzero(val(_cSeqTemp)+1,3)
+_cCod := Substr(_cGrupo,4,1) + _cSub + _cClas1 + _cClas2 +_cSeq
+
+Dbselectarea(cAlias)
+Dbsetorder(cOrd)
+
+Return(_cCod)

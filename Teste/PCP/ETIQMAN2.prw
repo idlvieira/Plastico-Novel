@@ -1,0 +1,192 @@
+#include "protheus.ch"
+#include "rwmake.ch"
+#include "topconn.ch"                                               
+
+User Function ETIQMAN1()
+Tpedido   := Space(06)
+TProd     := Space(15)
+TdescPro  := Space(30)
+TqtdEmb   := 0
+Tqtdetq   := 0
+Tqtdeprod := 0
+Titped    := Space(02)
+qtde      := 0
+qtderes   := 0
+qtdetiq   := 1
+cCombo := "Linha 02"
+aItems := {"SIM","NAO"}   
+   
+@ 00,00 to 280,580 Dialog tela1 Title "IDENTIFICACAO DE LOTES DE PRODUTOS"
+@ 06, 05 Say "Pedido "
+@ 06, 40 Get Tpedido Picture "@!" Valid !Empty(Tpedido) .and. Pedido() F3 "SC6"
+@ 06, 70 Say "Item Pedido "
+@ 06, 100 Get Titped Valid itemped() Picture  "99"
+@ 17, 05 Say "Produto  "
+@ 17, 40 GET TProd SIZE 50,20 PICTURE "999999999999999" VALID NaoVazio() .and. Mostra(TProd) F3 "SB1"
+@ 28, 05 Say "Qtd.       : "
+@ 28, 40 Get Tqtdemb  Picture "99999"
+@ 28,70 Say "Qtd.a Produzir: "
+@ 28,105 Get Tqtdeprod  Picture "9999999"
+@ 28,140 Say "Proxima Etiqueta: "
+@ 28,180 Get qtdetiq  Picture "9999999" 
+@ 46,05 SAY "Controla Numero de Etiquetas ?"
+@ 46,80 COMBOBOX cCombo ITEMS aItems SIZE 50,50
+
+@ 46,150 BmpButton Type 01 Action Relat()
+@ 46,200 BmpButton Type 02 Action Close(Tela1)
+Activate Dialog Tela1 Centered
+                                      
+return
+
+Static Function relat()
+Close(Tela1)
+nCol  	:= 0
+y   	:= 0
+qtde 	:= Int(Tqtdeprod / Tqtdemb)
+qtderes	:= Tqtdeprod - (qtde * Tqtdemb)
+
+if cCombo = "SIM"
+
+while y < qtde
+		MSCBPRINTER("OS 214","LPT1",,27,.F., , , , , ,.T.)
+		MSCBCHKStatus(.F.)
+		MSCBBEGIN(1,1)
+		nLinha := 1.5 
+		MSCBSay(05,nLinha,"( )RETRABALHO ( )V3R3      |  ( )REPROVADO          ","N", "1","1,2")
+		nLinha += 3.5
+		MSCBSay(05,nLinha,"( )APROVADO ( )REPROVADO   |  ( )APROVADO           ","N", "1","1,2")
+		nLinha += 3.5
+		MSCBSay(05,nLinha,"INSPECAO APOS INJECAO      |  INSPECAO APOS GRAVACAO","N", "1","1,2")
+		nLinha += 4.5
+		MSCBSay(05,nLinha,"DATA PRODUCAO:           /           /               ","N", "1","1,2")
+		nLinha += 3.5
+		MSCBSay(05,nLinha,"PRODUZIDO TURNO:    A(  )         B(  )        C(  ) ","N", "1","1,2")		
+		nLinha += 3.5
+		MSCBSay(05,nLinha,"Pedido: "+TPedido + " Item: "+Titped +"  QTDADE:"+ Str(Tqtdemb,5)+"  Etiq N°:"+str(qtdetiq,4),"N", "1","1,2")
+		nLinha += 3.5
+		MSCBSay(05,nLinha,"Produto: "+(TdescPro),"N", "1","1,2")
+		MSCBEND()
+		MSCBCLOSEPRINTER()    		
+		y		:= y + 1
+		qtdetiq	:=qtdetiq +1
+enddo                         
+
+if qtderes > 0
+		MSCBPRINTER("OS 214","LPT1",,27,.F., , , , , ,.T.)
+		MSCBCHKStatus(.F.)
+		MSCBBEGIN(1,1)
+		nLinha := 1.5 
+		MSCBSay(05,nLinha,"( )RETRABALHO ( )V3R3      |  ( )REPROVADO          ","N", "1","1,2")
+		nLinha += 3.5
+		MSCBSay(05,nLinha,"( )APROVADO ( )REPROVADO   |  ( )APROVADO           ","N", "1","1,2")
+		nLinha += 3.5
+		MSCBSay(05,nLinha,"INSPECAO APOS INJECAO      |  INSPECAO APOS GRAVACAO","N", "1","1,2")
+		nLinha += 4.5
+		MSCBSay(05,nLinha,"DATA PRODUCAO:           /           /               ","N", "1","1,2")
+		nLinha += 3.5
+		MSCBSay(05,nLinha,"PRODUZIDO TURNO:    A(  )         B(  )        C(  ) ","N", "1","1,2")		
+		nLinha += 3.5
+		MSCBSay(05,nLinha,"Pedido: "+TPedido + " Item: "+Titped +" QTDADE:"+ Str(qtderes,5) + "  Etiq N°:"+str(qtdetiq,3),"N", "1","1,2")
+		nLinha += 3.5
+		MSCBSay(05,nLinha,"Produto: "+(TdescPro),"N", "1","1,2")
+		MSCBEND()
+		MSCBCLOSEPRINTER()    		
+		y    	:= y + 1
+		qtdetiq	:=qtdetiq +1	
+end
+else
+while y < qtde
+		MSCBPRINTER("OS 214","LPT1",,27,.F., , , , , ,.T.)
+		MSCBCHKStatus(.F.)
+		MSCBBEGIN(1,1)
+		nLinha := 1.5 
+		MSCBSay(05,nLinha,"( )RETRABALHO ( )V3R3      |  ( )REPROVADO          ","N", "1","1,2")
+		nLinha += 3.5
+		MSCBSay(05,nLinha,"( )APROVADO ( )REPROVADO   |  ( )APROVADO           ","N", "1","1,2")
+		nLinha += 3.5
+		MSCBSay(05,nLinha,"INSPECAO APOS INJECAO      |  INSPECAO APOS GRAVACAO","N", "1","1,2")
+		nLinha += 4.5
+		MSCBSay(05,nLinha,"DATA PRODUCAO:           /           /               ","N", "1","1,2")
+		nLinha += 3.5
+		MSCBSay(05,nLinha,"PRODUZIDO TURNO:    A(  )         B(  )        C(  ) ","N", "1","1,2")		
+		nLinha += 3.5
+		MSCBSay(05,nLinha,"Pedido: "+TPedido + " Item: "+Titped +"  QTDADE:"+  Str(Tqtdemb,5),"N", "1","1,2")
+		nLinha += 3.5
+		MSCBSay(05,nLinha,"Produto: "+(TdescPro),"N", "1","1,2")
+		MSCBEND()
+		MSCBCLOSEPRINTER()    		
+		y		:= y + 1
+		qtdetiq	:=qtdetiq +1
+enddo                         
+
+if qtderes > 0
+		MSCBPRINTER("OS 214","LPT1",,27,.F., , , , , ,.T.)
+		MSCBCHKStatus(.F.)
+		MSCBBEGIN(1,1)
+		nLinha := 1.5 
+		MSCBSay(05,nLinha,"( )RETRABALHO ( )V3R3      |  ( )REPROVADO          ","N", "1","1,2")
+		nLinha += 3.5
+		MSCBSay(05,nLinha,"( )APROVADO ( )REPROVADO   |  ( )APROVADO           ","N", "1","1,2")
+		nLinha += 3.5
+		MSCBSay(05,nLinha,"INSPECAO APOS INJECAO      |  INSPECAO APOS GRAVACAO","N", "1","1,2")
+		nLinha += 4.5
+		MSCBSay(05,nLinha,"DATA PRODUCAO:           /           /               ","N", "1","1,2")
+		nLinha += 3.5
+		MSCBSay(05,nLinha,"PRODUZIDO TURNO:    A(  )         B(  )        C(  ) ","N", "1","1,2")		
+		nLinha += 3.5
+		MSCBSay(05,nLinha,"Pedido: "+TPedido + " Item: "+Titped +" QTDADE:"+ Str(qtderes,5),"N", "1","1,2")
+		nLinha += 3.5
+		MSCBSay(05,nLinha,"Produto: "+(TdescPro),"N", "1","1,2")
+		MSCBEND()
+		MSCBCLOSEPRINTER()    		
+		y    	:= y + 1
+		qtdetiq	:=qtdetiq +1	
+end
+Endif
+return 
+                     
+Static Function Pedido()
+if (Tpedido $ GETMV("MV_UPEDPRO")) 
+    return .t.
+endif
+
+Dbselectarea("SC5")
+dbsetorder(1)
+if Dbseek(xFilial()+Tpedido)
+	return .t.
+else
+	MSGINFO("Atencao, Pedido Nao Encontrado !")
+	return .f.
+Endif
+
+Return .t.
+
+
+static function itemped()
+if (Tpedido $ GETMV("MV_UPEDPRO")) 
+    return .t.
+endif
+dbselectarea("SC6")
+dbsetorder(1)
+if dbseek(xFilial()+Tpedido+Titped)           
+	Tprod := SC6->C6_PRODUTO
+	return .t.
+else
+	msginfo("Esse item não existe no pedido")
+	return .f.	
+endif         
+
+return .f.
+
+Static Function Mostra()
+***************
+dbSelectArea("SB1")
+if DbSeek(xFilial("SB1") + TProd, .T.)
+	@ 18,95  SAY  SB1->B1_DESC
+	TdescPro:=SB1->B1_DESC
+else
+	TdescPro:=space(40)
+	return .f.
+endif
+
+Return

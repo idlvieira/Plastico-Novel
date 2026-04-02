@@ -1,0 +1,208 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP6 IDE em 20/04/04
+
+User Function ELIMRES()        // incluido pelo assistente de conversao do AP6 IDE em 20/04/04
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³ Programa ³ ELIMRES  ³ Autor ³ Eliene Cerqueira      ³ Data ³ 21.06.05 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Elimina residuo do pedido, e fecha-o totalmente            ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Sigafat                                                    ³±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+
+SetPrvt("WLOCAL,CPROG1,CPROG2,CPROG3,CPROG4,AROTINA")
+SetPrvt("CCADASTRO,")
+
+cPROG1 := 'EXECBLOCK("residuo")'
+*
+aRotina := {{"Pesquisa","AxPesqui",0,1},;
+            {"Visualiza","AxVisual",0,2},;
+            {"Elimina Resíduo",cProg1,0,5}}
+cCadastro := "Pedidos de Venda"
+Mbrowse(3,8,22,78,"SC5")
+
+Return(nil)        // incluido pelo assistente de conversao do AP6 IDE em 20/04/04
+
+User Function residuo()        // incluido pelo assistente de conversao do AP6 IDE em 20/04/04
+
+If !Empty(C5_NOTA)
+   MsgBox("PEDIDO TOTALMENTE FATURADO!")
+   Return
+Endif
+IF  MsgBox("A ELIMINAÇÃO DO RESÍDUO DESTE REGISTRO PROVOCARA O FECHAMENTO TOTAL DESTE PEDIDO. CONFIRMA??","CONFIRMA ?","YESNO")
+    delOK1()
+ENDIF
+
+REturn
+
+// Substituido pelo assistente de conversao do AP6 IDE em 20/04/04 ==> Function BotOk1
+Static Function delOk1()
+***************
+XNF:=SPACE(6)
+XSER:=SPACE(3)
+dbSelectArea("SC6")
+dbSetOrder(1) // pedido+item
+dbSeek(xFilial("SC6")+SC5->C5_NUM,.F.)	
+While !EOF() .AND. SC6->C6_NUM=SC5->C5_NUM
+
+    dbSelectArea("SC9")
+    dbSetOrder(1)
+    dbSeek(xFilial("SC9")+SC6->C6_NUM+SC6->C6_ITEM,.F.)
+   
+    If Found()
+       While !EOF() .AND. SC6->C6_NUM=SC9->C9_PEDIDO .AND. SC6->C6_ITEM=SC9->C9_ITEM
+          If !EMPTY(C9_NFISCAL)
+             XNF:=C9_NFISCAL
+             XSER:=C9_SERIENF
+          Endif
+     	  dbSkip()
+       Enddo
+       dbSkip(-1)
+       If SC6->C6_QTDVEN-SC6->C6_QTDENT <> 0
+          Reclock("SC9",.F.)
+          SC9->( DBDELETE( ) )
+          Dbunlock()
+       Endif
+    Endif
+    dbSelectArea("SC6")
+    If C6_QTDEMP=C6_QTDVEN
+       Reclock("SC6",.F.)
+       SC6->( DBDELETE( ) )
+       Dbunlock()
+    ElseIf SC6->C6_QTDVEN-SC6->C6_QTDENT <> 0
+       Reclock("SC6",.F.)
+       C6_QTDVEN:=C6_QTDENT
+       C6_QTDEMP:=0
+       C6_VALOR:=C6_QTDVEN*C6_PRCVEN
+       Dbunlock()
+    Endif
+    dbSkip()
+Enddo
+If !EMPTY(XNF)
+   Reclock("SC5",.F.)
+   C5_NOTA:=XNF
+   C5_SERIE:=XSER
+   Dbunlock()
+Endif
+Return
+
+// Substituido pelo assistente de conversao do AP6 IDE em 20/04/04 ==> Function BotOk1
+Static Function nseqOk1()
+***************
+Close(oDlg1)
+
+Reclock("SD1",.F.)
+SD1->D1_NumSeq:=wSeq
+Dbunlock()
+
+Return
+
+
+// Substituido pelo assistente de conversao do AP6 IDE em 20/04/04 ==> Function BotCan1
+Static Function nseqCan1()
+***************
+Close(oDlg1)
+Return
+
+
+User Function CMEDd1()        // incluido pelo assistente de conversao do AP6 IDE em 20/04/04
+
+SetPrvt("WCMED,WSEQ,")
+
+wCmed:=SD1->D1_Custo/SD1->D1_Quant
+wSeq :=SD1->D1_NumSeq
+@ 0,0 TO 120,210 DIALOG oDlg1 TITLE "Troca Custo do Movimento"
+@ 3,5 TO 35,100
+// Montagem dos titulos dos campos
+@ 12,10 say  "Sequencia "
+@ 22,10 say  "Custo  "
+
+// Montagem dos campos
+@ 12,50      Say  wSeq    
+@ 22,50      GET  wcMed   PICTURE "@E 9,999.9999" 
+
+// Botoes
+@  40,40 BMPBUTTON TYPE 1 ACTION CMEDOk1()// Substituido pelo assistente de conversao do AP6 IDE em 20/04/04 ==>     @  60,65 BMPBUTTON TYPE 1 ACTION Execute(BotOk1)
+@  40,70 BMPBUTTON TYPE 2 ACTION CMEDCan1()// Substituido pelo assistente de conversao do AP6 IDE em 20/04/04 ==>     @  60,95 BMPBUTTON TYPE 2 ACTION Execute(BotCan1)
+ACTIVATE DIALOG oDlg1 CENTER
+REturn
+
+
+// Substituido pelo assistente de conversao do AP6 IDE em 20/04/04 ==> Function BotOk1
+Static Function CMEDOk1()
+***************
+Close(oDlg1)
+
+Reclock("SD1",.F.)
+SD1->D1_Custo:=VAL(STR((SD1->D1_Quant*wCmed),14,2))
+Dbunlock()
+
+Return
+
+// Substituido pelo assistente de conversao do AP6 IDE em 20/04/04 ==> Function BotCan1
+Static Function CMEDCan1()
+***************
+Close(oDlg1)
+Return
+
+User Function tesd1()        // incluido pelo assistente de conversao do AP6 IDE em 22/04/04
+
+SetPrvt("XTES,XCFO,XCFOP,WTES,WCFO,WCFOP")
+SetPrvt("WFILIAL,WICMS,")
+
+wTes :=SD1->D1_Tes
+wCfo :=SD1->D1_Cf
+*wCfop:=SD1->D1_Cfop
+wFilial:=xFilial()
+
+@ 0,0 TO 200,210 DIALOG oDlg1 TITLE "Troca de TES"
+@ 3,5 TO 70,100
+// Montagem dos titulos dos campos
+   @ 20,10 say  "TES Correta"
+   @ 30,10 say  "CFO Correto"
+   @ 40,10 say  "CFO Novo   "
+// Montagem dos campos
+   @ 20,60      GET  wTes   PICTURE X3Picture("F4_Codigo")  VALID NaoVazio() .and. ExistCpo("SF4")  F3 "SF4"
+   @ 30,60      GET  wCfo   PICTURE "999"                   VALID NaoVazio() .and. ExistCpo("SX5","13"+wCfo)  F3 "SX5"
+*   @ 40,60      GET  wCfop  PICTURE "9999"                  VALID NaoVazio()
+// Botoes
+   @ 75,40 BMPBUTTON TYPE 1 ACTION TesOk1()// Substituido pelo assistente de conversao do AP6 IDE em 22/04/04 ==>    @ 85,65 BMPBUTTON TYPE 1 ACTION Execute(BotOk1)
+   @ 75,70 BMPBUTTON TYPE 2 ACTION TesCan1()// Substituido pelo assistente de conversao do AP6 IDE em 22/04/04 ==>    @ 85,95 BMPBUTTON TYPE 2 ACTION Execute(BotCan1)
+   ACTIVATE DIALOG oDlg1 CENTER
+Return
+
+// Substituido pelo assistente de conversao do AP6 IDE em 22/04/04 ==> Function BotOk1
+Static Function TesOk1()
+***************
+Close(oDlg1)
+
+***> Verificando se TES possue ICMS
+dbSelectArea("SF4")                // * Tipo de TES
+dbSetOrder(1)
+SF4->( DbSeek(wFilial+wTES,.F.) )
+If  SF4->( Found() ) ==.T.
+    wIcms:=SF4->F4_Icm
+Else
+    wIcms:=" "
+Endif
+
+Reclock("SD1",.F.)
+SD1->D1_Tes :=wTes
+SD1->D1_CF  :=wCfo
+*SD1->D1_CFOP:=wCfop
+If  wIcms=="N"
+    SD1->D1_VALICM:=0
+    SD1->D1_PICM  :=0
+Endif
+Dbunlock()
+
+Return
+
+// Substituido pelo assistente de conversao do AP6 IDE em 22/04/04 ==> Function BotCan1
+Static Function TesCan1()
+***************
+Close(oDlg1)
+Return

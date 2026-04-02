@@ -1,0 +1,202 @@
+#Include "RwMake.ch"
+#INCLUDE "COLORS.CH"
+  
+
+User Function LIBEST
+
+/*/
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±³ Programa ³ POSPED    ³ Autor ³   Eliene Cerqueira   ³ Data ³ 26.01.06 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Rotina para Consultar posição dos pedidos                  ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Faturamento    alterado em 06/01/2006                      ³±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+SetPrvt("WLOCAL,CPROG1,CPROG2,AROTINA")
+SetPrvt("CCADASTRO,")      
+
+          
+aCores := { { 'SC9->C9_BLCRED="  " .and. SC9->C9_BLEST="  "', 'ENABLE'   },;  // Verde - Liberado
+            { 'SC9->C9_BLCRED="10" .and. SC9->C9_BLEST="10"', 'DISABLE'  },;  // Vermelho - Faturado
+            { 'SC9->C9_BLCRED="01" .and. (SC9->C9_BLEST="  " .or. SC9->C9_BLEST="02")', 'BR_AZUL'  },;  // Azul - Bloq. no credito
+            { 'SC9->C9_BLCRED="  " .and. SC9->C9_BLEST="02"', 'BR_PRETO' } }  // Preto - Bloq. no estoque
+
+cPROG1 := 'EXECBLOCK("Autom")'
+cPROG2 := 'EXECBLOCK("Manual")'
+cPROG3 := 'EXECBLOCK("Bloq")'
+cPROG4 := 'EXECBLOCK("Legen")'
+*
+aRotina := {{"Pesquisar","AxPesqui",0,1},;
+            {"Automatica",cProg1,0,2},;
+            {"Manual",cProg2,0,3},;
+            {"Bloqueio",cProg3,0,4},;
+            {"Legenda",cProg4,0,5}}
+
+cCadastro := "Lib. de Estoque - Novo"
+
+mBrowse(6, 1, 22, 75, "SC9",,,,,, aCores)
+
+Return(nil)        // incluido pelo assistente de conversao do AP6 IDE em 20/04/04
+
+User Function Autom()
+***************       
+cPerg            :="LIBEST"
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Variaveis utilizadas para parametros                        ³
+//³ mv_par01              Do Pedido                             ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+pergunte(cPerg,.T.)
+
+dbSelectArea("SB1")
+DbSeek(xFilial("SB1") + SC9->C9_PRODUTO, .T.)
+dbSelectArea("SC9")
+dbSetOrder(1)
+dbSeek(xFilial("SC9")+MV_PAR01,.F.)
+While !EOF() .AND. SC9->C9_PEDIDO=MV_PAR01
+   If SC9->C9_BLCRED="  " .and. SC9->C9_BLEST="02"
+      dbSelectArea("SB2")
+      DbSeek(xFilial("SB2") + SC9->C9_PRODUTO + SB1->B1_LOCPAD, .T.)
+      If Found().AND. B2_COD=SC9->C9_PRODUTO
+         IF SB2->B2_QATU - SB2->B2_RESERVA - SC9->C9_QTDLIB >= 0
+            Reclock("SB2",.F.)
+            B2_RESERVA:=B2_RESERVA+SC9->C9_QTDLIB
+            B2_QPEDVEN:=B2_QPEDVEN-SC9->C9_QTDLIB
+            Dbunlock()     
+            dbSelectArea("SC9")
+            Reclock("SC9",.F.)
+            C9_BLEST:="  "
+            Dbunlock()
+         Endif
+         dbSelectArea("SC6")
+         dbSetOrder(1)
+         DbSeek(xFilial("SC6") + SC9->C9_PEDIDO + SC9->C9_ITEM, .T.)
+         dbSelectArea("SF4")
+         dbSeek(xFilial()+SC6->C6_TES)
+         IF SF4->F4_ESTOQUE == "N"
+            dbSelectArea("SC9")
+            Reclock("SC9",.F.)
+            C9_BLEST:="  "
+            Dbunlock()
+         Endif
+      Endif
+      dbSelectArea("SC9")
+   Endif
+   dbSkip()
+Enddo   
+dbSeek(xFilial("SC9")+MV_PAR01,.F.)
+Return
+
+User Function Manual()
+***************       
+If SC9->C9_BLCRED="  " .and. SC9->C9_BLEST="02"
+   dbSelectArea("SB1")
+   DbSeek(xFilial("SB1") + SC9->C9_PRODUTO, .T.)
+   If found() .AND. B1_COD=SC9->C9_PRODUTO
+      WDESC:='SB1->B1_DESC
+      dbSelectArea("SC6")
+      dbSetOrder(1)
+      DbSeek(xFilial("SC6") + SC9->C9_PEDIDO + SC9->C9_ITEM, .T.)
+      dbSelectArea("SF4")
+      dbSeek(xFilial()+SC6->C6_TES)
+      dbSelectArea("SB2")
+      DbSeek(xFilial("SB2") + SC9->C9_PRODUTO + SB1->B1_LOCPAD, .T.)
+      If Found().AND. B2_COD=SC9->C9_PRODUTO
+         IF SB2->B2_QATU - SB2->B2_RESERVA - SC9->C9_QTDLIB >= 0
+            Reclock("SB2",.F.)
+            B2_RESERVA:=B2_RESERVA+SC9->C9_QTDLIB
+            B2_QPEDVEN:=B2_QPEDVEN-SC9->C9_QTDLIB
+            Dbunlock()     
+            dbSelectArea("SC9")
+            Reclock("SC9",.F.)
+            C9_BLEST:="  "
+            Dbunlock()
+         ELSEIF SF4->F4_ESTOQUE == "N"
+            dbSelectArea("SC9")
+            Reclock("SC9",.F.)
+            C9_BLEST:="  "
+            Dbunlock()
+         Else                                
+            @ 0,0 TO 230,430 DIALOG oDlg5 TITLE "ATENÇÃO VERIFIQUE AS INFORMAÇÕES ABAIXO, LIBERAÇÃO COM ERRO"
+            @ 3,5 TO 90,210
+//            @ 8,10 BITMAP SIZE 500,500 FILE "lgrl01.bmp"
+            @ 12,12 SAY "Pedido : " + SC9->C9_PEDIDO
+            @ 22,12 SAY "Local para Baixa  : " + SC9->C9_LOCAL
+            @ 22,12 SAY "Item   : " + SC9->C9_ITEM
+            @ 22,60 SAY SC9->C9_PRODUTO + " - " + WDESC
+            @ 42,12 SAY "SALDO ATUAL       : " + Transform(SB2->B2_QATU,"@E 999,999.99")
+            @ 52,12 SAY "RESERVA                : " + Transform(SB2->B2_RESERVA,"@E 999,999.99")
+            @ 62,12 SAY "QTDE DISPONIVEL   : " + Transform(SB2->B2_QATU-SB2->B2_RESERVA,"@E 999,999.99")
+            @ 82,12 SAY "QTDE P/LIBERAR     : " + Transform(SC9->C9_QTDLIB,"@E 999,999.99") + "   --->   NÃO DISPONIVEL NO LOCAL"
+            @ 100,100 BMPBUTTON TYPE 2 ACTION Close(oDlg5)
+            ACTIVATE DIALOG oDlg5 CENTER
+         Endif
+      Endif
+   Endif
+Endif
+Return
+
+User Function Bloq()
+***************                                 
+dbSelectArea("SB1")
+DbSeek(xFilial("SB1") + SC9->C9_PRODUTO, .T.)
+
+If SC9->C9_BLCRED="  " .and. SC9->C9_BLEST="  "
+   dbSelectArea("SB2")
+   DbSeek(xFilial("SB2") + SC9->C9_PRODUTO + SB1->B1_LOCPAD, .T.)
+   If Found().AND. B2_COD=SC9->C9_PRODUTO
+      Reclock("SB2",.F.)
+      B2_RESERVA:=B2_RESERVA-SC9->C9_QTDLIB
+      B2_QPEDVEN:=B2_QPEDVEN+SC9->C9_QTDLIB
+      Dbunlock()     
+      dbSelectArea("SC9")
+      Reclock("SC9",.F.)
+      C9_BLEST:="02"
+      Dbunlock()
+   Endif
+Endif
+Return
+
+User Function Legen()
+***************       
+Local OdlgLeg // Objeto da dialog da legenda
+Local aSize := TkPCSize(40,50) // Size da dialog com 40% Vertical e 50% Horizontal do tamanho total
+Local nRow := aSize[3] // Coordenada maxima da linha em pixels
+Local nCol := aSize[4] // Coordenada maxima da coluna em pixels
+Local oFont:= TFont():New("Courier New",,-14,.T.)
+
+DEFINE MSDIALOG OdlgLeg TITLE "Legenda" FROM 0,0 TO 200,285 PIXEL OF oMainWnd //"Legenda da consulta posição do cliente"
+
+EnchoiceBar(OdlgLeg, {|| OdlgLeg:End()}, {|| OdlgLeg:End()})
+
+@ (nRow*.170),(nCol*.010) To (nRow*.620),(nCol*.500)
+TSay():New((nRow*.225),(nCol*.050),{|| "Verde - Liberado" },OdlgLeg,,oFont,,,,.T.,CLR_GREEN,CLR_WHITE) //"Legenda da análise de crédito"
+TSay():New((nRow*.325),(nCol*.050),{|| "Vermelho - Faturado" },OdlgLeg,,oFont,,,,.T.,CLR_RED,CLR_WHITE) //"VERDE APAGADO - Valores corretos"
+TSay():New((nRow*.425),(nCol*.050),{|| "Azul - Bloq. no credito" },OdlgLeg,,oFont,,,,.T.,CLR_BLUE,CLR_WHITE) //"VERMELHO APAGADO - Valores próximos a expirar"
+TSay():New((nRow*.525),(nCol*.050),{|| "Preto - Bloq. no estoque" },OdlgLeg,,oFont,,,,.T.,CLR_BLACK,CLR_WHITE) //"VERMELHO ACESO - Valores críticos"
+
+
+//TSay():New((nRow*.585),(nCol*.010),{|| STR0005 },OdlgLeg,,,,,,.T.,CLR_HBLUE,CLR_WHITE) //"Legenda dos títulos vencidos não pagos"
+//@ (nRow*.645),(nCol*.010) To (nRow*.995),(nCol*.995)
+//TSay():New((nRow*.700),(nCol*.050),{|| STR0062 },OdlgLeg,,,,,,.T.,CLR_HRED,CLR_WHITE) //"VERMELHO - Vencidos e atrasados"
+//TSay():New((nRow*.800),(nCol*.050),{|| STR0063 },OdlgLeg,,,,,,.T.,CLR_BLACK,CLR_WHITE) //"PRETO - Vencidos e protestados"
+
+ACTIVATE MSDIALOG OdlgLeg CENTERED
+
+Return
+
+Static Function TkPCSize(nV, nH)
+***************       
+Local aSize := {}
+
+AaDd(aSize, oMainWnd:nBottom )
+AaDd(aSize, oMainWnd:nRight )
+AaDd(aSize, oMainWnd:nBottom/2 )
+AaDd(aSize, oMainWnd:nRight/2 )
+
+aSize[1] := aSize[1] * (nV/100) // Regula a tela para nV% do tamanho total - Vertical
+aSize[2] := aSize[2] * (nH/100) // Regula a tela para nH% do tamanho total - Horizontal
+aSize[3] := aSize[3] * (nV/100) // Regula a tela para 80% do tamanho total - Linha
+aSize[4] := aSize[4] * (nH/100) // Regula a tela para 70% do tamanho total - Coluna
+
+Return(aSize)

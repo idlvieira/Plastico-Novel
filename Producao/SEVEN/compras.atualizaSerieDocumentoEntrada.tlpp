@@ -1,0 +1,125 @@
+#include 'totvs.ch' 
+
+namespace compras
+
+/*/{Protheus.doc} atualizaSerieDocumentoEntrada
+
+Executa validações de usuário no campo F1_ESPÉCIE
+
+@type function				
+@author Júlio César Dias de Oliveira - FSW Seven Consultoria RP
+@since 21/06/2022
+
+@obs
+	Chamada: iif(FindFunction("compras.u_atualizaSerieDocumentoEntrada"),compras.u_atualizaSerieDocumentoEntrada(),.T.)                      
+	
+@return logical, Retorna se a série é válida
+
+@see X3_VLDUSER do campo F1_ESPECIE
+/*/
+User Function atualizaSerieDocumentoEntrada() as logical
+	Local cBkpSerie				:=""							as character
+	Local cNewSerie				:=""							as character
+	Local lShowMsgAtualizacao	:= GetNewPar("7V_ASDESMA",.T.)	as logical
+	Local lRet 					:= .T.							as logical
+	
+	If podeExecutar()		
+		If Len(AllTrim(cSerie)) < 3
+			cBkpSerie 	:= AllTrim(cSerie)
+			cNewSerie	:= StrZero(Val(cSerie),3)			
+			cSerie		:= cNewSerie
+			If !( isInJob() )
+				If lShowMsgAtualizacao
+					MsgAlert("Série da NF será atualizada automáticamente de "+cBkpSerie+" para "+ cNewSerie +".","NOVEL")
+				Endif
+			Endif
+			lRet := .T.
+		Endif		
+	Endif
+	
+Return lRet
+
+/*
+	Verifica se pode Executar
+*/
+Static Function podeExecutar() as logical
+	Local lAtivo			:= GetNewPar("7V_ASDPEX",.T.)		as logical
+	Local cValidarEspecies	:= GetNewPar("7V_ASDEVE","SPED")	as character
+	Local lRet 				:= .F.								as logical
+	
+	Begin Sequence
+	
+		lRet := .F.
+
+		If !( lAtivo )
+			Break
+		Endif
+		
+		//Se a variável Private do fonte MATA140 não existir, não faz validações.
+		If Type("cEspecie") == "U"
+			Break
+		Endif
+		
+		//Só valida espécie "SPED"
+		If !( Alltrim(cEspecie) $ cValidarEspecies )
+			Break
+		Endif		
+		
+		//Se a variável Private do fonte MATA140 não existir, não faz validações.
+		If Type("cSerie") == "U"
+			Break
+		Endif
+
+		//Se não for pré nota ou documento de entrada, não faz validações
+		If !( rotinasPermitidas() )
+			Break
+		Endif
+
+		//Só ajusta a série se for numérica
+		If !( isSerieNumerica() )
+			Break
+		Endif
+				
+		lRet := .T.
+	
+	End Sequence
+
+Return lRet
+
+/*
+	Verifica se a série é numérica
+*/
+Static Function isSerieNumerica() as logical
+	Local lRet 	:= .F.	as logical
+	
+	If ValType(Val(cSerie)) == "N" .And. Val(cSerie) > 0
+		lRet := .T.
+	Endif
+
+Return lRet
+
+/*
+	Rotinas permitidas
+*/
+Static Function rotinasPermitidas() as logical
+	Local lRet := .F. as logical
+
+	If ( FwIsInCallStack("MATA140") )
+		lRet := .T.
+	Endif
+	
+	If ( FwIsInCallStack("MATA103") ) 
+		lRet := .T.
+	Endif
+
+	If ( FwIsInCallStack("MATA116") ) 
+		lRet := .T.
+	Endif	
+
+Return lRet 
+
+/*
+	Checa se está sendo executado em JOB
+*/
+Static Function isInJob()
+Return (Type("oMainWnd") != "O")

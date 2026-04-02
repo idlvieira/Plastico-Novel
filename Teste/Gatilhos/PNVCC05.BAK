@@ -1,0 +1,46 @@
+#include "rwmake.ch"
+
+USER FUNCTION PNVCC05()
+//----------------------------------------------------------------------------
+//|Programa  | PNVCC05     | Autor | Eliene Cerqueira    |Criado| 25.Out.2004|  
+//----------------------------------------------------------------------------
+//|Descricao | Gatilho do campo UB_VRUNIT - CLIENTE NORMAL                   |
+//----------------------------------------------------------------------------
+//|Uso       | SIGATMK                                                       |
+//----------------------------------------------------------------------------
+
+
+   
+nvalor3 := 0.00
+
+if SA1->A1_ME <>"S"
+
+   nvalor3 := acols[n][7] //Valor total UB_VLRITEM
+   Mydesc  := acols[n][8]
+   nQt:=acols[n][5]   //quantidade M->UB_QUANT 
+   nVunit:=acols[n][6] //valor unitario
+   myprod := acols[n][2]
+
+  
+  /// ALTERADO 07/10/2013 
+   wtab := M->UA_TABELA
+   wprodt := acols[n][2]
+   wpreco := 0.00
+   DbSelectArea("DA1")
+   DbSetOrder(1)
+   DbSeek(xFilial()+wtab+wprodt) // Posiciona no titulo original do da1.
+   If .not. EOF() 
+      wpreco := DA1->DA1_PRCVEN   
+   else
+      wpreco := nVunit
+   Endif         
+     
+      Mydesc := 100-((nVunit/wpreco)*100)
+      Myvlrdesc := (wpreco * (Mydesc/100))*nQt
+      acols[n][9]:= Myvlrdesc 
+      acols[n][8]:= Mydesc    
+      nvalor3    :=  (wpreco * nqt) - Myvlrdesc   
+  
+endif 
+                 
+return(nvalor3) 

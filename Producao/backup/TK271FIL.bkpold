@@ -1,0 +1,157 @@
+/* Includes/Defines */
+#Include "Protheus.CH"
+
+/*/{Protheus.doc} TK271FIL
+Ponto de entrada utilizado para filtrar o browse de acordo com o perfil dos operadores
+@type function
+@version  12.1.33
+@author administrator
+@since 11/05/2022
+@param cAlias, character, alias
+@return variant, filtro
+/*/
+User Function TK271FIL( cAlias )
+
+	Local oCmbTip
+	Local oBtnOk 
+	Local oBtnCa
+	Local _nOpcao		:= 00
+	Local _cCmbTip		:= ""	 
+	Local _cVend		:= ""
+	Local _cFiltro		:= "" 
+	Local _cAliasFilter	:= GetNextAlias()
+	Local _aComboBx1	:= {	"1-Todos"						,;
+								"2-Bloquedos pelo Credito"		,;
+								"3-Bloqueados por Descontos"	,;
+								"4-Faturamento"					,;
+								"5-Orçamentos"					,;
+								"6-Rejeitado pelo Credito"		,;
+								"7-Rejeitado Desconto"			,;
+								"8-Orçamentos Prospects"		,;
+								"9-Gerente"						}
+
+	/* FrontEnd */
+	Define MsDialog oDlg From 000, 000 To 150, 250 Pixel Title "Filtro - Status de Atendimentos"
+
+		oCmbTip	:= tComboBox():New( 18, 18,{ |u|If( PCount() > 00, _cCmbTip := u, _cCmbTip ) }, _aComboBx1, 90, 20, oDlg,,/*{||bloc}*/,,,,.T.,,,,,,,,, '_cCmbTip' )
+
+		oBtnOk	:=tButton():New( 55, 55, OemToAnsi( "Confirmar" ), oDlg, {|| ( _cCmbTip := _cCmbTip, _nOpcao := 01, oDlg:End() ) } , 30, 12,,,, .T. )
+		oBtnCa	:=tButton():New( 55, 90, OemToAnsi( "Cancelar" ), oDlg, {||( _cCmbTip := "", _nOpcao := 00, oDlg:End() ) }, 30, 12,,,,.T. )
+
+	Activate MsDialog oDlg Centered
+
+	/* Montagem filtro */
+	If _nOpcao == 01
+
+		Do Case
+			Case SubStr( _cCmbTip, 01, 01 ) == "1"
+				_cFiltro	:= ''
+			Case SubStr( _cCmbTip, 01, 01 ) == "2" 
+				_cFiltro	:= 'SUA->UA_ZZSTAT1 == "BLO"' 
+			Case SubStr( _cCmbTip, 01, 01 ) == "3" 
+				_cFiltro	:= 'SUA->UA_ZZSTAT2 == "BLO"'
+			Case SubStr( _cCmbTip, 01, 01 ) == "4" 
+				_cFiltro	:= '( Empty( SUA->UA_CODCANC ) .And. Val( SUA->UA_OPER ) == 01 .And. SUA->UA_ZZSTAT1 != "BLO" )'
+			Case SubStr( _cCmbTip, 01, 01 ) == "5" 
+				_cFiltro	:= '( Empty( SUA->UA_CODCANC ) .And. Val( SUA->UA_OPER ) == 02 .And. SUA->UA_ZZSTAT1 != "BLO" .And. SUA->UA_ZZSTAT2 != "BLO" .And. SUA->UA_PROSPEC == .F. )'
+			Case SubStr( _cCmbTip, 01, 01 ) == "6" 
+				_cFiltro	:= 'SUA->UA_ZZSTAT1 == "REJ"'
+			Case SubStr( _cCmbTip, 01, 01 ) == "7" 
+				_cFiltro	:= 'SUA->UA_ZZSTAT2 == "REJ"'
+			Case SubStr( _cCmbTip, 01, 01 ) == "9" 
+
+				BeginSQL Alias _cAliasFilter
+					Select
+						A32.A3_COD As Vendedor
+					From
+						%Table:SA3% A32
+					Inner Join
+						%Table:SA3% A31
+					On A32.A3_FILIAL = A31.A3_FILIAL
+						And A32.A3_GEREN = A31.A3_COD
+						And A31.A3_FILIAL = %xFilial:SA3%
+						And A31.%NotDel%
+						And A31.A3_CODUSR = %Exp:Alltrim( __CUSERID )%
+					Where A32.A3_FILIAL = %xFilial:SA3%
+						And A32.%NotDel%
+				EndSQL
+
+				While  ( _cAliasFilter )->( !Eof() ) 
+				
+					_cVend += Iif( Empty( _cVend ), "", "#" ) + ( _cAliasFilter )->Vendedor
+
+					( _cAliasFilter )->( dbSkip() )
+
+				EndDo
+
+				( _cAliasFilter )->( dbCloseArea() )
+
+				_cFiltro	:= "( SUA->UA_VEND $ '" + _cVend + "' )" 
+
+			OtherWise
+				_cFiltro	:= '( Empty( SUA->UA_CODCANC ) .And. Val( SUA->UA_OPER ) == 02 .And. SUA->UA_ZZSTAT1 != "BLO" .And. SUA->UA_PROSPEC == .T. )'
+		EndCase
+	
+	EndIf
+
+	/* Efetua filtro por tipo de operador */
+	fVerOperador( @_cFiltro )
+
+Return ( _cFiltro )
+
+/*/{Protheus.doc} fVerOperador
+Atualiza filtro conforme perfil do operador
+@type function
+@version  1.00
+@author celso.costa
+@since 18/05/2022
+@param _cFiltro, variant, filtro
+@return variant, nulo
+/*/
+Static Function fVerOperador( _cFiltro )
+
+	/* Variaveis Locais */
+	Local _aArea		:= GetArea()
+	Local _cAliasOper	:= G|etNextAlias()
+
+	/* Verifica perfil do operador */
+	BeginSQL Alias _cAliasOper
+		Select
+			Case
+				When SU7.U7_TIPO = '1' Then 'Operador'
+				When SU7.U7_TIPO = '2' Then 'Supervidor'
+				When SU7.U7_TIPO = ' ' Then 'Sem definicao'
+			End	As Tipo,
+			Case
+				When SU7.U7_VALIDO = '1' Then 'Sim'
+				When SU7.U7_VALIDO = '2' Then 'Nao'
+				When SU7.U7_VALIDO = ' ' Then 'Sem definicao'
+			End As Valido,
+			Case
+				When SU7.U7_MSBLQL = '1' Then 'Nao'
+				When SU7.U7_MSBLQL = '2' Then 'Sim'
+				When SU7.U7_MSBLQL = ' ' Then 'Sim'
+			End As Ativo
+		From 
+			%Tale:SU7% SU7
+		Where SU7.U7_CODUSU = %Exp:AllTrim()%
+	And SU7.U7_FILIAL = '    '
+	And SU7.D_E_L_E_T_ = ' '
+	EndSQL
+
+	( _cAliasOper )->( dbCloseArea() )
+
+	dbSelectArea( "SA3" )
+	SA3->( dbSetOrder( 07 ) )
+
+	If SA3->( dbSeek( xFilial( "SA3" ) + __CUSERID ) ) .And. SubStr( _cCmbTip, 01, 01 ) != "9"
+
+		If Empty( _cFiltro )
+			_cFiltro	:= '( SUA->UA_VEND == SA3->A3_COD ) '
+		Else
+			_cFiltro	+= ' .And. ( SUA->UA_VEND == SA3->A3_COD ) '
+		EndIf 
+
+	EndIf
+
+Return ( Nil )

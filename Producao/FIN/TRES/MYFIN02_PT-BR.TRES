@@ -1,0 +1,49 @@
+00001#STR0001#ALL#Relatório de comissoes
+00002#STR0002#ALL#Emissão Do Relatório De Comissões - A
+00003#STR0003#ALL#Código de barras
+00004#STR0004#ALL#Administração
+00005#STR0005#ALL#Relatório de comissões 
+00006#STR0006#ALL#(pgt Pela Emissão)
+00007#STR0007#ALL#(pgt Pela Baixa)
+00008#STR0008#ALL#Relatório De Comissoes
+00009#STR0009#ALL#Prf Número   Parc. Código  Do              Lj  Nome                                 Dt.base     Vencto      Data        Data       Número                          Valor      %           Valor    Tipo
+00010#STR0010#ALL#    Título         Cliente                                                         Comissão    Origem      Liquidação       Pgt      Pedido                           Base               Comissão   Comissão
+00011#STR0011#ALL#Cancelado Pelo Operador
+00012#STR0012#ALL#
+00013#STR0013#ALL#Total do vendedor --> 
+00014#STR0014#ALL#Total  crial      --> 
+00015#STR0015#ALL#Total  de ir      --> 
+00016#STR0016#ALL#A Seleccionar Registos...
+00017#STR0017#ALL#Total (-) ir      --> 
+00018#STR0018#ALL#Ajuste
+00019#STR0019#ALL#Analítico
+00020#STR0020#ALL#Sintético
+00021#STR0021#ALL#Código Do Vendedor                                                            Total      %            Total           Total           Total
+00022#STR0022#ALL#                                                                             Base                Comissão              Ir          (-) Ir
+00023#STR0023#ALL#Detalhes : títulos de origem da liquidação 
+00024#STR0024#ALL#
+00025#STR0025#ALL#Relatório de comissoes
+00026#STR0026#ALL#Emissão Do Relatório De Comissões.
+00027#STR0027#ALL#Total De Título
+00028#STR0028#ALL#Total Ir
+00029#STR0029#ALL#Total (-) Ir
+00030#STR0030#ALL#
+00031#STR0031#ALL#Total Comissão
+00032#STR0032#ALL#
+00033#STR0033#ALL#Vencto De Origem
+00034#STR0034#ALL#Dt.levantamento
+00035#STR0035#ALL#
+00036#STR0036#ALL#
+00037#STR0037#ALL#Ajuste
+00038#STR0038#ALL#Comissão
+00039#STR0039#ALL#
+00040#STR0040#ALL#
+00041#STR0041#ALL#Por Vendedor
+00042#STR0042#ALL#Títulos Origem Da Liquidação
+00043#STR0043#ALL#
+00044#STR0044#ALL#
+00045#STR0045#ALL#Vlr.base Liq.
+00046#STR0046#ALL#Por Vendedor+prefixo+título+parcela
+00047#STR0047#ALL#Por Vendedor+cliente+loja+prefixo+título+parcela
+00048#STR0048#ALL#Comissões (analítico)
+00049#STR0049#ALL#Comissões (sintético)

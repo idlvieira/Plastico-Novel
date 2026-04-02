@@ -1,0 +1,496 @@
+ O volume na unidade C n∆o tem nome.
+ O N£mero de SÇrie do Volume Ç 5A10-4DBC
+
+ Pasta de C:\TOTVS\protheus\oficial\protheus11\my projects\NOVEL
+
+13/06/2013  14:44    <DIR>          .
+13/06/2013  14:44    <DIR>          ..
+26/05/2013  20:36    <DIR>          Call
+06/06/2013  12:30    <DIR>          Compras
+26/05/2013  20:36    <DIR>          Contabilidade
+31/08/2009  18:27            59.117 C¢pia de sped.zip
+26/05/2013  20:36    <DIR>          Estoque
+26/05/2013  20:36    <DIR>          Faturamento
+26/05/2013  20:36    <DIR>          Financeiro
+26/05/2013  20:36    <DIR>          Fiscal
+26/05/2013  20:36    <DIR>          FTPMYERS
+11/06/2013  15:55    <DIR>          Gatilhos
+13/06/2013  14:45                 0 lista.txt
+26/05/2013  20:36    <DIR>          MYERS
+13/10/2005  13:21             8.611 NOVEL.BAK
+08/05/2013  14:33            22.126 NOVEL.PRJ
+16/10/2005  11:17            10.036 NOVELTST.BAK
+16/10/2005  11:38            10.039 NOVELTST.PRJ
+26/05/2013  20:36    <DIR>          PCP
+26/05/2013  20:36    <DIR>          Pedido Web
+22/07/2005  10:41            12.038 PVFAT004.prw
+26/05/2013  20:36    <DIR>          RH
+26/05/2013  20:36    <DIR>          sped
+31/08/2009  18:27            59.117 sped.zip
+16/09/2005  11:55            23.943 TSTTAVPRINT.PRW
+22/09/2005  15:27             6.960 TSTTAVPRINT2.PRW
+              10 arquivo(s)        211.987 bytes
+
+ Pasta de C:\TOTVS\protheus\oficial\protheus11\my projects\NOVEL\Call
+
+26/05/2013  20:36    <DIR>          .
+26/05/2013  20:36    <DIR>          ..
+18/06/2012  10:10             1.094 LIBCLI.BAK
+18/06/2012  10:10             1.094 LIBCLI.PRW
+05/10/2005  13:46             3.320 LIBPED.BAK
+11/10/2005  15:21             3.314 LIBPED.PRW
+20/06/2011  09:03             3.137 NOVFAT03.BAK
+21/06/2011  12:02             3.135 NOVFAT03.PRW
+16/06/2011  15:34            31.169 NOVFAT04.BAK
+21/06/2011  12:02            31.171 NOVFAT04.PRW
+01/07/2003  15:56               238 NovTmk01.PRW
+18/06/2012  10:10            11.358 PEDCANC.BAK
+18/06/2012  10:18            11.465 PEDCANC.PRW
+27/07/2012  10:21            12.463 PEDCART.BAK
+18/06/2012  10:18            12.479 PEDCART.PRW
+23/08/2005  17:06             9.715 Relvisit.prw
+27/07/2012  10:20             1.964 TK271BOK.BAK
+18/06/2012  10:19             1.955 TK271BOK.prw
+27/07/2012  10:20             1.071 TMKBLOCK.BAK
+27/07/2012  10:20             1.069 TMKBLOCK.PRW
+29/09/2004  13:12             1.427 Tmkcli.prw
+27/07/2012  10:21            28.264 Tmkr03.BAK
+11/03/2011  11:21            27.565 Tmkr03.old.prx
+27/07/2012  10:22            28.284 Tmkr03.prx
+16/08/2010  17:27            28.153 Tmkvfim.BAK
+11/07/2006  13:57            24.449 Tmkvfim.old
+10/09/2009  10:48            26.023 Tmkvfim.OLD2
+16/08/2010  17:27            28.158 Tmkvfim.prw
+              26 arquivo(s)        333.534 bytes
+
+ Pasta de C:\TOTVS\protheus\oficial\protheus11\my projects\NOVEL\Compras
+
+06/06/2013  12:30    <DIR>          .
+06/06/2013  12:30    <DIR>          ..
+11/11/2004  16:42             2.034 ELIMRES.BAK
+27/09/2005  08:11             1.978 ELIMRESC.BAK
+27/09/2005  16:00             1.878 ELIMRESC.PRW
+04/02/2004  17:20                79 FIVEWIN.CH
+15/06/2009  17:51            16.601 GCOMP.BAK
+15/06/2009  17:58            16.601 GCOMP.PRW
+11/08/2008  11:22             5.199 GCOMPD.backup
+12/08/2008  17:30             5.318 GCOMPD.BAK
+02/09/2008  11:38             5.429 GCOMPD.PRW
+23/08/2012  10:31             8.378 GQREENTR.BAK
+15/09/2009  15:57             2.469 GQREENTR.OLD
+23/08/2012  10:31             8.376 GQREENTR.prw
+21/09/2012  17:35             2.427 M103DSE2.BAK
+03/11/2011  10:24             2.419 M103DSE2.OLD
+23/08/2012  10:30             2.483 M103DSE2.prw
+27/07/2012  10:29            29.797 MATR110.BAK
+02/12/2008  17:21            26.811 MATR110.OLD
+27/07/2012  10:29            29.797 MATR110.PRW
+14/03/2012  14:00            25.377 MATR110A.BAK
+23/08/2012  10:30            25.379 MATR110A.PRW
+20/12/2005  09:12            10.529 MATR150 old.PRW
+14/03/2012  13:53            10.014 MATR150.BAK
+14/03/2012  13:58            10.013 MATR150.PRW
+19/12/2008  11:43            11.372 MATR150A.BAK
+16/10/2008  14:00            10.047 MATR150A.OLD
+19/12/2008  12:04            11.383 MATR150A.PRW
+21/09/2012  10:50             3.885 MT100AGR.BAK
+17/02/2004  14:17             4.572 MT100AGR.OLD
+21/09/2012  17:36             3.890 MT100AGR.PRW
+23/08/2012  10:31            10.250 MT160WF.BAK
+23/08/2012  10:31            10.251 MT160WF.PRW
+20/07/2011  12:45            13.961 NOVCOM01.BAK
+17/10/2011  16:25            13.991 NOVCOM01.PRW
+29/08/2005  09:46             5.203 RELDF.BAK
+19/08/2006  10:51             5.176 RELDF.PRW
+02/08/2012  09:53            13.971 SF1100I.BAK
+21/07/2011  16:36            12.102 SF1100I.OLD
+02/08/2012  11:24            13.971 SF1100I.PRW
+25/11/2011  14:15            14.824 SF1100I_DAC.BAK
+25/11/2011  14:21            14.824 SF1100I_DAC.PRW
+27/04/2007  14:51               945 VERRAT.BAK
+30/04/2007  11:41             1.067 VERRAT.PRW
+              42 arquivo(s)        425.071 bytes
+
+ Pasta de C:\TOTVS\protheus\oficial\protheus11\my projects\NOVEL\Contabilidade
+
+26/05/2013  20:36    <DIR>          .
+26/05/2013  20:36    <DIR>          ..
+01/09/2005  08:32             1.635 ALTPARAM.BAK
+01/09/2005  08:44             1.629 ALTPARAM.PRW
+29/10/2011  10:14               245 CADCOM.prw
+01/11/2011  09:48               245 CADCOM2.BAK
+01/11/2011  09:49               252 CADCOM2.PRW
+26/10/2012  16:23               207 MANSD2.PRW
+24/05/2012  13:34               222 MANSF1.BAK
+26/10/2012  16:29               207 MANSF2.BAK
+26/10/2012  16:30               207 MANSF2.PRW
+29/10/2012  14:09               207 MANSFT.PRW
+08/03/2012  15:52               235 NOVATF10.BAK
+12/04/2012  11:47               225 NOVATF10.PRW
+23/09/2005  13:24             4.003 RELDIFIPI.BAK
+03/09/2008  17:49             4.007 RELDIFIPI.PRW
+29/09/2005  15:15            18.219 RELFIS.BAK
+29/09/2005  16:01            18.255 RELFIS.prw
+03/11/2011  13:28             3.727 TFISM001.BAK
+03/11/2011  13:29             3.800 TFISM001.prw
+              18 arquivo(s)         57.527 bytes
+
+ Pasta de C:\TOTVS\protheus\oficial\protheus11\my projects\NOVEL\Estoque
+
+26/05/2013  20:36    <DIR>          .
+26/05/2013  20:36    <DIR>          ..
+20/04/2009  15:33             9.245 BLOQEST.BAK
+12/01/2006  16:57             9.096 BLOQEST.old
+20/04/2009  15:51             9.247 BLOQEST.PRW
+01/06/2006  16:05             2.131 CONEST.BAK
+02/06/2006  11:23             2.174 CONEST.PRW
+25/04/2012  09:07             2.467 ETQALMOX.BAK
+19/06/2012  21:26             2.469 ETQALMOX.PRW
+05/07/2006  09:57               479 MUDASD1.BAK
+05/07/2006  09:59               479 MUDASD1.PRW
+14/06/2006  11:41             1.432 MUDASD1bk.PRW
+15/06/2006  09:41               481 MUDASD1X.BAK
+15/06/2006  11:39               479 MUDASD1X.PRW
+15/06/2006  09:42               481 MUDASD2.BAK
+15/06/2006  11:40               479 MUDASD2.PRW
+15/06/2006  09:43               481 MUDASD2X.BAK
+15/06/2006  11:40               479 MUDASD2X.PRW
+15/06/2006  09:26               482 MUDASD3.BAK
+15/06/2006  09:44               481 MUDASD3.PRW
+15/06/2006  09:25               481 MUDASD3X.BAK
+15/06/2006  09:44               481 MUDASD3X.PRW
+03/07/2006  15:48               491 MUDASD9.BAK
+03/07/2006  17:28               491 MUDASD9.PRW
+20/07/2009  17:25               232 NovEst01.BAK
+22/07/2009  12:21               229 NovEst01.PRW
+20/07/2009  17:24               238 NovEst02.BAK
+22/07/2009  12:20               235 NovEst02.PRW
+20/07/2009  17:25               238 NovEst03.BAK
+22/07/2009  12:20               235 NovEst03.PRW
+01/10/2001  12:24             2.241 NovEst04.PRW
+29/08/2005  09:43             7.509 PEDEXP.BAK
+19/08/2006  10:51             7.455 PEDEXP.PRW
+08/05/2013  15:09            27.632 PEDPEND.BAK
+20/09/2011  10:57            26.900 PEDPEND.old2
+08/05/2013  15:21            28.037 PEDPEND.PRW
+29/08/2005  16:45             8.064 PEDPROD.PRW
+07/05/2009  16:56             1.096 PEGAREQ2.BAK
+13/06/2009  12:51             1.098 PEGAREQ2.PRW
+12/01/2006  16:57             4.264 REFRES.BAK
+19/08/2006  10:51             4.237 REFRES.PRW
+03/01/2006  09:37             3.287 REFSD4.BAK
+19/08/2006  10:51             3.260 REFSD4.PRW
+              41 arquivo(s)        171.493 bytes
+
+ Pasta de C:\TOTVS\protheus\oficial\protheus11\my projects\NOVEL\Faturamento
+
+26/05/2013  20:36    <DIR>          .
+26/05/2013  20:36    <DIR>          ..
+09/08/2005  16:55             4.513 ALTCOM.BAK
+03/03/2008  14:35             4.513 ALTCOM.PRW
+09/08/2005  16:55             6.183 ALTPRC.BAK
+03/03/2008  14:34             6.183 ALTPRC.PRW
+29/08/2005  09:46             9.524 ANAFAT.BAK
+19/08/2006  10:52             9.506 ANAFAT.PRW
+31/03/2006  09:01            15.572 AUTCHQ.PRW
+02/10/2012  15:44               941 BLOQCAD.BAK
+02/10/2012  15:44               953 BLOQCAD.PRW
+13/01/2012  10:13            15.348 BOLFAT.BAK
+19/08/2006  10:51            15.325 BOLFAT.OLD
+13/01/2012  10:30            15.353 BOLFAT.PRW
+22/08/2006  13:17            16.635 BOLQTD.BAK
+01/07/2009  11:57            16.637 BOLQTD.PRW
+03/10/2005  13:29            16.331 CANROMAN.BAK
+10/03/2006  09:13            16.820 CANROMAN.PRW
+26/01/2006  11:31             3.211 CONLIB.PRW
+19/08/2006  10:52             6.902 CONLIBAV.BAK
+11/09/2006  14:22             6.905 CONLIBAV.PRW
+23/12/2011  09:57             3.781 CONPESO.BAK
+05/10/2005  17:02             3.034 CONPESO.old.PRW
+23/12/2011  11:02             3.802 CONPESO.PRW
+20/08/2005  13:23             3.261 COPCOTA.BAK
+19/08/2006  10:51             3.252 COPCOTA.PRW
+20/08/2005  13:18             3.528 COPPREV.BAK
+19/08/2006  10:51             3.519 COPPREV.PRW
+20/08/2002  10:49               259 cotager.prw
+20/08/2002  10:49               263 cotaven.prw
+13/08/2002  11:55               255 COTCOMP.PRW
+24/08/2005  09:54            20.893 C¢pia de GERROMAN.PRW
+25/08/2005  13:19            15.030 dupli2.BAK
+25/08/2005  13:22            15.110 dupli2.prw
+21/06/2005  09:47             5.698 ELIMRES.BAK
+29/08/2005  08:06             6.343 ELIMRESV.BAK
+27/09/2005  08:09             6.344 ELIMRESV.prw
+02/09/2008  11:29             6.308 ESTLIB.BAK
+08/08/2012  15:37             6.308 ESTLIB.PRW
+05/09/2007  17:49            17.233 Etiqaut.BAK
+17/11/2005  11:25            16.301 Etiqaut.old
+31/08/2007  17:33            16.724 Etiqaut.old2
+31/03/2010  17:00            17.274 Etiqaut.PRW
+26/08/2005  13:09             7.090 Etiqman.BAK
+31/03/2010  16:56             7.234 Etiqman.prw
+21/09/2005  10:50             4.802 excel01.prw
+12/01/2006  16:57             3.067 EXCPED.prw
+19/08/2006  10:57            10.064 FATANO.BAK
+17/09/2012  16:25            10.066 FATANO.PRW
+10/11/2005  14:10            11.746 FATCLI.BAK
+19/08/2006  10:53            11.674 FATCLI.PRW
+11/09/2006  08:28             8.315 FATMES.BAK
+03/03/2008  14:36             8.315 FATMES.PRW
+25/08/2005  15:33            19.144 FATVEND.BAK
+01/09/2005  13:31            19.027 FATVEND.PRW
+20/08/2005  08:32             8.639 GERAGRA.PRW
+30/09/2005  11:37            21.081 GERROMAN.BAK
+28/12/2005  13:55            21.640 GERROMAN.PRW
+18/10/2005  17:16               463 GRVDOCUA.BAK
+19/10/2005  11:31               630 GRVDOCUA.PRW
+11/11/2005  16:04            11.414 IMPROMAN.PRW
+06/12/2007  17:15             8.238 LIBEST.BAK
+01/06/2006  19:07             7.927 LIBEST.OLD
+07/01/2008  10:22             8.241 LIBEST.PRW
+08/08/2012  15:38             6.974 LIBPARC.BAK
+08/08/2012  15:39             6.972 LIBPARC.PRW
+02/10/2012  15:45             1.875 M410ALOK.BAK
+02/10/2012  15:45             1.795 M410ALOK.PRW
+15/07/2004  13:43             1.858 MTA410T.PRW
+02/02/2006  15:48             1.576 MTA450I.BAK
+11/07/2006  14:10             1.585 MTA450I.PRW
+05/10/2004  08:45            21.821 NFENT.BAK
+26/08/2005  15:05            19.245 NFENT.prw
+10/04/2008  17:28            47.378 nfnovel.BAK
+04/03/2008  11:18            47.203 nfnovel.old
+07/08/2007  08:46            46.994 nfnovel.OLD1
+31/08/2007  17:32            47.132 nfnovel.OLD2
+01/10/2009  14:24            47.387 nfnovel.prw
+05/12/2005  09:22            25.123 Nfserv.BAK
+15/12/2005  09:39            25.116 Nfserv.prw
+05/10/2012  16:32            32.093 NOVFT03.BAK
+17/09/2012  16:41            32.026 NOVFT03.old
+08/10/2012  16:01            32.095 NOVFT03.PRW
+10/03/2008  15:40            25.299 PEDPEND.2308
+21/09/2005  10:49           273.408 planilha.xls
+25/08/2005  15:16            19.314 PNVFA09.BAK
+27/01/2006  15:37             3.170 POSPED.PRW
+25/11/2004  10:58             6.836 RELPREV.PRW
+16/11/2005  09:10             6.848 RELPV.BAK
+19/08/2006  10:52             6.812 Relpv.prw
+25/11/2005  09:27             6.862 Reltc.prw
+21/12/2005  10:17             9.689 ReltcS.prw
+22/06/2011  09:46            11.519 SF2460I_AP5.BAK
+19/10/2010  15:56             9.994 SF2460I_AP5.old.PRW
+02/10/2012  15:44            11.541 SF2460I_AP5.PRW
+23/08/2005  10:45             1.232 TEMP.PRW
+              94 arquivo(s)      1.409.464 bytes
+
+ Pasta de C:\TOTVS\protheus\oficial\protheus11\my projects\NOVEL\Financeiro
+
+26/05/2013  20:36    <DIR>          .
+26/05/2013  20:36    <DIR>          ..
+27/07/2009  16:26             1.405 Digito.BAK
+21/10/2009  12:05             1.405 Digito.prw
+01/09/2005  11:27             2.848 DUPVENC.BAK
+01/09/2005  11:48             2.848 DUPVENC.PRW
+25/07/2012  15:36             7.029 PRZMDVEN.BAK
+27/09/2007  16:58             6.610 PrzMDVen.old
+25/07/2012  16:30             7.038 PrzMDVen.PRW
+26/12/2005  09:53             7.255 SCI001.PRW
+28/12/2005  13:20             7.802 SCI001F.BAK
+19/08/2006  10:57             7.784 SCI001F.PRW
+28/12/2005  13:19             7.904 SCI001J.BAK
+19/08/2006  10:57             7.886 SCI001J.PRW
+02/11/2003  10:13               773 Trcfin07.BAK
+04/10/2005  16:04               828 Trcfin07.PRW
+02/11/2003  10:13               523 Trcfin08.prw
+              15 arquivo(s)         69.938 bytes
+
+ Pasta de C:\TOTVS\protheus\oficial\protheus11\my projects\NOVEL\Fiscal
+
+26/05/2013  20:36    <DIR>          .
+26/05/2013  20:36    <DIR>          ..
+26/10/2012  16:23               207 MANSD2.PRW
+26/10/2012  16:30               207 MANSF2.BAK
+29/10/2012  17:35               207 MANSF2.PRW
+02/10/2012  15:48               209 MANSFT.BAK
+02/10/2012  15:47               209 MANSFT.PRW
+               5 arquivo(s)          1.039 bytes
+
+ Pasta de C:\TOTVS\protheus\oficial\protheus11\my projects\NOVEL\FTPMYERS
+
+26/05/2013  20:36    <DIR>          .
+26/05/2013  20:36    <DIR>          ..
+25/07/2012  11:34             8.389 conemail.BAK
+25/07/2012  12:19             8.387 CONEMAIL.PRW
+25/07/2012  11:34             4.983 CONEXFTP.BAK
+25/07/2012  12:18             4.981 CONEXFTP.PRW
+23/07/2012  17:55             4.592 CORPOEMAIL.BAK
+25/07/2012  11:34             4.596 CORPOEMAIL.PRW
+25/07/2012  11:34             6.235 GRVTXT.BAK
+25/07/2012  12:19             6.233 GRVTXT.PRW
+25/07/2012  11:34             5.953 MYEDISA1.BAK
+03/08/2012  14:39             6.024 MYEDISA1.PRW
+24/07/2012  14:30             4.794 MYEDISA2.BAK
+25/07/2012  11:34             4.796 MYEDISA2.PRW
+              12 arquivo(s)         69.963 bytes
+
+ Pasta de C:\TOTVS\protheus\oficial\protheus11\my projects\NOVEL\Gatilhos
+
+11/06/2013  15:55    <DIR>          .
+11/06/2013  15:55    <DIR>          ..
+27/06/2007  17:08               690 CCONTA.BAK
+16/06/2009  17:26               688 CCONTA.PRW
+18/10/2012  15:51               715 DESBCAD.BAK
+18/10/2012  15:51               713 DESBCAD.PRW
+26/07/2006  21:07             3.249 MT250EST.BAK
+27/05/2009  17:21             3.259 MT250EST.PRW
+26/07/2006  23:06             9.028 MT250TOK.BAK
+20/01/2009  14:52             9.038 MT250TOK.PRW
+01/10/2001  12:24             2.241 NovEst04.PRW
+08/03/2006  15:46             1.520 PCP01.PRW
+03/03/2006  15:22               989 PCP02.PRW
+12/07/2006  10:39             2.105 PCP03.BAK
+12/07/2006  10:44             2.100 PCP03.prw
+12/07/2006  11:30             2.287 PCP04.BAK
+12/07/2006  12:09             2.201 PCP04.prw
+26/07/2006  10:21             2.376 PCP05.BAK
+26/07/2006  22:58             2.375 PCP05.prw
+13/12/2005  14:13               828 PEGACC.PRW
+02/07/2002  09:33             1.030 PEGANAT.PRW
+07/05/2009  10:37               793 PEGAPROD.BAK
+07/05/2009  10:45               794 PEGAPROD.PRW
+04/02/2009  17:21             1.038 PEGAREQ.BAK
+06/02/2009  13:13             1.038 PEGAREQ.PRW
+26/12/2005  16:23               831 PNPCP01.PRW
+23/09/2005  13:44             1.298 PNPT020.BAK
+23/09/2005  14:05             1.470 PNPT020.PRW
+21/09/2005  09:48               789 PNPT030.BAK
+21/09/2005  09:55               894 PNPT030.PRW
+23/10/2012  15:52             2.757 PNVCC01.BAK
+02/04/2009  10:51             2.414 PNVCC01.old
+23/09/2009  12:51             2.683 PNVCC01.OLD2
+18/10/2012  15:52             2.734 PNVCC01.PRW
+05/11/2012  15:54               946 PNVCC02.BAK
+05/11/2012  15:53               946 PNVCC02.PRW
+05/11/2012  15:53               908 PNVCC03.BAK
+23/10/2012  15:52             1.023 PNVCC03.PRW
+05/11/2012  15:53               917 PNVCC04.BAK
+05/11/2012  15:53               915 PNVCC04.PRW
+23/10/2012  15:52             1.076 PNVCC05.BAK
+18/10/2012  15:52             1.043 PNVCC05.PRW
+11/09/2008  15:00               814 PNVCC07.BAK
+11/09/2008  17:20               811 PNVCC07.PRW
+11/09/2008  15:49               811 PNVCC08.BAK
+11/09/2008  17:21               807 PNVCC08.PRW
+11/09/2008  15:39               817 PNVCC09.BAK
+11/09/2008  17:21               813 PNVCC09.PRW
+09/08/2005  15:13               906 PNVFT101.BAK
+29/03/2010  16:41               934 PNVFT101.PRW
+09/08/2005  15:13               897 PNVFT102.PRW
+09/08/2005  15:13               835 PNVFT103.PRW
+09/08/2005  15:13             1.728 PNVFT104.BAK
+03/03/2008  14:31             1.728 PNVFT104.PRW
+09/08/2005  15:41               959 PNVFT105.PRW
+28/04/2010  17:23               192 SEQSUA.BAK
+28/04/2010  17:31               195 SEQSUA.PRW
+05/11/2012  15:54             1.236 TIPOVEND.PRW
+18/10/2012  15:51             1.078 TMKBLOCK.BAK
+30/01/2006  16:24             1.176 Tmkcmsup.prw
+29/07/2005  11:28               877 Tmkcom.prw
+22/04/2010  11:00               878 tmkfrete.BAK
+05/11/2012  15:54               880 tmkfrete.prw
+29/07/2005  11:30               752 Tmkitem.PRW
+              62 arquivo(s)         94.863 bytes
+
+ Pasta de C:\TOTVS\protheus\oficial\protheus11\my projects\NOVEL\MYERS
+
+26/05/2013  20:36    <DIR>          .
+26/05/2013  20:36    <DIR>          ..
+15/03/2013  13:53             8.521 A010TOK.BAK
+29/04/2013  15:22             8.631 A010TOK.prw
+15/03/2013  11:45            11.509 MYES01.BAK
+15/03/2013  11:48            11.507 MYES01.PRW
+               4 arquivo(s)         40.168 bytes
+
+ Pasta de C:\TOTVS\protheus\oficial\protheus11\my projects\NOVEL\PCP
+
+26/05/2013  20:36    <DIR>          .
+26/05/2013  20:36    <DIR>          ..
+31/03/2006  08:31            17.101 CANROMAN.PRW
+22/11/2006  15:56            18.362 C¢pia de NOVIMPOP.PRW
+15/10/2012  08:54             6.175 Etiqman2.BAK
+24/01/2011  16:55             5.127 Etiqman2.old.prw
+24/10/2012  16:09             6.153 ETIQMAN2.prw
+17/02/2009  16:13            22.610 GERROMAN.BAK
+19/08/2006  10:57            21.877 GERROMAN.OLD
+17/02/2009  16:22            22.610 GERROMAN.PRW
+18/11/2005  11:45             5.652 IMPOPS.BAK
+22/08/2006  14:45             5.659 IMPOPS.PRW
+31/03/2006  08:31            11.691 IMPROMAN.PRW
+26/08/2011  15:36             6.719 MOVPROD.BAK
+19/08/2006  10:57             6.225 MOVPROD.old.PRW
+29/08/2011  17:18             6.717 MOVPROD.PRW
+06/12/2007  14:24             4.784 MOVPRODA.BAK
+06/12/2007  17:15             4.814 MOVPRODA.PRW
+06/12/2007  17:16             6.110 MOVPRODS.BAK
+21/01/2011  13:44             6.112 MOVPRODS.PRW
+06/04/2009  17:13            17.421 NOVIMP2.BAK
+06/04/2009  17:28            17.420 NOVIMP2.PRW
+16/07/2007  14:06            17.419 NOVIMPOP.BAK
+13/06/2007  15:47            18.512 NOVIMPOP.OLD
+16/07/2007  17:41            17.421 NOVIMPOP.PRW
+06/04/2009  17:02            17.421 NOVIMPOP2.BAK
+08/07/2008  12:03            25.553 PEDPEND.PRW
+29/08/2005  17:19             8.063 PEDPROD.PRW
+13/06/2007  18:06               450 TESTEST.PRW
+              27 arquivo(s)        324.178 bytes
+
+ Pasta de C:\TOTVS\protheus\oficial\protheus11\my projects\NOVEL\Pedido Web
+
+26/05/2013  20:36    <DIR>          .
+26/05/2013  20:36    <DIR>          ..
+13/11/2009  16:07            15.716 AtuBase.BAK
+13/11/2009  16:08            15.713 AtuBase.PRW
+23/07/2004  12:08             8.433 ConfWeb.BAK
+13/06/2009  19:03             8.444 ConfWeb.PRW
+19/10/2005  13:25            34.704 IMPPED OLD.PRW
+03/03/2008  14:45            34.951 IMPPED.BAK
+26/06/2009  16:37            34.955 IMPPED.PRW
+03/03/2008  14:47            34.804 IMPPEDMD.BAK
+26/06/2009  16:38            34.808 IMPPEDMD.PRW
+03/03/2005  15:58               870 InitSched.PRW
+              10 arquivo(s)        223.398 bytes
+
+ Pasta de C:\TOTVS\protheus\oficial\protheus11\my projects\NOVEL\RH
+
+26/05/2013  20:36    <DIR>          .
+26/05/2013  20:36    <DIR>          ..
+24/09/2008  17:38            30.925 IMPRESG.PRX
+02/06/2011  13:06           131.205 MPONR001.BAK
+14/02/2011  11:21           129.509 MPONR001.OLD.PRX
+29/04/2011  09:57           130.241 MPONR001.oldPRX
+21/07/2011  16:40           131.211 MPONR001.PRX
+23/01/2011  11:24             5.647 ponr010.ch
+07/09/2005  09:01            43.140 RECIBO.BAK
+13/10/2010  10:52            43.580 RECIBO1.BAK
+15/10/2005  17:49            43.141 RECIBO1.old
+06/11/2006  08:29            43.139 RECIBO1.old2
+13/10/2010  10:53            43.580 RECIBO1.PRW
+              11 arquivo(s)        775.318 bytes
+
+ Pasta de C:\TOTVS\protheus\oficial\protheus11\my projects\NOVEL\sped
+
+26/05/2013  20:36    <DIR>          .
+26/05/2013  20:36    <DIR>          ..
+08/01/2012  09:24           207.727 backup 08_01_2012.rar
+12/07/2012  17:39           231.320 BACKUP_12_07_2012.rar
+07/12/2012  15:46           136.691 danfeii.BAK
+06/02/2012  16:12           136.691 danfeii.old.prw
+10/12/2012  06:09           136.693 danfeii.prw
+25/10/2011  08:41           134.433 danfeIII.prw
+07/12/2012  15:46           212.077 nfesefaz.BAK
+30/11/2012  06:18           201.084 nfesefaz.old.prw
+10/12/2012  06:08           212.079 nfesefaz.prw
+               9 arquivo(s)      1.608.795 bytes
+
+     Total de Arquivos na Lista:
+             386 arquivo(s)      5.816.736 bytes
+              44 pasta(s)   41.774.612.480 bytes dispon°veis

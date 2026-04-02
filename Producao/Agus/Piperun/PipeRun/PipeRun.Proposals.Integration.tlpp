@@ -1,0 +1,125 @@
+#include 'tlpp-core.th'
+
+namespace PipeRun.Proposals
+
+#define CRLF            Chr(13) + Chr(10)
+
+static __cModelProposals := SuperGetMV("ES_MODEL", .F., "14870")
+
+/*/{Protheus.doc} User Function ProspectsIntegration
+    integração de propostas (orçamento)
+    @type Function
+    @author Lucas Silva Vieira
+    @since 06/05/2024
+    @version 2210
+    @seek https://vendas.developers.pipe.run/reference/adicionar-proposta
+/*/
+Function U_SendProposals()
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath      	   := "/v1/proposals"           					as character
+	local jPost            := Nil                                           as json
+	local cStatus    	   := ""                                            as character
+	local nIndex           := 0                                             as numeric
+	local nUser            := 0                                             as numeric
+	local cNome            := ""                                            as character
+	local nDeals           := 0                                             as numeric
+	local lSend			   := .F.											as logical
+	local nAdd			   := 0												as numeric
+	local nPosVal 		   := GDFieldPos("UB_ZVLNET")						as numeric
+	local nPosQuant 	   := GDFieldPos("UB_QUANT")						as numeric
+	local nPosPipe 		   := GDFieldPos("UB_PIPERUN")						as numeric
+	local nPosVlDesc 	   := GDFieldPos("UB_UB_VALDESC")					as numeric
+
+	BEGIN TRANSACTION
+
+		If M->UA_PROSPEC == 'F'
+			cName	:= Posicione("SA1", 1, FwXFilial("SA1")+M->UA_CLIENTE + M->UA_LOJA, "A1_NOME")
+		else
+			cName	:= Posicione('SUS', 1, FWxFilial('SUS')+M->(UA_CLIENTE + M->UA_LOJA), 'US_NOME')
+		endif
+
+		nUser := val(Posicione("SA3", 1, FwXFilial("SA3")+M->UA_VEND, "A3_PIPERUN"))
+		nDeals := val(M->UA_PIPERUN)
+
+		jPost := JsonObject():new()
+
+		jPost["deal_id"               ] := nDeals                               		//ID da oportunidade
+		jPost["user_id"               ] := nUser                                		//ID do usuário responsável pela proposta
+		jPost["name"                  ] := alltrim(cNome)+ " - "+M->UA_NUM     			//Nome da proposta
+		jPost["proposal_model_id"     ] := val(__cModelProposals)
+		//jPost["payment_method_id"     ] := M->UA_CONDPG
+		//jPost["currency_id"           ] := M->UA_MOEDA
+		//jPost["status"                ] := M->UA_STATUS
+		jPost["observation"           ] := 'INTEGRADO PELO PROTHEUS EM ' + dToC(dDataBase) + ' ' + time()
+		//jPost["shipping_type"         ] := 0
+		jPost["shipping_value"        ] := M->UA_VLRLIQ
+		//jPost["discount_type"         ] := 1
+		jPost["discount_value"        ] := M->UA_DESCONT
+		jPost["delivery_forecast_date"] := 10
+
+		jPost["items"                 ] := JsonObject():new()
+
+		dbSelectArea("SF4")
+		SF4->(dbSetOrder(01)) //F4_FILIAL+F4_CODIGO
+		for nIndex := 01 to len(aCols)
+
+			lSend := Posicione("SF4",1,FwXFilial("SF4") + alltrim(aCols[nIndex][nPosTES]),"F4_PIPERUN")
+			if lSend
+
+				jPost["items"][cValToChar(nIndex)] := JsonObject():new()
+
+				jPost["items"][cValToChar(nIndex)]["item_id"                  ] := aCols[nIndex][nPosPipe]
+				jPost["items"][cValToChar(nIndex)]["quantity"                 ] := aCols[nIndex][nPosQuant]
+				jPost["items"][cValToChar(nIndex)]["value"                    ] := aCols[nIndex][nPosVal]
+				jPost["items"][cValToChar(nIndex)]["discount_value"           ] := aCols[nIndex][nPosVlDesc]
+
+				nAdd ++
+			endIf
+		next nIndex
+
+		oRest:setPath(cPath)
+
+		oRest:setPostParams(jPost:toJson())
+
+		if (oRest:post(aHeader))
+			cStatus  := oRest:getHttpCode()
+			cBodyStr := oRest:getResult()
+			oResponse := JsonObject():new()
+			oResponse:fromJson(cBodyStr)
+		else
+			cStatus  := oRest:getHttpCode()
+			cBodyStr := oRest:getResult()
+		endif
+
+	END TRANSACTION
+
+return
+
+Static function getData(cNum) as character
+	local cQuery 	:= ""		as character
+	local cAlias	:= ""   	as character
+	local oQuery 	:= nil 		as object
+
+	cQuery :=  "SELECT  SUA.UA_NUM, SUA.UA_CLIENTE,SUA.UA_LOJA,SUA.UA_CODCONT,SUA.UA_DESCNT, "
+	cQuery +=  "SUA.UA_CONDPG,SUA.UA_OPER,SUA.UA_MIDIA,SUA.UA_VEND, "
+	cQuery +=  "SUA.UA_EMISSAO,SUA.UA_FRETE,SUA.UA_DESPESA,SUA.UA_STATUS, "
+	cQuery +=  "SUA.UA_PROSPEC,SUB.UB_ITEM,SUB.UB_PRODUTO,SUB.UB_QUANT, "
+	cQuery +=  "SUB.UB_VRUNIT,SUB.UB_VALDESC,SUB.UB_VALACRE,SUB.UB_TES, SUA.UA_MOEDA, SUA.UA_VLRLIQ, SUA.UA_DESCONT "
+	cQuery +=  "FROM " + RetSqlName("SUA") + " SUA "
+	cQuery +=  "INNER JOIN  " + RetSqlName("SUB") + " SUB ON SUB.UB_FILIAL+SUB.UB_NUM = SUA.UA_FILIAL+SUA.UA_NUM AND SUB.D_E_L_E_T_  = '' "
+	cQuery +=  "WHERE SUA.UA_NUM = ? "
+	cQuery +=  "AND SUA.UA_FILIAL = ? "
+	cQuery +=  "AND SUA.UA_OPER   = '2' "
+	cQuery +=  "AND SUA.UA_STATUS IN ('SUP','LIB') "
+	cQuery +=  "AND SUA.D_E_L_E_T_ = '' "
+
+	oQuery := FWPreparedStatement():New(cQuery)
+	oQuery:SetString(1,cNum)
+	oQuery:SetString(2, "0201")
+	cQuery := oQuery:GetFixQuery()
+	cAlias := MPSysOpenQuery(cQuery)
+
+return cAlias
+
+

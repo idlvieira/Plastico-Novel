@@ -1,0 +1,43 @@
+ #include "rwmake.ch"        // incluido pelo assistente de conversao do AP6 IDE em 11/03/03
+
+User Function LIBCLI()        // incluido pelo assistente de conversao do AP6 IDE em 11/03/03
+
+SetPrvt("WCONTINUA")
+WCONTINUA:=.T.
+WHILE WCONTINUA
+   TLcli()
+ENDDO
+REturn
+                
+
+Static Function TLcli()
+wcli:=Space(6)
+@ 0,0 TO 180,430 DIALOG oDlg1 TITLE "Desbloqueia o Cadastro de Clientes"
+@ 3,5 TO 60,210
+@ 15,10 say  "Cliente:"
+@ 15,35 GET  wcli SIZE  50,20 PICTURE "999999" VALID NaoVazio() F3 "SA1"
+@  70,070 BMPBUTTON TYPE 1 ACTION nCLIOk1()// Substituido pelo assistente de conversao do AP6 IDE em 20/04/04 ==>     @  60,65 BMPBUTTON TYPE 1 ACTION Execute(BotOk1)
+@  70,100 BMPBUTTON TYPE 2 ACTION nseqCan1()
+ACTIVATE DIALOG oDlg1 CENTER
+REturn
+
+Static Function nCLIOk1()
+***************
+
+dbSelectArea("SA1")
+DbSeek(xFilial("SA1") + wcli, .T.)
+If found() 
+   RecLock("SA1",.F.)
+   SA1->A1_MSBLQL := "2"
+   MsUnLock()
+Endif         
+Close(oDlg1)
+REturn    
+   
+
+Static Function nseqCan1()
+***************
+WCONTINUA:=.F.
+Close(oDlg1)
+Return
+

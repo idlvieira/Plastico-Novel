@@ -1,0 +1,673 @@
+Group P12_OFICIAL
+   Version=7.0
+   VSSDB=
+   HasProperties=1
+   Properties
+      BeforeApply=
+      AfterApply=
+      Icon=
+      ID=
+      Version=
+      PalmName=
+      OutPut=
+   End
+   ProjectsCount=15
+   Project ATF
+      FoldersCount=3
+      Folder FONTES
+         VSSPath=Nova Pasta1
+         FilesCount=3
+         File \Totvs\protheus\oficial\Protheus12\my projects\ATF\FONTES\MYATF01.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\ATF\FONTES\MYATF02.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\ATF\FONTES\MYATF03.prw
+             Type=T
+         End
+      End
+      Folder PE
+         VSSPath=Nova Pasta2
+         FilesCount=1
+         File \Totvs\protheus\oficial\Protheus12\my projects\ATF\PE\AT010SN1.PRW
+             Type=T
+         End
+      End
+      Folder TRES
+         VSSPath=Nova Pasta3
+         FilesCount=0
+      End
+   End
+   Project CFG
+      FoldersCount=3
+      Folder FONTES
+         VSSPath=Nova Pasta1
+         FilesCount=11
+         File \Totvs\protheus\oficial\Protheus12\my projects\CFG\FONTES\ALDC04.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CFG\FONTES\MYCFG00.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CFG\FONTES\MYCFG01.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CFG\FONTES\MYCFG02.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CFG\FONTES\MYCFG03.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CFG\FONTES\MYCFG04.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CFG\FONTES\MYCFG05.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CFG\FONTES\MYCFG06.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CFG\FONTES\MYTI01.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CFG\FONTES\NVLxFUN.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CFG\FONTES\getObjXML.prw
+             Type=T
+         End
+      End
+      Folder PE
+         VSSPath=Nova Pasta2
+         FilesCount=0
+      End
+      Folder TRES
+         VSSPath=Nova Pasta3
+         FilesCount=0
+      End
+   End
+   Project CLASSE
+      FoldersCount=3
+      Folder FONTES
+         VSSPath=Nova Pasta1
+         FilesCount=6
+         File \Totvs\protheus\oficial\Protheus12\my projects\CLASSE\MYCLA01.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CLASSE\MYCLA02.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CLASSE\MYCLA03.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CLASSE\MYCLA04.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CLASSE\MYCLA05.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CLASSE\TIPChkMeta.prw
+             Type=T
+         End
+      End
+      Folder PE
+         VSSPath=Nova Pasta2
+         FilesCount=0
+      End
+      Folder TRES
+         VSSPath=Nova Pasta3
+         FilesCount=0
+      End
+   End
+   Project COM
+      FoldersCount=3
+      Folder FONTES
+         VSSPath=Nova Pasta1
+         FilesCount=5
+         File \Totvs\protheus\oficial\Protheus12\my projects\COM\FONTES\MYCOM01.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\COM\FONTES\MYCOM02.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\COM\FONTES\MYCOM03.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\COM\FONTES\MYCOM04.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\COM\FONTES\MYCOM05.PRW
+             Type=T
+         End
+      End
+      Folder PE
+         VSSPath=Nova Pasta2
+         FilesCount=15
+         File \Totvs\protheus\oficial\Protheus12\my projects\COM\PE\A010TOK.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\COM\PE\M110STTS.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\COM\PE\MA130KEY.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\COM\PE\MA130QSC.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\COM\PE\MT097END.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\COM\PE\MT100LOK.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\COM\PE\MT110APV.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\COM\PE\MT110BLO.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\COM\PE\MT110FIL.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\COM\PE\MT110GRV.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\COM\PE\MT110LOK.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\COM\PE\MT120APV.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\COM\PE\MT120FIL.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\COM\PE\MT120LOK.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\COM\PE\MT120OK.PRW
+             Type=T
+         End
+      End
+      Folder TRES
+         VSSPath=Nova Pasta3
+         FilesCount=0
+      End
+   End
+   Project CTB
+      FoldersCount=3
+      Folder FONTES
+         VSSPath=Nova Pasta1
+         FilesCount=10
+         File \Totvs\protheus\oficial\Protheus12\my projects\CTB\FONTES\MYCTB01.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CTB\FONTES\MYCTB02.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CTB\FONTES\MYCTB03.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CTB\FONTES\MYCTB04.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CTB\FONTES\MYCTB05.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CTB\FONTES\MYCTB06.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CTB\FONTES\MYCTB07.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CTB\FONTES\MYCTB08.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CTB\FONTES\MYCTB09.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CTB\FONTES\MYCTB10.PRW
+             Type=T
+         End
+      End
+      Folder PE
+         VSSPath=Nova Pasta2
+         FilesCount=2
+         File \Totvs\protheus\oficial\Protheus12\my projects\CTB\PE\CT20GRD.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\CTB\PE\CT102BUT.PRW
+             Type=T
+         End
+      End
+      Folder TRES
+         VSSPath=Nova Pasta3
+         FilesCount=0
+      End
+   End
+   Project EST
+      FoldersCount=3
+      Folder FONTES
+         VSSPath=Nova Pasta1
+         FilesCount=3
+         File \Totvs\protheus\oficial\Protheus12\my projects\EST\FONTES\MYEST01.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\EST\FONTES\MYEST01i.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\EST\FONTES\MYEST01f.prw
+             Type=T
+         End
+      End
+      Folder PE
+         VSSPath=Nova Pasta2
+         FilesCount=1
+         File \Totvs\protheus\oficial\Protheus12\my projects\EST\PE\MA330TRB.prw
+             Type=T
+         End
+      End
+      Folder TRES
+         VSSPath=Nova Pasta3
+         FilesCount=0
+      End
+   End
+   Project FAT
+      FoldersCount=3
+      Folder FONTES
+         VSSPath=Nova Pasta1
+         FilesCount=8
+         File \Totvs\protheus\oficial\Protheus12\my projects\FAT\FONTES\MYFAT01.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FAT\FONTES\MYFAT02.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FAT\FONTES\MYFAT03.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FAT\FONTES\MYFAT04.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FAT\FONTES\MYFAT05.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FAT\FONTES\MYFAT06.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FAT\FONTES\MYFAT07.PRW
+             Type=T
+         End
+         File \Totvs\Protheus\oficial\Protheus12\my projects\FAT\FONTES\MYFAT08.PRW
+             Type=T
+         End
+      End
+      Folder PE
+         VSSPath=Nova Pasta2
+         FilesCount=8
+         File \Totvs\protheus\oficial\Protheus12\my projects\FAT\PE\M410ALOK.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FAT\PE\M410LIOK.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FAT\PE\M410PVNF.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FAT\PE\M460FIM.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FAT\PE\MA030TOK.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FAT\PE\MA440COR.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FAT\PE\MT100AGR.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FAT\PE\MTASF2.prw
+             Type=T
+         End
+      End
+      Folder TRES
+         VSSPath=Nova Pasta3
+         FilesCount=0
+      End
+   End
+   Project FIN
+      FoldersCount=3
+      Folder FONTES
+         VSSPath=Nova Pasta1
+         FilesCount=8
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIN\FONTES\MYFIN01.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIN\FONTES\MYFIN02.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIN\FONTES\MYFIN03.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIN\FONTES\MYFIN04.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIN\FONTES\MYFIN05.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIN\FONTES\MYFIN06.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIN\FONTES\MYFIN07.PRW
+             Type=T
+         End
+         File \Totvs\Protheus\oficial\Protheus12\my projects\FIN\FONTES\MYFIN08.PRW
+             Type=T
+         End
+      End
+      Folder PE
+         VSSPath=Nova Pasta2
+         FilesCount=4
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIN\PE\200GEMBX.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIN\PE\F040ALT.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIN\PE\F240FIL.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIN\PE\FA050INC.prw
+             Type=T
+         End
+      End
+      Folder TRES
+         VSSPath=Nova Pasta3
+         FilesCount=0
+      End
+   End
+   Project FIS
+      FoldersCount=4
+      Folder FONTES
+         VSSPath=Nova Pasta1
+         FilesCount=8
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIS\FONTES\MYFIS01.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIS\FONTES\MYFIS02.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIS\FONTES\MYFIS03.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIS\FONTES\MYFIS04.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIS\FONTES\MYFIS05.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIS\FONTES\MYFIS06.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIS\FONTES\MYFIS07.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIS\FONTES\MYFIS08.PRW
+             Type=T
+         End
+      End
+      Folder PE
+         VSSPath=Nova Pasta2
+         FilesCount=2
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIS\PE\MA020TOK.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIS\PE\SF2520E.prw
+             Type=T
+         End
+      End
+      Folder TRES
+         VSSPath=Nova Pasta3
+         FilesCount=0
+      End
+      Folder MONITOR_B2
+         VSSPath=Nova Pasta4
+         FilesCount=4
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIS\PE\MONITOR\A140EXC.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIS\PE\MONITOR\MT103FIM.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIS\PE\MONITOR\SF1100E.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\FIS\PE\MONITOR\SF1140I.PRW
+             Type=T
+         End
+      End
+   End
+   Project GPE
+      FoldersCount=3
+      Folder FONTES
+         VSSPath=Nova Pasta1
+         FilesCount=1
+         File \Totvs\Protheus\oficial\Protheus12\my projects\GPE\FONTES\MYGPE01.prw
+             Type=T
+         End
+      End
+      Folder PE
+         VSSPath=Nova Pasta2
+         FilesCount=0
+      End
+      Folder TRES
+         VSSPath=Nova Pasta3
+         FilesCount=0
+      End
+   End
+   Project NFE
+      FoldersCount=3
+      Folder FONTES
+         VSSPath=Nova Pasta1
+         FilesCount=3
+         File \Totvs\protheus\oficial\Protheus12\my projects\NFE\FONTES TOTVS\danfeii.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\NFE\FONTES TOTVS\danfeiii.prw
+             Type=T
+         End
+         File \Totvs\Protheus\oficial\Protheus12\my projects\NFE\FONTES TOTVS\nfesefaz.prw
+             Type=T
+         End
+      End
+      Folder PE
+         VSSPath=Nova Pasta2
+         FilesCount=1
+         File \Totvs\protheus\oficial\Protheus12\my projects\NFE\PE\PE01NFESEFAZ.PRW
+             Type=T
+         End
+      End
+      Folder TRES
+         VSSPath=Nova Pasta3
+         FilesCount=0
+      End
+   End
+   Project PCP
+      FoldersCount=3
+      Folder FONTES
+         VSSPath=Nova Pasta1
+         FilesCount=2
+         File \Totvs\protheus\oficial\Protheus12\my projects\PCP\FONTES\MYPCP01.prw
+             Type=T
+         End
+         File \Totvs\Protheus\oficial\Protheus12\my projects\PCP\FONTES\MYPCP02.prw
+             Type=T
+         End
+      End
+      Folder PE
+         VSSPath=Nova Pasta2
+         FilesCount=0
+      End
+      Folder TRES
+         VSSPath=Nova Pasta3
+         FilesCount=0
+      End
+   End
+   Project PON
+      FoldersCount=3
+      Folder FONTES
+         VSSPath=Nova Pasta1
+         FilesCount=2
+         File \Totvs\protheus\oficial\Protheus12\my projects\PON\FONTES\MYPON01.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\PON\FONTES\MYPON02.PRW
+             Type=T
+         End
+      End
+      Folder PE
+         VSSPath=Nova Pasta2
+         FilesCount=0
+      End
+      Folder TRES
+         VSSPath=Nova Pasta3
+         FilesCount=0
+      End
+   End
+   Project QDO
+      FoldersCount=3
+      Folder FONTES
+         VSSPath=Nova Pasta1
+         FilesCount=0
+      End
+      Folder PE
+         VSSPath=Nova Pasta2
+         FilesCount=3
+         File \Totvs\protheus\oficial\Protheus12\my projects\QDO\PE\qdom700.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\QDO\PE\qdom710.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\QDO\PE\qdom720.prw
+             Type=T
+         End
+      End
+      Folder TRES
+         VSSPath=Nova Pasta3
+         FilesCount=0
+      End
+   End
+   Project TMK
+      FoldersCount=3
+      Folder FONTES
+         VSSPath=Nova Pasta1
+         FilesCount=21
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\FONTE\MYTMK01.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\FONTE\MYTMK02.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\FONTE\MYTMK03.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\FONTE\MYTMK04.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\FONTE\MYTMK05.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\FONTE\MYTMK06.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\FONTE\MYTMK07.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\FONTE\MYTMK08.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\FONTE\MYTMK09.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\FONTE\MYTMK11.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\FONTE\MYTMK12.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\FONTE\MYTMK13.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\FONTE\MYTMK14.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\FONTE\MYTMK15.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\FONTE\MYTMK16.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\FONTE\MYTMK17.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\FONTE\MYTMK18.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\FONTE\MYTMK19.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\FONTE\MYTMK20.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\FONTE\MYTMK21.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\FONTE\MYTMK22.PRW
+             Type=T
+         End
+      End
+      Folder PE
+         VSSPath=Nova Pasta2
+         FilesCount=11
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\PE\M460MARK.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\PE\OM010LOK.prw
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\PE\OS010GRV.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\PE\TK271BOK.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\PE\TK271FIL.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\PE\TK271LEG.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\PE\TKEVALI.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\PE\TKGRPED.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\PE\TLVENT.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\PE\TMKBLOCK.PRW
+             Type=T
+         End
+         File \Totvs\protheus\oficial\Protheus12\my projects\TMK\PE\TMKVFIM.PRW
+             Type=T
+         End
+      End
+      Folder TRES
+         VSSPath=Nova Pasta3
+         FilesCount=0
+      End
+   End
+End

@@ -1,0 +1,216 @@
+#include "protheus.ch"
+#include "rwmake.ch"
+#include "Topconn.ch"
+#INCLUDE "TBICONN.CH"
+#INCLUDE "ap5mail.ch"
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณ MTA440C9 บAutor  ณ NEWTON RECA ALVES  บ Data ณ  22/06/12   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Rotina na liberacao do pedido de venda que envia um email  บฑฑ
+ฑฑบ          ณ caso use uma condicao de pagamento especifica (a vista) e  บฑฑ
+ฑฑบ          ณ bloqueia o cadastro de cliente.                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ FATURAMENTO                                                บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+
+*/
+
+
+User Function MTA440C9()
+
+
+_cAlias		:= Alias()     // Mantem o Alias corrente
+_nIndex		:= IndexOrd()  // Mantem o Indice corrente
+_nReg		:= RecNo()     // Mantem o Registro corrente   
+
+DBSelectarea("SC5")
+
+_cAliasSC6	:= Alias()     // Mantem o Alias corrente
+_nIndexSC6	:= IndexOrd()  // Mantem o Indice corrente
+_nRegSC6	:= RecNo()     // Mantem o Registro corrente   
+
+
+_cHTML		:= ""
+_cPedido	:= SC5->C5_NUM
+_cCliente	:= SC5->C5_CLIENTE
+_cTabela	:= SC5->C5_TABELA
+_cCond		:= SC5->C5_CONDPAG
+
+//_cCondPag	:= Posicione("SE4",1,xFilial("SE4")+_cCond,"E4_MYAPROV")
+
+
+//Bloqueia cliente a vista
+If Trim(_cCond)$getmv("MV_MYVISTA")
+	DBSelectarea("SA1")
+	DBSetOrder(1)
+	RecLock("SA1",.F.)
+	SA1->A1_MSBLQL	:= "1"
+	MSUnLock()
+	MYENVMAIL()
+EndIf
+
+
+DBSelectArea(_cAliasSC6)  // Volta o Alias corrente
+DBSetOrder(_nIndexSC6)    // Volta o Indice corrente
+DBGoTo(_nRegSC6)         // Volta o Registro corrente
+	
+DBSelectArea(_cAlias)  // Volta o Alias corrente
+DBSetOrder(_nIndex)    // Volta o Indice corrente
+DBGoTo(_nReg)         // Volta o Registro corrente
+
+
+
+
+Return .T. 
+
+
+
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณ MYENVMAILบAutor  ณ NEWTON RECA ALVES  บ Data ณ  20/03/14   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Manda email para o responsavel que libera o cliente        บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ FATURAMENTO                                                บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+
+*/
+
+
+Static Function MYENVMAIL()
+
+
+
+cServer		:= GetMv("MV_RELSERV")
+cAccount	:= GetMv("MV_RELACNT")
+cPassword	:= GetMv("MV_RELPSW")
+cAutentic	:= GetMv("MV_RELAUTH")
+cPara		:= GetMV("MV_MYBLQCL")
+cHtml		:= ""
+
+cHtml	+= '<html> '
+
+cHtml	+= '<head> '
+cHtml	+= '<meta http-equiv=Content-Type content="text/html; charset=windows-1252"><meta name=Generator content="Microsoft Word 12 (filtered)"> '
+cHtml	+= '<style> '
+cHtml	+= '<!-- '
+cHtml	+= ' /* Font Definitions */ '
+cHtml	+= ' @font-face '
+cHtml	+= '	{font-family:"Cambria Math"; '
+cHtml	+= '	panose-1:2 4 5 3 5 4 6 3 2 4;} '
+cHtml	+= '@font-face '
+cHtml	+= '	{font-family:Calibri; '
+cHtml	+= '	panose-1:2 15 5 2 2 2 4 3 2 4;} '
+cHtml	+= '@font-face '
+cHtml	+= '	{font-family:Tahoma; '
+cHtml	+= '	panose-1:2 11 6 4 3 5 4 4 2 4;} '
+cHtml	+= ' /* Style Definitions */ '
+cHtml	+= ' p.MsoNormal, li.MsoNormal, div.MsoNormal '
+cHtml	+= '	{margin-top:0cm; '
+cHtml	+= '	margin-right:0cm; '
+cHtml	+= '	margin-bottom:10.0pt; '
+cHtml	+= '	margin-left:0cm; '
+cHtml	+= '	line-height:115%; '
+cHtml	+= '	font-size:11.0pt; '
+cHtml	+= '	font-family:"Calibri","sans-serif";} '
+cHtml	+= 'p.MsoAcetate, li.MsoAcetate, div.MsoAcetate '
+cHtml	+= '	{mso-style-link:"Texto de balใo Char"; '
+cHtml	+= '	margin:0cm; '
+cHtml	+= '	margin-bottom:.0001pt; '
+cHtml	+= '	font-size:8.0pt; '
+cHtml	+= '	font-family:"Tahoma","sans-serif";} '
+cHtml	+= 'p.msopapdefault, li.msopapdefault, div.msopapdefault '
+cHtml	+= '	{mso-style-name:msopapdefault; '
+cHtml	+= '	margin-right:0cm; '
+cHtml	+= '	margin-bottom:10.0pt; '
+cHtml	+= '	margin-left:0cm; '
+cHtml	+= '	line-height:115%; '
+cHtml	+= '	font-size:12.0pt; '
+cHtml	+= '	font-family:"Times New Roman","serif";} '
+cHtml	+= 'p.msochpdefault, li.msochpdefault, div.msochpdefault '
+cHtml	+= '	{mso-style-name:msochpdefault; '
+cHtml	+= '	margin-right:0cm; '
+cHtml	+= '	margin-left:0cm; '
+cHtml	+= '	font-size:10.0pt; '
+cHtml	+= '	font-family:"Times New Roman","serif";} '
+cHtml	+= 'span.TextodebaloChar '
+cHtml	+= '	{mso-style-name:"Texto de balใo Char"; '
+cHtml	+= '	mso-style-link:"Texto de balใo"; '
+cHtml	+= '	font-family:"Tahoma","sans-serif";} '
+cHtml	+= '.MsoChpDefault '
+cHtml	+= '	{font-size:10.0pt;} '
+cHtml	+= '@page Section1 '
+cHtml	+= '	{size:595.3pt 841.9pt; '
+cHtml	+= '	margin:70.85pt 3.0cm 70.85pt 3.0cm;} '
+cHtml	+= 'div.Section1 '
+cHtml	+= '	{page:Section1;} '
+cHtml	+= '--> '
+cHtml	+= '</style> '
+
+cHtml	+= '</head> '
+
+cHtml	+= '<body lang=PT-BR> '
+
+cHtml	+= '<div class=Section1> '
+
+cHtml	+= "<p class=MsoNormal><b><i><span style='font-size:16.0pt;line-height:115%;color:red'>Cliente Bloqueado por Regra de Negocio - Condicao a vista</span></i></b></p> "
+
+cHtml	+= "<p class=MsoNormal><b><i><span style='font-size:16.0pt;line-height:115%;color:red'>&nbsp;</span></i></b></p> "
+
+cHtml	+= '<p class=MsoNormal>&nbsp;</p> '
+
+cHtml	+= '<p class=MsoNormal><b><i>Informa็๕es Complementares:</i></b></p> '
+
+cHtml	+= "<p class=MsoNormal style='text-indent:35.4pt'>Numero: <b><i><spanstyle='font-size:14.0pt;line-height:115%'>"+SC5->C5_NUM+"</span></i></b></p> "
+
+cHtml	+= "<p class=MsoNormal style='text-indent:35.4pt'>Emissao: <b><i><spanstyle='font-size:14.0pt;line-height:115%'>"+DtoC(SC5->C5_EMISSAO)+"</span></i></b></p> "
+
+cHtml	+= "<p class=MsoNormal style='text-indent:35.4pt'>Cliente: <b><i><spanstyle='font-size:14.0pt;line-height:115%'>"+SC5->C5_CLIENTE+"/"+SC5->C5_LOJACLI+"</span></i></b></p> "
+
+_cNomeCli	:= Posicione("SA1",1,xFilial("SA1")+SC5->C5_CLIENTE+SC5->C5_LOJACLI,"A1_NOME")
+
+cHtml	+= "<p class=MsoNormal style='text-indent:35.4pt'>Descricao: <b><i><spanstyle='font-size:14.0pt;line-height:115%'>"+_cNomeCli+"</span></i></b></p> "
+
+cHtml	+= '<p class=MsoNormal>&nbsp;</p> '
+
+cHtml	+= '<p class=MsoNormal>Planta: LAURO</p> '
+
+cHtml	+= '<p class=MsoNormal>&nbsp;</p> '
+
+cHtml	+= '<p class=MsoNormal>Sem mais,</p> '
+
+cHtml	+= '<p class=MsoNormal><b><i>Controladoria</i></b></p> '
+
+cHtml	+= '</div> '
+
+cHtml	+= '</body> '
+
+cHtml	+= '</html> '
+
+
+//Manda e e-mail
+CONNECT SMTP SERVER cServer ACCOUNT cAccount PASSWORD cPassword Result lConectou
+//lResulConn := MailAuth(cAccount, cPassword)
+   
+   	If Getmv("MV_RELAUTH")
+	  lResulConn := MailAuth(cAccount, cPassword)  
+	Endif                                              
+
+//email para o responsavel pela fase 1
+SEND MAIL FROM cAccount TO cPara SUBJECT 'Cliente bloqueado por regra de negocio' BODY cHtml //Attachment _cCaminho //RESULT lEnviado
+
+
+Return()

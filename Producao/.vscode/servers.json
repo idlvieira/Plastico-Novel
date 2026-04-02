@@ -1,0 +1,289 @@
+{
+	"version": "0.2.2",
+	"includes": [
+		"C:\\TOTVS\\Microsiga\\Protheus\\include"
+	],
+	"permissions": {
+		"authorizationtoken": ""
+	},
+	"connectedServer": {},
+	"configurations": [
+		{
+			"id": "74uvww0i2hlm1qrg5wjfnsx9yzsb3",
+			"type": "totvs_server_protheus",
+			"name": "Prod_TCP",
+			"port": 1255,
+			"address": "localhost",
+			"buildVersion": "7.00.210324P",
+			"secure": false,
+			"includes": [
+				"C:\\TOTVS\\Microsiga\\Protheus\\include"
+			],
+			"environments": [
+				"NOVEL"
+			],
+			"username": "piperun",
+			"environment": "NOVEL",
+			"token": "djM6NzR1dnd3MGkyaGxtMXFyZzV3amZuc3g5eXpzYjM6MTpsb2NhbGhvc3Q6MTI1NTowOjcuMDAuMjEwMzI0UDoz:djE6Tk9WRUw6cGlwZXJ1bjpuV3lKWmlGQnQrMTNxTDkzc2dlYWc2SG12eEtWbER6Ym9tbE1tM3RHR2E0PQ==|djI6MTcyNzgwNzE0MjowOjE6MQ==.o37eyZdqHA8RifV8dXkD5FkstOLdtTT76j4i1urcA8cX7ABWKv01znj3GO2/sMuc68DU+SCtLmI/rLaRt34fGf6BbgHbeb0LW1/WMbB3TrVDdqGVeNf/SOMfdj5vb5Z1flY/kZDobRLU+QCIdP/tgdrKzrKm+cGHD6h+pdEPSHz+XGMZGiMx5jwpAxU9vy7Vwd23DUAZIIvknxUTri39GKIJ+W46GKt6TIpX7JttJ1f82GxJr8NVa7M7sJMldzJcj3Ud3V9iZMfYrW/V6AgSlTCGN++TGgCIEQ0EbddpcR9dhmS8gctCX3L0gOspOlubZLK08f62ZXObguo8CkolbA==",
+			"informations": {
+				"permissions": [],
+				"errorMessage": "",
+				"environmentDetectedType": "totvs_server_protheus",
+				"serverDetectedType": "totvs_server_protheus"
+			}
+		},
+		{
+			"id": "v9ez60ql2rm1qsa80hi4s4oqfv4ps",
+			"type": "totvs_server_protheus",
+			"name": "Prod_Sched",
+			"port": 1262,
+			"address": "localhost",
+			"buildVersion": "7.00.210324P",
+			"secure": false,
+			"includes": [
+				"C:\\TOTVS\\Microsiga\\Protheus\\include"
+			],
+			"environments": [
+				"SCHEDULE"
+			],
+			"username": "piperun",
+			"environment": "SCHEDULE",
+			"token": "djM6djllejYwcWwycm0xcXNhODBoaTRzNG9xZnY0cHM6MTpsb2NhbGhvc3Q6MTI2MjowOjcuMDAuMjEwMzI0UDoz:djE6U0NIRURVTEU6cGlwZXJ1bjpHODRkUGpqelBLd1N5ZjFTWVhQdXJrU2VtUHp5cm1mbURNK1pTUHV6eGRZPQ==|djI6MTcyNzgwOTY1NDowOjE6MQ==.K9qZrb/k6dgeSzJWTYClwZDPrWcpQ56G2AC7Vv/LkurGbh8T1RXnIFnOhJxwBuE6JDgAHnl5LoEdyo4vvlQfCFG7D4nBCNN0CMVkJj6XCPaOnTrkI4r+m5pIgDSbJPxUUOWsw5pGCVstDVofc5pFVFM7KgzAo3G5gR4uP5GYBlu79VSM/wpQGSew1tuk9OFchyTTdDQ/HjfN3WxCnc4f5Q9dU5ZiY5Fw66Kw0r2DvGDPqaeVTypDSiLCo8Me+hEZw0/MCkGvNbmnFb2qy7xWZpGzDRADUwnXKnKI2xWxnan3qJD/hYMC2q6oDYCrZVC8QB/26SQLC6YaWpRqYuZGug==",
+			"informations": {
+				"permissions": [],
+				"errorMessage": "",
+				"environmentDetectedType": "totvs_server_protheus",
+				"serverDetectedType": "totvs_server_protheus"
+			}
+		},
+		{
+			"id": "dlah6nw8u8jm4a8raua19j7y9y3gjf",
+			"type": "totvs_server_protheus",
+			"name": "Novel_PRD_Desenv",
+			"port": 1299,
+			"address": "127.0.0.1",
+			"buildVersion": "7.00.210324P",
+			"secure": true,
+			"includes": [],
+			"environments": [
+				"NOVEL_LIB"
+			],
+			"username": "admin",
+			"environment": "NOVEL_LIB",
+			"token": "djM6ZGxhaDZudzh1OGptNGE4cmF1YTE5ajd5OXkzZ2pmOjE6MTI3LjAuMC4xOjEyOTk6MTo3LjAwLjIxMDMyNFA6Mw==:djE6Tk9WRUxfTElCOmFkbWluOkgyS2MwelkrUzZqNHR0MTl1UjlZeUhnb3E1Rzl3SXpKQzZYRFBWVnI5UU09|djI6MTczMzMzODIzMDowOjE6MQ==.DkD5AJVfPGqGuLeAvtlMHaVcnYxtnt7RaN96Jx59fT5VuBZnUnXVaSIG8Q8mOQUwnox3+Rwzj2HvTbFV0Ti5xzwGWXMo80mIPlOEim0yD2E7G+VC6fMWTJzZXtDYcs9eQ7VBM5Fr8uCKGo3v1vpsDTgPiwfw2s4FOcpdANDSmJDQkx90yMAFGAJICtyjWWf/+8l6bIo7flm0xSlhrwmQk7mE+LtUTzbec4IOqV4fW7t4NJsJOGVfsyU6hUppKZXFeo7A9cxLqgUP9s+rf/vMQf+y0mc22YYT81eJKuLH9jDiXUexvUluJIs8MS0CfZMnt8MiTtZ8kRev/CwcbA6ooQ==",
+			"informations": {
+				"permissions": [],
+				"errorMessage": "",
+				"environmentDetectedType": "totvs_server_protheus",
+				"serverDetectedType": "totvs_server_protheus"
+			}
+		},
+		{
+			"id": "7n67w4k3nlam6gy0fj82tof6sfz7e7",
+			"type": "totvs_server_protheus",
+			"name": "PROD_REST",
+			"port": 1271,
+			"address": "LOCALHOST",
+			"buildVersion": "7.00.210324P",
+			"secure": false,
+			"includes": [
+				"C:\\TOTVS\\Microsiga\\Protheus\\include"
+			],
+			"environments": [
+				"NOVEL"
+			],
+			"username": "piperun",
+			"environment": "NOVEL",
+			"token": "djM6N242N3c0azNubGFtNmd5MGZqODJ0b2Y2c2Z6N2U3OjE6TE9DQUxIT1NUOjEyNzE6MDo3LjAwLjIxMDMyNFA6Mw==:djE6Tk9WRUw6cGlwZXJ1bjprZGFzSkNNYk8wbXBydG94T0hJVEdCaUdCVE1RZlFRSVVMTXhYMGtFVU9ZPQ==|djI6MTczOTE4ODA4MDowOjE6MQ==.ZW9UDIFiWVwC5bTxQ5xjxWSiqdxBDT+B5RukIgGEGOB37owvyECnl3E4VwVM+uVgegzyzjgBoof5muhKkvA7Gei1JU+0hvnvtke90d+YBYdQzvpu6IcPq81KfMHulqN4wrEMPZBuBo12Rf2q1OhExU/odkPWsuGLp/d5DVafCHPS9REfx+T/+QvswcBK83bR6sDRhvlMqt6IdghXe6MYqKmEadjy3qMq+vvpvPDRXjliHDm2P+Zmwi9PSL7sDbBNQPRzdKkP64zu2dB/3smxO0cm7iHC9htaYfbnCSZ2N8g3jrSL6mNtqf7PzATp9B2jCidcygBs34a383W1Ah+DrA==",
+			"informations": {
+				"permissions": [],
+				"errorMessage": "",
+				"environmentDetectedType": "totvs_server_protheus",
+				"serverDetectedType": "totvs_server_protheus"
+			}
+		},
+		{
+			"id": "427efjtnkmim7duwrwr9izs0l3los",
+			"type": "totvs_server_protheus",
+			"name": "NVL_PROD",
+			"port": 1251,
+			"address": "10.8.3.5",
+			"buildVersion": "7.00.210324P",
+			"secure": false,
+			"includes": [
+				"C:/TOTVS/Microsiga/Protheus/include"
+			],
+			"environments": [
+				"NOVEL"
+			],
+			"username": "admin",
+			"environment": "NOVEL",
+			"token": "djM6NDI3ZWZqdG5rbWltN2R1d3J3cjlpenMwbDNsb3M6MToxMC44LjMuNToxMjUxOjA6Ny4wMC4yMTAzMjRQOjM=:djE6Tk9WRUw6YWRtaW46SXMvV3R3RW0xSkFGMk0ydHFiM0pocldvMjFhbVYyblB6UDBHYnVRSVhnRT0=|djI6MTc0Mjg3MDM5MDowOjE6MQ==.UHEQa+XTY147EgvKobzWofrtXTd0+Qm5llbQoN56T3+yLF1jHbh6wIWmAYXllfJsIGl1EP44+j6Uy9ITdY5wbVN/10NaXx4UsbJLf/8HK9tzhVlv257gCE7wtR0ULRxMu/L2zOj7jfhGz6ShQhjlEEZEhonU2uDnnsQKSyzdw+pPHf6+hqsoCtP7CoK4br658vI2NeuAxM2I3eiR2btMBfykjYKit01cT8mjAGEpT77CqkzWlwc1ufgJZPyTO2J1GdfXA4Mx3uSwsUFpcffu9S5O7m5HT9onXrAdo5nH6vBWS0o5G46hbdNOMkAkLd2wh8ChH42/buIT/YBSogpU8w==",
+			"informations": {
+				"permissions": [],
+				"errorMessage": "",
+				"environmentDetectedType": "totvs_server_protheus",
+				"serverDetectedType": "totvs_server_protheus"
+			}
+		},
+		{
+			"id": "m7xkbaom0omd7xnz41y41dc28i3w",
+			"type": "totvs_server_protheus",
+			"name": "PROD_COMP",
+			"port": 1252,
+			"address": "10.8.3.5",
+			"buildVersion": "7.00.240223P",
+			"secure": false,
+			"includes": [
+				"C:\\TOTVS\\Microsiga\\Protheus\\include"
+			],
+			"environments": [
+				"NOVEL"
+			],
+			"username": "lcagus",
+			"environment": "NOVEL",
+			"token": "djM6bTd4a2Jhb20wb21kN3huejQxeTQxZGMyOGkzdzoxOjEwLjguMy41OjEyNTI6MDo3LjAwLjI0MDIyM1A6Mw==:djE6Tk9WRUw6bGNhZ3VzOk4xMUE5NWlLSUxqTEl2bmVna2RidXB3ZlRNSkx5SjljVGpSWmRpMUFIaW89|djI6MTc2MTYwMzAzMzowOjE6MQ==.ESQmnWPq2XwwF5kbcsADQXG9ZB9FwtBand+iHCUDt6VNw1szWohs5ZfuZWGsF8GsEHAS1QTwbouAyCLhxs6xuuzn8xzlsppVejFiAw4e/7bDoifq0IJJd7CHN1tBXCpU7CCeWmFkXGOaM0S8yNS86oZpS+jB8PMxSvkscWoJT/QJathBD2DYPZy4iZjAPPf+aeSN8n9UWbkynLy3T3SxhZS6xrAMX+cHqXbjIUEgUMnM0O1u1ltI3FWV8IC4SYHm+tpr1WA+u9CRWxv9uDHNj640pGjYrV5vzt2lN7Ii5yoUb1EMtBnxIUD7HSlM5LMDdcW9dBL40BMORKbjOgKndA==",
+			"informations": {
+				"permissions": [],
+				"errorMessage": "",
+				"environmentDetectedType": "totvs_server_protheus",
+				"serverDetectedType": "totvs_server_protheus"
+			}
+		},
+		{
+			"id": "zgrn7utyuldmdi0mq3qrpz1vun0rr",
+			"type": "totvs_server_protheus",
+			"name": "AGUS_COMPILA",
+			"port": 1255,
+			"address": "localhost",
+			"buildVersion": "7.00.240223P",
+			"secure": false,
+			"includes": [
+				"C:\\TOTVS\\Microsiga\\Protheus\\include"
+			],
+			"environments": [
+				"NOVEL"
+			],
+			"username": "piperun",
+			"environment": "NOVEL",
+			"token": "djM6emdybjd1dHl1bGRtZGkwbXEzcXJwejF2dW4wcnI6MTpsb2NhbGhvc3Q6MTI1NTowOjcuMDAuMjQwMjIzUDoz:djE6Tk9WRUw6cGlwZXJ1bjp1U20zTU9aUFJMTzA0bS9lOWxTS1hvckRTd3JWb0xTWVVwUmdyN1NZUXU4PQ==|djI6MTc2MTI1OTI4NjowOjE6MQ==.Ita/xDTqn50H1mzAiSRZmUM1SkMEyAZsWLg3QE9NdumGzRyDrFKhgVIhA7kT4/DPrJGq6G9AvcjfwxTVa+YVfkgozhQnJD7zi1IDdYJzp5I4iTatKUNZcRcmmmpbmB3+WQUxj75NIEWR50xM+F4I3x4t7CyQb8SdEnGZTDFKf0aF89DAhQNaCRgmTaguL0XvugWoRY9AINp5qLvrFsR4hnZNI8F83LZ+gHegcxBKx6A4vocojO+q/+80bk8K7qIhqM6oo8iAWlEG/bqHNRWav6UWs1TOVC/C8Uh/wUeqDO+Y5ZYqI81RH8x7kVfIltxjcVNMXKVZaAynD7d/idIfXg==",
+			"informations": {
+				"permissions": [],
+				"errorMessage": "",
+				"environmentDetectedType": "totvs_server_protheus",
+				"serverDetectedType": "totvs_server_protheus"
+			}
+		},
+		{
+			"id": "l5llaif1p9rmeam1wtwot6wkyk24zs",
+			"type": "totvs_server_protheus",
+			"name": "AGUS_DEBUG",
+			"port": 1201,
+			"address": "localhost",
+			"buildVersion": "7.00.240223P",
+			"secure": true,
+			"includes": [
+				"C:\\TOTVS\\Microsiga\\Protheus\\include"
+			],
+			"environments": [
+				"AGUS"
+			],
+			"username": "piperun",
+			"environment": "AGUS",
+			"token": "djM6bDVsbGFpZjFwOXJtZWFtMXd0d290NndreWsyNHpzOjE6bG9jYWxob3N0OjEyMDE6MTo3LjAwLjI0MDIyM1A6Mw==:djE6QUdVUzpub3VzZXI6OEk3QzBqejdPWUg3bWxvazdqSHdrVEZWMjZPNlo0Y2NLUWJSUDFqLzFwOD0=|djI6MTc2MTYwMjMzNzoyOjE6MA==.rCju8AkbP/2qwFrVsdUkOb35oSteeHnV8kZmiTgtktyh8e9LCNoUC0YhxMjdxzUAm2feWVtGqVBwhcTil0VUvMsbzbcMG7ab/StbqoZz3YFASYSCmDUbW4g3QmogCjCphlKcykdULGrKDJxgXzdRTF0ikkYCRoqhdpRzJ6LE57tla89p3kw3aM5V4sUkJJ6pa1BoGtdRu4myxSTYYxCPFNZtrEhzjJrXpRn0InttPIrN73/M/19sZvFzEZPTQAY3ulq0Z+VKuoxGGyqcQerqq4jdFNT+cICzd9t7tzQ7AruzbYngYbUITIvIMK2dU7PBjH6LnHGbPwc9RasuzbidRQ==",
+			"informations": {
+				"permissions": [],
+				"errorMessage": "",
+				"environmentDetectedType": "totvs_server_totvstec",
+				"serverDetectedType": "totvs_server_protheus"
+			}
+		}
+	],
+	"savedTokens": [
+		[
+			"vqyr8cehuj9m0wkznrehzn30m7vxn9:AGUS",
+			{
+				"id": "vqyr8cehuj9m0wkznrehzn30m7vxn9",
+				"token": "djM6dnF5cjhjZWh1ajltMHdrem5yZWh6bjMwbTd2eG45OjE6bG9jYWxob3N0OjE5OTk6MTo3LjAwLjIxMDMyNFA6Mw==:djE6QUdVUzpwaXBlcnVuOnVTTSt0YTJKSTd3WFRCc2l5ZCtmRWM4Q1lBK3hTQThYWklreHRJdXFuMkk9|djI6MTc0OTM5NjA1NDowOjE6MQ==.TCiA89dQBRe85BfMuun6pLP0KIlZ1hfNyNMjk0CRp2IBgR0x1vG1wFs7ANfp6cL5DO1Lc7dzVSm0GheHV9CibJuPNdjk+O2MGv1z5POiY5N67838M3B0CWhTaQjiISx65Xp48DCy9yq7hjoCg0xAfG2DOYN85RdHDGpjOP68RIDpnaMVvamcg0Amw+r9syoknyJhTXtAbP0elAj9RTq1YSECdhP/8Ij8JsSboQnyWk5jUyfEq8eMx91JmQW8Ra1CqWhvWXnsPkKwgSJMhb4LjY6MJVmEmuYYlgwr8ZOJtk8BJbhegTmlwtOilJ7uAxLr2UkQpirkjNvYxAfgEg2KBQ=="
+			}
+		],
+		[
+			"a36i1hlx5o7m0wl16bdpkd4fly84fe:NOVEL",
+			{
+				"id": "a36i1hlx5o7m0wl16bdpkd4fly84fe",
+				"token": "djM6YTM2aTFobHg1bzdtMHdsMTZiZHBrZDRmbHk4NGZlOjE6bG9jYWxob3N0OjEyNTI6MDo3LjAwLjIxMDMyNFA6Mw==:djE6Tk9WRUw6cGlwZXJ1bjpKQnhLSnpsdml1ejNkN1JWaFhtaWpvcTBYSHQyUUkxZFZYQlRwdElLRVJjPQ==|djI6MTc0OTUxNjMzNDowOjE6MQ==.JudopV4hl0/TNvlvtIFOUarQv0szzkcsIN9PnFpAW2mBrTaB16rEaDaswzWvWxApQW+j/NVBwt9BqlxNi1SgW1Ui/ju81Guk1TOGUzrsMr+rUbVKY2vrkoubo1ZPZTxTYPwuCLuI++0jUX8ZcMKzKlQNTz774Sh0sI3pE1XWlJ+Ez0UaxozAUEnWmPPUm8FZezQ/Ipsq0A4Xad4rnLze2+KhcYt48qjN268DmXdwCN07IFGTaNg1hSLgiBefMuGMBiDuMI1KEJulHx0rcL+0PnAToDNb8yn+Tra7CRZnd9NbYlGZxM2Raj9+UOzMydMvbYosm5ROKr7N7ljzH5g9tw=="
+			}
+		],
+		[
+			"74uvww0i2hlm1qrg5wjfnsx9yzsb3:NOVEL",
+			{
+				"id": "74uvww0i2hlm1qrg5wjfnsx9yzsb3",
+				"token": "djM6NzR1dnd3MGkyaGxtMXFyZzV3amZuc3g5eXpzYjM6MTpsb2NhbGhvc3Q6MTI1NTowOjcuMDAuMjEwMzI0UDoz:djE6Tk9WRUw6cGlwZXJ1bjpuV3lKWmlGQnQrMTNxTDkzc2dlYWc2SG12eEtWbER6Ym9tbE1tM3RHR2E0PQ==|djI6MTcyNzgwNzE0MjowOjE6MQ==.o37eyZdqHA8RifV8dXkD5FkstOLdtTT76j4i1urcA8cX7ABWKv01znj3GO2/sMuc68DU+SCtLmI/rLaRt34fGf6BbgHbeb0LW1/WMbB3TrVDdqGVeNf/SOMfdj5vb5Z1flY/kZDobRLU+QCIdP/tgdrKzrKm+cGHD6h+pdEPSHz+XGMZGiMx5jwpAxU9vy7Vwd23DUAZIIvknxUTri39GKIJ+W46GKt6TIpX7JttJ1f82GxJr8NVa7M7sJMldzJcj3Ud3V9iZMfYrW/V6AgSlTCGN++TGgCIEQ0EbddpcR9dhmS8gctCX3L0gOspOlubZLK08f62ZXObguo8CkolbA=="
+			}
+		],
+		[
+			"v9ez60ql2rm1qsa80hi4s4oqfv4ps:SCHEDULE",
+			{
+				"id": "v9ez60ql2rm1qsa80hi4s4oqfv4ps",
+				"token": "djM6djllejYwcWwycm0xcXNhODBoaTRzNG9xZnY0cHM6MTpsb2NhbGhvc3Q6MTI2MjowOjcuMDAuMjEwMzI0UDoz:djE6U0NIRURVTEU6cGlwZXJ1bjpHODRkUGpqelBLd1N5ZjFTWVhQdXJrU2VtUHp5cm1mbURNK1pTUHV6eGRZPQ==|djI6MTcyNzgwOTY1NDowOjE6MQ==.K9qZrb/k6dgeSzJWTYClwZDPrWcpQ56G2AC7Vv/LkurGbh8T1RXnIFnOhJxwBuE6JDgAHnl5LoEdyo4vvlQfCFG7D4nBCNN0CMVkJj6XCPaOnTrkI4r+m5pIgDSbJPxUUOWsw5pGCVstDVofc5pFVFM7KgzAo3G5gR4uP5GYBlu79VSM/wpQGSew1tuk9OFchyTTdDQ/HjfN3WxCnc4f5Q9dU5ZiY5Fw66Kw0r2DvGDPqaeVTypDSiLCo8Me+hEZw0/MCkGvNbmnFb2qy7xWZpGzDRADUwnXKnKI2xWxnan3qJD/hYMC2q6oDYCrZVC8QB/26SQLC6YaWpRqYuZGug=="
+			}
+		],
+		[
+			"dlah6nw8u8jm4a8raua19j7y9y3gjf:NOVEL_LIB",
+			{
+				"id": "dlah6nw8u8jm4a8raua19j7y9y3gjf",
+				"token": "djM6ZGxhaDZudzh1OGptNGE4cmF1YTE5ajd5OXkzZ2pmOjE6MTI3LjAuMC4xOjEyOTk6MTo3LjAwLjIxMDMyNFA6Mw==:djE6Tk9WRUxfTElCOmFkbWluOkgyS2MwelkrUzZqNHR0MTl1UjlZeUhnb3E1Rzl3SXpKQzZYRFBWVnI5UU09|djI6MTczMzMzODIzMDowOjE6MQ==.DkD5AJVfPGqGuLeAvtlMHaVcnYxtnt7RaN96Jx59fT5VuBZnUnXVaSIG8Q8mOQUwnox3+Rwzj2HvTbFV0Ti5xzwGWXMo80mIPlOEim0yD2E7G+VC6fMWTJzZXtDYcs9eQ7VBM5Fr8uCKGo3v1vpsDTgPiwfw2s4FOcpdANDSmJDQkx90yMAFGAJICtyjWWf/+8l6bIo7flm0xSlhrwmQk7mE+LtUTzbec4IOqV4fW7t4NJsJOGVfsyU6hUppKZXFeo7A9cxLqgUP9s+rf/vMQf+y0mc22YYT81eJKuLH9jDiXUexvUluJIs8MS0CfZMnt8MiTtZ8kRev/CwcbA6ooQ=="
+			}
+		],
+		[
+			"7n67w4k3nlam6gy0fj82tof6sfz7e7:NOVEL",
+			{
+				"id": "7n67w4k3nlam6gy0fj82tof6sfz7e7",
+				"token": "djM6N242N3c0azNubGFtNmd5MGZqODJ0b2Y2c2Z6N2U3OjE6TE9DQUxIT1NUOjEyNzE6MDo3LjAwLjIxMDMyNFA6Mw==:djE6Tk9WRUw6cGlwZXJ1bjprZGFzSkNNYk8wbXBydG94T0hJVEdCaUdCVE1RZlFRSVVMTXhYMGtFVU9ZPQ==|djI6MTczOTE4ODA4MDowOjE6MQ==.ZW9UDIFiWVwC5bTxQ5xjxWSiqdxBDT+B5RukIgGEGOB37owvyECnl3E4VwVM+uVgegzyzjgBoof5muhKkvA7Gei1JU+0hvnvtke90d+YBYdQzvpu6IcPq81KfMHulqN4wrEMPZBuBo12Rf2q1OhExU/odkPWsuGLp/d5DVafCHPS9REfx+T/+QvswcBK83bR6sDRhvlMqt6IdghXe6MYqKmEadjy3qMq+vvpvPDRXjliHDm2P+Zmwi9PSL7sDbBNQPRzdKkP64zu2dB/3smxO0cm7iHC9htaYfbnCSZ2N8g3jrSL6mNtqf7PzATp9B2jCidcygBs34a383W1Ah+DrA=="
+			}
+		],
+		[
+			"427efjtnkmim7duwrwr9izs0l3los:NOVEL",
+			{
+				"id": "427efjtnkmim7duwrwr9izs0l3los",
+				"token": "djM6NDI3ZWZqdG5rbWltN2R1d3J3cjlpenMwbDNsb3M6MToxMC44LjMuNToxMjUxOjA6Ny4wMC4yMTAzMjRQOjM=:djE6Tk9WRUw6YWRtaW46SXMvV3R3RW0xSkFGMk0ydHFiM0pocldvMjFhbVYyblB6UDBHYnVRSVhnRT0=|djI6MTc0Mjg3MDM5MDowOjE6MQ==.UHEQa+XTY147EgvKobzWofrtXTd0+Qm5llbQoN56T3+yLF1jHbh6wIWmAYXllfJsIGl1EP44+j6Uy9ITdY5wbVN/10NaXx4UsbJLf/8HK9tzhVlv257gCE7wtR0ULRxMu/L2zOj7jfhGz6ShQhjlEEZEhonU2uDnnsQKSyzdw+pPHf6+hqsoCtP7CoK4br658vI2NeuAxM2I3eiR2btMBfykjYKit01cT8mjAGEpT77CqkzWlwc1ufgJZPyTO2J1GdfXA4Mx3uSwsUFpcffu9S5O7m5HT9onXrAdo5nH6vBWS0o5G46hbdNOMkAkLd2wh8ChH42/buIT/YBSogpU8w=="
+			}
+		],
+		[
+			"ky8o6syfzzjmby34x7vevzpxgwsi9n:NOVEL",
+			{
+				"id": "ky8o6syfzzjmby34x7vevzpxgwsi9n",
+				"token": "djM6a3k4bzZzeWZ6emptYnkzNHg3dmV2enB4Z3dzaTluOjE6MTAuOC4zLjU6MTI1MjowOjcuMDAuMjQwMjIzUDoz:djE6Tk9WRUw6YWRtaW46Z1hpY29UWDBRdXhqYmRiSVZERmwxSWR4SjVJYnVUWG83RTdSVDNuSGtMRT0=|djI6MTc1MDM0NDI3OTowOjE6MQ==.amOvDTd9laeMUsol3tbWhm52EYQfy7HwjYc+J/LhcrCBOuQXNVcTuTqbXsC4v8NUJphGt/CPAhr4AGc5Cfwmm1EMdIeCEToH5pkmZl3ASR4h7VPwryi4wYhVzVnDQWZiFLMa9xlLP0rksf5lklJ8tIMZDv0J6PS5vXYhyJztHth+N1M0Q3/GyZNMcwe8YJiXAdcpC98nd1ljGMZMMRsz32S4qW9f/QFn7Y2vBqEL8lnWqRpkPhUCHJzCWPOcQ7NPTdjEzfW3DGpPpPPdxcd/ZmeWYLB0/LBSvPR422vEZIHU5s8IWz13eQ4XKbkcMQRVMt+lcQ0noS3ueQggRdY4Cw=="
+			}
+		],
+		[
+			"cvkewnrz8ysmbzogx2oz2y9vmj0qio:AGUS",
+			{
+				"id": "cvkewnrz8ysmbzogx2oz2y9vmj0qio",
+				"token": "djM6Y3ZrZXducno4eXNtYnpvZ3gyb3oyeTl2bWowcWlvOjE6MTAuOC4zLjU6MTIwMToxOjcuMDAuMjQwMjIzUDoz:djE6QUdVUzpsY2FndXM6bWgvbVNPTWpaajdObEhOdFlvaXdPOWF0akxsWm81cy8yWXdFK25HK1BFMD0=|djI6MTc1MjYyODc2ODowOjE6MQ==.rOWtftxeCtqn79+ajBiwWENr5Xz8pNn3WUX6NELP6dBh55mP0jFFB4JyOFNRuoQIbJpiilC/RmsOUd5N34TIFpA8ijtd9aiRMjKdq5HmOHoBr0VOtt6GVSjhBWL00JOLgROpWacjnbG9CWC9KW44FsUYUdTIVNrOeMG6uaxuT6G9OCvjWedyYOFEism5nR8ejpiQKfWoKITt158Pd134ZiMwDu/X5d7er6tQULzW5mdWSNTg5aROfkxjiqiEMgBKSN/vp5cXPgOoCsU5fwbTq7GqZifWi3jfu4tnEa2BbMCs8MoNXjZ4S9veJOcsQpv158G/N5aK0/uLfhqrcou6Ug=="
+			}
+		],
+		[
+			"m7xkbaom0omd7xnz41y41dc28i3w:NOVEL",
+			{
+				"id": "m7xkbaom0omd7xnz41y41dc28i3w",
+				"token": "djM6bTd4a2Jhb20wb21kN3huejQxeTQxZGMyOGkzdzoxOjEwLjguMy41OjEyNTI6MDo3LjAwLjI0MDIyM1A6Mw==:djE6Tk9WRUw6bGNhZ3VzOk4xMUE5NWlLSUxqTEl2bmVna2RidXB3ZlRNSkx5SjljVGpSWmRpMUFIaW89|djI6MTc2MTYwMzAzMzowOjE6MQ==.ESQmnWPq2XwwF5kbcsADQXG9ZB9FwtBand+iHCUDt6VNw1szWohs5ZfuZWGsF8GsEHAS1QTwbouAyCLhxs6xuuzn8xzlsppVejFiAw4e/7bDoifq0IJJd7CHN1tBXCpU7CCeWmFkXGOaM0S8yNS86oZpS+jB8PMxSvkscWoJT/QJathBD2DYPZy4iZjAPPf+aeSN8n9UWbkynLy3T3SxhZS6xrAMX+cHqXbjIUEgUMnM0O1u1ltI3FWV8IC4SYHm+tpr1WA+u9CRWxv9uDHNj640pGjYrV5vzt2lN7Ii5yoUb1EMtBnxIUD7HSlM5LMDdcW9dBL40BMORKbjOgKndA=="
+			}
+		],
+		[
+			"zgrn7utyuldmdi0mq3qrpz1vun0rr:NOVEL",
+			{
+				"id": "zgrn7utyuldmdi0mq3qrpz1vun0rr",
+				"token": "djM6emdybjd1dHl1bGRtZGkwbXEzcXJwejF2dW4wcnI6MTpsb2NhbGhvc3Q6MTI1NTowOjcuMDAuMjQwMjIzUDoz:djE6Tk9WRUw6cGlwZXJ1bjp1U20zTU9aUFJMTzA0bS9lOWxTS1hvckRTd3JWb0xTWVVwUmdyN1NZUXU4PQ==|djI6MTc2MTI1OTI4NjowOjE6MQ==.Ita/xDTqn50H1mzAiSRZmUM1SkMEyAZsWLg3QE9NdumGzRyDrFKhgVIhA7kT4/DPrJGq6G9AvcjfwxTVa+YVfkgozhQnJD7zi1IDdYJzp5I4iTatKUNZcRcmmmpbmB3+WQUxj75NIEWR50xM+F4I3x4t7CyQb8SdEnGZTDFKf0aF89DAhQNaCRgmTaguL0XvugWoRY9AINp5qLvrFsR4hnZNI8F83LZ+gHegcxBKx6A4vocojO+q/+80bk8K7qIhqM6oo8iAWlEG/bqHNRWav6UWs1TOVC/C8Uh/wUeqDO+Y5ZYqI81RH8x7kVfIltxjcVNMXKVZaAynD7d/idIfXg=="
+			}
+		],
+		[
+			"l5llaif1p9rmeam1wtwot6wkyk24zs:AGUS",
+			{
+				"id": "l5llaif1p9rmeam1wtwot6wkyk24zs",
+				"token": "djM6bDVsbGFpZjFwOXJtZWFtMXd0d290NndreWsyNHpzOjE6bG9jYWxob3N0OjEyMDE6MTo3LjAwLjI0MDIyM1A6Mw==:djE6QUdVUzpub3VzZXI6OEk3QzBqejdPWUg3bWxvazdqSHdrVEZWMjZPNlo0Y2NLUWJSUDFqLzFwOD0=|djI6MTc2MTYwMjMzNzoyOjE6MA==.rCju8AkbP/2qwFrVsdUkOb35oSteeHnV8kZmiTgtktyh8e9LCNoUC0YhxMjdxzUAm2feWVtGqVBwhcTil0VUvMsbzbcMG7ab/StbqoZz3YFASYSCmDUbW4g3QmogCjCphlKcykdULGrKDJxgXzdRTF0ikkYCRoqhdpRzJ6LE57tla89p3kw3aM5V4sUkJJ6pa1BoGtdRu4myxSTYYxCPFNZtrEhzjJrXpRn0InttPIrN73/M/19sZvFzEZPTQAY3ulq0Z+VKuoxGGyqcQerqq4jdFNT+cICzd9t7tzQ7AruzbYngYbUITIvIMK2dU7PBjH6LnHGbPwc9RasuzbidRQ=="
+			}
+		]
+	],
+	"lastConnectedServer": ""
+}

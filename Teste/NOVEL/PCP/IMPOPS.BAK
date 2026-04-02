@@ -1,0 +1,196 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP6 IDE em 11/03/03
+#INCLUDE "TOPCONN.CH"
+
+User Function IMPOPS()        // incluido pelo assistente de conversao do AP6 IDE em 11/03/03
+
+/*/
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±³ Programa ³ IMPOPS    ³ Autor ³   Eliene Cerqueira   ³ Data ³ 16.11.05    ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Rotina para selecionar as OP´s para imprimir                  ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ PCP                                                           ³±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+
+wnrel  	:= "OPSEL"    
+titulo 	:= "PLANEJAMENTO DE PRODUÇÃO"
+cDesc1 	:= "Este programa ira emitir o romaneio"
+cDesc2 	:= ""
+cDesc3 	:= ""
+tamanho	:= "G"
+limite 	:= 220
+cString 	:= "SC6"
+lEnd      := .F.
+cabec1 	 := " MAQ.  NUM.OP       PRODUTO                              QTDE TOTAL    SALDO       OBSERVACOES                             "
+//            9999  99999999999  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  999,999.99  999,999.99
+cabec2 	 := ""
+lContinua  := .T.
+nTipo		 := GetMv("MV_COMP")
+LI       := 80
+m_pag      := 1
+nLastKey := 0
+PRIVATE aReturn  := { "Zebrado", 1,"Administracao", 1, 2, 1, "",1 }		//"Zebrado"###"Administracao"
+
+cArqTrb1:=""
+Processa({|| GERA() },"Gerando Arquivo para Produção...")
+DbSelectArea("OP")
+dbCloseArea()
+If !Empty( cArqTrb1 )
+   dbSelectArea("QUERY1")
+   dbCloseArea()
+   FErase( cArqTrb1+".*")
+Endif
+
+Return
+
+Static Function GERA()
+
+SetPrvt("WCONTINUA")
+
+aStru:={}
+AADD( astru, {"EMISSAO" ,"D" ,8 ,0} )
+AADD( aStru, {"NUMOP"   ,"C" ,11,0} )
+AADD( astru, {"MAQ"     ,"C" ,4 ,0} )
+AADD( astru, {"CODPROD" ,"C" ,11,0} )
+AADD( astru, {"PRODUTO" ,"C" ,35,0} )
+AADD( astru, {"QUANT"   ,"N" ,12,2} )
+AADD( astru, {"SALDO"   ,"N" ,12,2} )
+AADD( astru, {"MARCA"   ,"C" ,2 ,0} )
+cArqTrb1:=CriaTrab(aStru,.T.)
+DbUseArea(.T.,"DBFCDX",cArqTrb1,"QUERY1",.F.)
+
+cQry := " SELECT SC2.C2_EMISSAO, SC2.C2_CC, CONCAT(CONCAT(SC2.C2_NUM, SC2.C2_ITEM), SC2.C2_SEQUEN) AS OP," 
+cQry := cQry + " SC2.C2_PRODUTO, SC2.C2_QUANT, SC2.C2_QUJE, SC2.C2_PERDA, SB1.B1_DESC"
+cQry := cQry + " FROM DB2ADMIN.SC2010 AS SC2, DB2ADMIN.SB1010 AS SB1"
+cQry := cQry + " WHERE SC2.C2_PRODUTO = SB1.B1_COD "
+cQry := cQry + " AND SC2.C2_QUANT - SC2.C2_QUJE - SC2.C2_PERDA > 0"
+cQry := cQry + " AND SC2.C2_DATRF='        '"
+cQry := cQry + " AND SC2.D_E_L_E_T_<>'*'"
+cQry := cQry + " ORDER BY SC2.C2_EMISSAO DESC"
+
+Tcquery cQry new alias "OP"
+
+dbSelectArea("OP")
+ProcRegua(RecCount()) 
+Do While !Eof()
+   IncProc()
+   DbSelectArea("QUERY1")
+   Reclock("QUERY1",.T.)
+   QUERY1->EMISSAO:= CTOD(SUBSTR(OP->C2_EMISSAO,7,2)+"/"+SUBSTR(OP->C2_EMISSAO,5,2)+"/"+SUBSTR(OP->C2_EMISSAO,1,4))
+   QUERY1->NUMOP  := OP->OP
+   QUERY1->MAQ    := OP->C2_CC
+   QUERY1->CODPROD:= OP->C2_PRODUTO
+   QUERY1->PRODUTO:= OP->B1_DESC
+   QUERY1->QUANT  := OP->C2_QUANT
+   QUERY1->SALDO  := OP->C2_QUANT-OP->C2_QUJE-OP->C2_PERDA
+   MSUnlock()
+   dbSelectArea("OP")
+   SKIP()
+Enddo
+
+TLPROD()
+
+REturn
+
+Static Function TLPROD()
+
+dbSelectArea("QUERY1")
+dbGoTop()
+
+aCampos := {}
+AADD(aCampos,{"MARCA"," ","@!"})
+AADD(aCampos,{"EMISSAO","EMISSAO","@!"})
+AADD(aCampos,{"MAQ","MAQUINA","@!"})
+AADD(aCampos,{"NUMOP","N.OP","@!"})
+AADD(aCampos,{"PRODUTO","PRODUTO","@!"})
+AADD(aCampos,{"QUANT","QTD.TOTAL","@E 99,999.99"})
+AADD(aCampos,{"SALDO","SALDO","@E 99,999.99"})
+
+cMarca := GetMark()
+
+@ 200,1 TO 500,795 DIALOG oDlg7 TITLE "Selecao de OP para produção"
+@ 6,5 TO 130,410 BROWSE "QUERY1" MARK "MARCA" FIELDS aCampos Object _oMark
+@ 135,160 BUTTON "_Conclui"  SIZE 40,15 ACTION Bloq()
+@ 135,340 BUTTON "_Fecha"  SIZE 40,15 ACTION Fecha()
+
+Desmarca()
+
+ACTIVATE DIALOG oDlg7 CENTER
+
+Return
+
+Static Function DesMarca()
+
+cMarca:=" "
+
+dbSelectArea("QUERY1")
+DbGoTop()
+Do While !EOF()
+      
+   If  Marked("MARCA")     //Registro esta marcado
+       Reclock("QUERY1",.F.)
+       QUERY1->MARCA := ThisMark()
+       MsUnlock()
+   EndIf
+   DbSkip()
+End
+DbGoTop()
+_oMark:oBrowse:Refresh()
+
+Return                               
+
+Static Function Bloq()        // incluido pelo assistente de conversao do AP6 IDE em 20/04/04
+
+wnrel:=SetPrint(cString,wnrel,,titulo,cDesc1,cDesc2,cDesc3,.F.,"",.T.,Tamanho)
+If nLastKey == 27
+	Set Filter to
+	Return
+Endif
+
+SetDefault(aReturn,cString)
+
+DbSelectArea("QUERY1")
+DbGoTop()   
+While !EOF()
+
+   If MARCA<>cMarca
+   	  dbSkip()
+	  Loop
+   Endif
+   If LI > 68
+      Cabec(Titulo,Cabec1,Cabec2,wnrel,Tamanho,nTipo)
+   Endif   
+
+// MAQ.  NUM.OP       PRODUTO                              QTDE TOTAL    SALDO"
+// 9999  99999999999  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  999,999.99  999,999.99
+
+   @ LI,01        PSAY QUERY1->MAQ+"  "+QUERY1->NUMOP+"  "+QUERY1->PRODUTO
+   @ LI,PCOL()+2  PSAY QUERY1->QUANT Picture "@E 999,999.99"
+   @ LI,PCOL()+2  PSAY QUERY1->SALDO Picture "@E 999,999.99"
+   @ LI,PCOL()+4  PSAY "_____________________________________________________________________________________________________________________________________"
+   LI := LI + 2
+   dbSelectArea("QUERY1")
+   Reclock("QUERY1",.F.)
+   QUERY1->( DbDelete() )
+   MsUnlock()
+   dbSkip()
+EndDo
+@ LI,01 PSAY "."
+SET DEVICE TO SCREEN
+
+If aReturn[5]==1
+	dbCommitAll()
+	SET PRINTER TO
+	OurSpool(wnrel)
+Endif
+
+MS_FLUSH()
+
+DbSelectArea("QUERY1")
+DbGoTop()   
+Return
+
+Static Function Fecha()
+Close(oDlg7)
+Return

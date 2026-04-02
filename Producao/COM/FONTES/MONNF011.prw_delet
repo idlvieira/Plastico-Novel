@@ -1,0 +1,34 @@
+#INCLUDE "PROTHEUS.CH"
+
+/*
+* Funcao			: MONNF011 
+* Autor				: Marcos Bortoluci
+* Data				: 19/12/2022
+* Descrição			: Array para execução de JOB por Empresa/Filial
+* Observacoes		: 
+*/ 
+// NOVEL
+User Function MONNF011()
+	Local aParam := {}
+
+	If	ISINCALLSTACK("U_MONNF002") .OR.; 	//Comunicação com o SEFAZ - NF-e
+		ISINCALLSTACK("U_MONNF020") .OR.;	//Comunicação com o SEFAZ - CT-e
+		ISINCALLSTACK("U_NFLIMPJOB")		//Comunicação - NFS-e
+
+		// Empresa/Filial
+		aAdd(aParam , { "01" , "0201" }) // 06979521000119 > 0201
+		aAdd(aParam , { "01" , "0401" }) // 80319064000199 > 0401
+		aAdd(aParam , { "01" , "0301" }) // 13926910000141 > 0301
+		aAdd(aParam , { "01" , "0203" }) // 06979521000380 > 0203
+		aAdd(aParam , { "01" , "0204" }) // 06979521000461 > 0204
+	EndIf
+
+	If ISINCALLSTACK("U_MONNF004") //Recebimento de E-mail
+		// Empresa/Filial
+	EndIf
+
+	If ISINCALLSTACK("U_MONNF005") //Leitura do XML e importação para o Banco de Conhecimento do Protheus
+		// Empresa/Filial
+	EndIf
+
+Return(aParam)

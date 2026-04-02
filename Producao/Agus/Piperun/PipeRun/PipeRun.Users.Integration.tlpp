@@ -1,0 +1,462 @@
+#include 'tlpp-core.th'
+
+namespace PipeRun.Users
+
+#define CRLF            Chr(13) + Chr(10)
+#define COMPANY_ID		21054
+#define SUCCESS     "200"
+
+/*/{Protheus.doc} User Function UsersIntegration
+    integração de usuarios com o PipeRun
+    @type Function
+    @author Lucas Silva Vieira
+    @since 05/01/2024
+    @version 2210
+/*/
+User Function UsersIntegration(aParams)
+	Local lJob      	:= .F.		as logical
+	Default aParams  	:= {}
+
+	If !Empty(aParams)
+		lJob := RpcSetEnv(aParams[1], aParams[2])
+	EndIf
+
+	cAlias := PipeRun.Users.GetUsers()
+	PipeRun.Users.PostUsers(cAlias)
+	(cAlias)->(dbCloseArea())
+
+	If !Empty(aParams)
+		RpcClearEnv()
+	EndIf
+Return
+
+/*/{Protheus.doc} User Function PostUsers
+    Envia cadastro de usuarios para PipeRun
+    @type Function
+    @author Lucas Silva Vieira
+    @since 05/01/2024
+    @version 2210
+	@seek https://vendas.developers.pipe.run/reference/criar-usuario
+/*/
+static function PostUsers(cAlias)
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath      	   := "/v1/users"           						as character
+	local oPost            := Nil                                           as object
+	local cStatus    	   := ""                                            as character
+
+	BEGIN TRANSACTION
+		SA3->(dbSetOrder(01)) // A3_FILIAL + A3_COD
+		(cAlias)->(DbGotop())
+		While (cAlias)->(!Eof())
+
+			oRest:setPath(cPath)
+			oPost := JsonObject():new()
+			oPost['email']			 	 := Alltrim((cAlias)->A3_EMAIL)
+			oPost['name'] 				 := Alltrim(Capital((cAlias)->A3_NOME))
+			oPost['cpf'] 				 := Alltrim((cAlias)->A3_CGC)
+			oPost['telephone']			 := Alltrim((cAlias)->A3_DDDTEL) + Alltrim((cAlias)->A3_TEL)
+			if !empty(Alltrim((cAlias)->A3_CEL))
+				oPost['cellphone']			 := Alltrim((cAlias)->A3_DDDTEL) + Alltrim((cAlias)->A3_CEL)
+			endif
+
+			oRest:setPostParams(oPost:toJson())
+
+			if (oRest:post(aHeader))
+				cStatus  := oRest:getHttpCode()
+				cBodyStr := oRest:getResult()
+				oResponse := JsonObject():new()
+				oResponse:fromJson(cBodyStr)
+
+				if (oResponse:hasProperty('data'))
+
+					if SA3->(dbSeek((cAlias)->A3_FILIAL + (cAlias)->A3_COD ))
+						if RecLock("SA3", .F.)
+							SA3->A3_XINTEGR := "S"
+							SA3->A3_PIPERUN := cValToChar(oResponse['data']['id'])
+							SA3->A3_XLOGINT := "Log de integração: " + CRLF + ;
+								Dtoc(Date()) + time() + CRLF + ;
+								"Data : " + Dtoc(Date()) + CRLF +;
+								"Hora: " + time() + CRLF + ;
+								"Status: " + cStatus + CRLF + ;
+								"Retorno: " + cBodyStr + CRLF
+							SA3->(msUnlock())
+						endif
+					endif
+
+				endIf
+			else
+				cStatus  := oRest:getHttpCode()
+				cBodyStr := oRest:getResult()
+				if SA3->(dbSeek((cAlias)->A3_FILIAL + (cAlias)->A3_COD ))
+					if RecLock("SA3", .F.)
+						SA3->A3_XINTEGR := "N"
+						SA3->A3_XLOGINT := "Log de integração: " + CRLF + ;
+							Dtoc(Date()) + time() + CRLF + ;
+							"Data : " + Dtoc(Date()) + CRLF +;
+							"Hora: " + time() + CRLF + ;
+							"Status: " + cStatus + CRLF + ;
+							"Retorno: " + cBodyStr + CRLF
+						SA3->(msUnlock())
+					endif
+				endif
+			endif
+
+			(cAlias)->(dbSkip())
+		EndDo
+	END TRANSACTION
+return
+
+/*/{Protheus.doc} User Function GetAllUsers
+    Pega informações dos usuarios para PipeRun
+    @type Function
+    @author Lucas Silva Vieira
+    @since 05/01/2024
+    @version 2210
+	@seek https://vendas.developers.pipe.run/reference/listar-usuarios
+/*/
+user function GetAllUsers()
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath      	   := "/v1/users"           						as character
+	local cParameters	   := "?show=10&page="                              as character
+	local oReturn          := Nil                                           as object
+	local cStatus    	   := ""                                            as character
+	local cBodyStr         := ""                                            as character
+	local cCod         	   := ""                                            as character
+	local cLog 	     	   := ""                                            as character
+	local nIndex    	   := 0												as numeric
+	local nPageNumber      := 1                				 				as numeric
+	local lProxPagina      := .T.			                                as logical
+	local lContinua        := .T.			                                as logical
+
+	While lProxPagina
+		oRest:setPath(cPath+cParameters+cValToChar(nPageNumber))
+		if (oRest:get(aHeader))
+			cStatus  := oRest:getHttpCode()
+			cBodyStr := oRest:getResult()
+			oReturn := JsonObject():new()
+			cError := oReturn:fromJson(cBodyStr)
+
+			if empty(oReturn['meta']['links']['next'])
+				lProxPagina := .F.
+				lContinua := .F.
+			else
+				nPageNumber++
+			Endif
+
+			if lContinua
+				if cStatus == SUCCESS
+					if (oReturn:hasProperty('message'))
+						if oReturn['message'] == "OK" .AND. len(oReturn['data']) > 0
+							for nIndex := 01 to Len(oReturn['data'])
+								SA3->(dbSetOrder(09)) //A3_FILIAL+A3_PIPERUN
+								if !SA3->(dbSeek(FwXFilial("SA3")+cValToChar(oReturn['data'][nIndex]['id'])))
+									if !empty(oReturn['data'][nIndex]['email'])
+										cCod :=  ReturnUser(oReturn['data'][nIndex]['email'])
+										if !empty(cCod)
+											SA3->(dbSetOrder(01)) //A3_FILIAL+A3_COD
+											if SA3->(dbSeek(FwXFilial("SA3")+cCod))
+												if RecLock("SA3", .F.)
+													SA3->A3_PIPERUN := cValToChar(oReturn['data'][nIndex]['id'])
+													SA3->A3_XLOGINT := "Log de integração: " + CRLF + ;
+														Dtoc(Date()) + time() + CRLF + ;
+														"Data : " + Dtoc(Date()) + CRLF +;
+														"Hora: " + time() + CRLF + ;
+														"Status: " + cStatus + CRLF + ;
+														"Retorno: " + cValToChar(oReturn['data'][nIndex]) + CRLF
+													SA3->A3_XINTEGR := "S"
+													SA3->(MSUnlock())
+												endIf
+											endIf
+										else
+											cLog += oReturn['data'][nIndex]['email'] + CRLF
+										endif
+									endif
+								endIf
+							next nIndex
+						endif
+					endif
+				else
+					FWAlertError("ERROR: "+cStatus)
+					lToken := .F.
+				endif
+			else
+				if !empty(cLog)
+					ShowLog("Não foi possivel vincular os registros: " + CRLF + cLog)
+				endif
+			endif
+		endif
+	endDo
+return
+
+/*/{Protheus.doc} User Function PutUsers
+    Atualiza cadastro da empresa para PipeRun
+    @type Function
+    @author Lucas Silva Vieira
+    @since 05/01/2024
+    @version 2210
+	@param cID, character, id da integração PipeRun
+	@see https://vendas.developers.pipe.run/reference/atualizar-usuario
+/*/
+user function PutUsers(cID, aCampos)
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath      	   := "/v1/users/"           						as character
+	local oResponse        := nil											as object
+	local cStatus    	   := ""                                            as character
+	local jPut             := JsonObject():new()                            as json
+	local nIndex           := 0                                             as numeric
+
+	if (!empty(cID) .AND. len(aCampos) > 0)
+		// definindo path
+		oRest:setPath(cPath + Alltrim(cID))
+
+		for nIndex := 01 to len(aCampos)
+			jField := aCampos[nIndex]
+			cProperty := getPropertyByField(jField['field'])
+
+			jPut[cProperty] := jField['new_value']
+		next nIndex
+
+		SA3->(dbSetOrder(09)) //A3_FILIAL+A3_PIPERUN
+		if SA3->(dbSeek(FwXFilial("SA3")+cID))
+			if RecLock("SA3", .F.)
+				SA3->A3_XLOGINT := ""
+				SA3->(MSUnlock())
+			endIf
+		endIf
+
+		if (oRest:put(aHeader, jPut:toJson()))
+			cStatus  := oRest:getHttpCode()
+			cBodyStr := oRest:getResult()
+			oResponse := JsonObject():new()
+			oResponse:fromJson(cBodyStr)
+
+			SA3->(dbSetOrder(09)) //A3_FILIAL+A3_PIPERUN
+			if SA3->(dbSeek(FwXFilial("SA3")+cID))
+				if RecLock("SA3", .F.)
+					SA3->A3_XINTEGR := "S"
+					SA3->A3_PIPERUN := cID
+					SA3->A3_XLOGINT := "Log de alteração: " + CRLF + ;
+						Dtoc(Date()) + time() + CRLF + ;
+						"Data : " + Dtoc(Date()) + CRLF +;
+						"Hora: " + time() + CRLF + ;
+						"Usuario: " + FwGetUserName(RetCodUsr()) + CRLF + ;
+						"Status: " + cStatus + CRLF + ;
+						"Retorno: " + cValToChar(oResponse['data']) + CRLF
+					SA3->(MSUnlock())
+				endIf
+			endIf
+
+		else
+			cStatus  := oRest:getHttpCode()
+			cBodyStr := oRest:getResult()
+
+			SA3->(dbSetOrder(09)) //A3_FILIAL+A3_PIPERUN
+			if SA3->(dbSeek(FwXFilial("SA3")+cID))
+				if RecLock("SA3", .F.)
+					SA3->A3_XINTEGR := "S"
+					SA3->A3_PIPERUN := cID
+					SA3->A3_XLOGINT := "Falha -> Log de alteração: " + CRLF + ;
+						Dtoc(Date()) + time() + CRLF + ;
+						"Data : " + Dtoc(Date()) + CRLF +;
+						"Hora: " + time() + CRLF + ;
+						"Usuario: " + FwGetUserName(RetCodUsr()) + CRLF + ;
+						"Status: " + cStatus + CRLF + ;
+						"Retorno: " + cValToChar(oResponse['data']) + CRLF
+					SA3->(MSUnlock())
+				endIf
+			endIf
+
+		endIf
+	endIf
+Return
+
+
+/*/{Protheus.doc} User Function DeleteUsers
+    Atualiza cadastro da empresa para PipeRun
+    @type Function
+    @author Lucas Silva Vieira
+    @since 05/01/2024
+    @version 2210
+	@param cID, character, id da integração PipeRun
+	@see https://vendas.developers.pipe.run/reference/deletar-empresa
+/*/
+user function DeleteUsers(cID)
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath      	   := "/v1/users/"           					as character
+	local oResponse        := nil											as object
+	local cStatus    	   := ""                                            as character
+
+	oRest:setPath(cPath + cID)
+
+	if (oRest:delete(aHeader))
+		cStatus  := oRest:getHttpCode()
+		cBodyStr := oRest:getResult()
+		oResponse := JsonObject():new()
+		oResponse:fromJson(cBodyStr)
+	else
+		cStatus  := oRest:getHttpCode()
+		cBodyStr := oRest:getResult()
+	endif
+
+Return
+
+/*/{Protheus.doc} User Function GetUsers
+    Pesquisa de usuarios para enviar para plataforma PipeRun
+    @type Function
+    @author Lucas Silva Vieira
+    @since 05/01/2024
+    @version 2210
+    @return cAlias
+/*/
+
+static function GetUsers()
+	local cQuery 	 := ""   	as character
+	local cAlias	 := ""   	as character
+	local cStatus	 := "N"  	as character
+	local cBlock	 := "1"  	as character
+	local cPiperun   := ""		as character
+	local oQuery	 := nil  	as object
+
+	cQuery := " SELECT "
+	cQuery += " R_E_C_N_O_ AS SA3_RECNO,  * "
+	cQuery += " FROM " + RetSqlName("SA3")
+	cQuery += " WHERE A3_MSBLQL <> ?"
+	cQuery += " AND A3_XINTEGR = ?"
+	//cQuery += " AND A3_DTCAD >= ? "
+	cQuery += " AND A3_PIPERUN = ? "
+	cQuery += " AND D_E_L_E_T_ = ' '"
+
+	oQuery := FWPreparedStatement():New(cQuery)
+	oQuery:SetString(1,cBlock)
+	oQuery:SetString(2,cStatus)
+	//oQuery:SetDate(3,date()-30)
+	oQuery:SetString(3,cPiperun)
+	cQuery := oQuery:GetFixQuery()
+	cAlias := MPSysOpenQuery(cQuery)
+
+Return cAlias
+
+static function getPropertyByField(cField as character) as character
+	local cProperty := '' as character
+
+	cField := Alltrim(cField)
+
+	Do Case
+	Case cField == "A3_NOME"
+		cProperty :='name'
+	Case cField == "A3_EMAIL"
+		cProperty := 'email'
+	Case cField == "A3_TEL"
+		cProperty := 'telephone'
+	Case cField == "A3_CGC"
+		cProperty := 'cpf'
+	Case cField == "A3_CEL"
+		cProperty := 'cellphone'
+	EndCase
+
+return cProperty
+
+static function ReturnUser(cCod)
+	local cQuery 	 := ""   	as character
+	local cAlias	 := ""   	as character
+	local cCodUser   := ""		as character
+	local oQuery	 := nil  	as object
+
+	cQuery := " SELECT "
+	cQuery += " A3_COD"
+	cQuery += " FROM " + RetSqlName("SA3")
+	cQuery += " WHERE A3_EMAIL LIKE ?"
+	cQuery += " AND D_E_L_E_T_ = ' '"
+
+	oQuery := FWPreparedStatement():New(cQuery)
+	oQuery:SetString(1,allTrim(cCod+"%"))
+
+	cQuery := oQuery:GetFixQuery()
+	cAlias := MPSysOpenQuery(cQuery)
+
+	cCodUser := (cAlias)->A3_COD
+
+	(cAlias)->(dbCloseArea())
+	FwFreeObj(oQuery)
+
+Return cCodUser
+
+/*/{Protheus.doc} User Function SendUsers
+    Envia cadastro de usuarios para PipeRun
+    @type Function
+    @author Lucas Silva Vieira
+    @since 05/01/2024
+    @version 2210
+	@seek https://vendas.developers.pipe.run/reference/criar-usuario
+/*/
+user function SendUsers(cCod)
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath      	   := "/v1/users"           						as character
+	local oPost            := Nil                                           as object
+	local cStatus    	   := ""                                            as character
+
+	BEGIN TRANSACTION
+		SA3->(dbSetOrder(01)) // A3_FILIAL + A3_COD
+
+		if SA3->(dbSeek(FwXFilial("SA3")+cCod))
+
+			oRest:setPath(cPath)
+			oPost := JsonObject():new()
+			oPost['email']			 	 := Alltrim(SA3->A3_EMAIL)
+			oPost['name'] 				 := Alltrim(SA3->A3_NOME)
+			oPost['cpf'] 				 := Alltrim(SA3->A3_CGC)
+			oPost['telephone']			 := Alltrim(SA3->A3_DDDTEL) + Alltrim(SA3->A3_TEL)
+
+			if !empty(Alltrim(SA3->A3_CEL))
+				oPost['cellphone']			 := Alltrim(SA3->A3_DDDTEL) + Alltrim(SA3->A3_CEL)
+			endif
+
+			oRest:setPostParams(oPost:toJson())
+
+			if (oRest:post(aHeader))
+				cStatus  := oRest:getHttpCode()
+				cBodyStr := oRest:getResult()
+				oResponse := JsonObject():new()
+				oResponse:fromJson(cBodyStr)
+
+				if (oResponse:hasProperty('data'))
+
+					if SA3->(dbSeek(SA3->A3_FILIAL + SA3->A3_COD))
+						if RecLock("SA3", .F.)
+							SA3->A3_XINTEGR := "S"
+							SA3->A3_PIPERUN := cValToChar(oResponse['data']['id'])
+							SA3->A3_XLOGINT := "Log de integração: " + CRLF + ;
+								Dtoc(Date()) + time() + CRLF + ;
+								"Data : " + Dtoc(Date()) + CRLF +;
+								"Hora: " + time() + CRLF + ;
+								"Status: " + cStatus + CRLF + ;
+								"Retorno: " + cBodyStr + CRLF
+							SA3->(msUnlock())
+						endif
+					endif
+
+				endIf
+			else
+				cStatus  := oRest:getHttpCode()
+				cBodyStr := oRest:getResult()
+				if SA3->(dbSeek(SA3->A3_FILIAL + SA3->A3_COD))
+					if RecLock("SA3", .F.)
+						SA3->A3_XINTEGR := "N"
+						SA3->A3_XLOGINT := "Log de integração: " + CRLF + ;
+							Dtoc(Date()) + time() + CRLF + ;
+							"Data : " + Dtoc(Date()) + CRLF +;
+							"Hora: " + time() + CRLF + ;
+							"Status: " + cStatus + CRLF + ;
+							"Retorno: " + cBodyStr + CRLF
+						SA3->(msUnlock())
+					endif
+				endif
+			endif
+		endif
+	END TRANSACTION
+return

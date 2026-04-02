@@ -1,0 +1,27 @@
+ #include "rwmake.ch"
+
+USER FUNCTION VERRAT()
+
+//----------------------------------------------------------------------------
+//|Programa  |VERRAT       | Autor | WELLINGTON          |Criado| 20-04-2007 |  
+//----------------------------------------------------------------------------
+//|Descricao |VERIFICAR RATEIO DE ITENS DE COMPRAS	                                               |
+//----------------------------------------------------------------------------
+//|Uso       | VERRAT()                                                      |
+//----------------------------------------------------------------------------
+
+mvl      := M->CT5_VLR01  
+mdoc     := M->D1_DOC
+mfornece := M->D1_FORNECE
+
+
+DbSelectArea("SDE")
+DbSetOrder(1)
+DbSeek(xFilial()+mdoc+mfornece)  
+If found()
+   mvl := 0 
+else
+   mvl := SD1->D1_CONTA                                                                
+endif      
+      
+Return(mvl) 

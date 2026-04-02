@@ -1,0 +1,39 @@
+#include "rwmake.ch" 
+#INCLUDE "TOPCONN.CH"
+
+USER FUNCTION CCONTA()       
+
+
+mCT := acols[n][15]
+MCC := acols[n][6] 
+
+cQry := " SELECT TAB03.CONTA, TAB03.CC"
+cQry := cQry + " FROM TAB03 AS TAB03"
+    
+Tcquery cQry new alias "TAB03"  
+dbSelectArea("TAB03") 
+dbGoTop()   
+ 
+Do While TAB03->( !Eof() )   
+      
+   IF trim(TAB03->CONTA) = TRIM(MCT).AND. trim(TAB03->CC) = TRIM(MCC)
+      mCT := acols[n][15]
+      EXIT 
+   ENDIF
+   
+   dbSkip()
+
+enddo
+       
+If TAB03->CONTA <> TRIM(MCT) .AND. TAB03->CC <> TRIM(MCC)  
+   msgbox("Conta ou Centro de Custo Invalido - Verifique!!")
+   mct = " "
+endif               
+
+dbCloseArea("TAB03")
+
+return(mct)
+
+
+
+

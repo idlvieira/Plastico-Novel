@@ -1,0 +1,852 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP5 IDE em 04/07/02
+#Include "TMKR03.CH"
+#IFNDEF WINDOWS
+    #DEFINE PSAY SAY
+#ENDIF     
+ 
+ 
+User Function Tmkr03()        // incluido pelo assistente de conversao do AP5 IDE em 04/07/02
+
+/*/
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±³ Programa ³ TMKR03   ³ Autor ³   Marcos L. Santos    ³ Data ³ 01.12.99 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Emissao do Pedido de Venda  (Plasticos Novel)              ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Generico                                                   ³±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/       
+
+SetPrvt("WNREL,TAMANHO,TITULO,CDESC1,CDESC2,CDESC3")
+SetPrvt("NREGISTRO,CKEY,NINDEX,CINDEX,CCONDICAO,LEND")
+SetPrvt("CPERG,ARETURN,NOMEPROG,NLASTKEY,NBEGIN,ALINHA")
+SetPrvt("LI,LIMITE,LRODAPE,CPICTQTD,NTOTQTD,NTOTVAL")
+SetPrvt("NTOTIPI,APEDCLI,CSTRING,COMPRA1,MV_PEDDE,MV_PEDATE")
+SetPrvt("MV_PAR01,MV_PAR02,NREG,NTOTVALCM,CPEDIDO,CNOMSUP")
+SetPrvt("CHEADER,NPED,CMOEDA,CCAMPO,CCOMIS,CHEADER2")
+SetPrvt("CMIDIA,CCIDCLI,CESTCLI,CENDCLI,CCEPCLI,CCOBCLI")
+SetPrvt("CENTCLI,CNOMCLI,CCGCCLI,CIECLI,CBAICLI,CBAICOB")
+SetPrvt("CCIDCOB,CTELCLI,CFAXCLI,CCONTAT,LSUFRAMA,LZFRANCA")
+SetPrvt("CQQCOR,CNATOPER,NIPI,NVIPI,NBASEIPI,NVALBASE")
+SetPrvt("NVALITEM,LIPIBRUTO,NPERCIPI,NTOTVALIPI,CGRAV,CTIPOG1")
+SetPrvt("CTIPOG2,NPERCMFIN,NVALICM,NVALMERC,NPERCICM,CCIFATE,NFRETE")
+SetPrvt("CTCARGA,NPERRET,CESTADO,TNORTE,CINSCRCLI,")
+
+wnrel            := ""
+tamanho          := "M"
+titulo           := "Emissao da Confirmacao do Pedido"
+cDesc1           := "Emiss„o da confirmac„o dos pedidos de venda, de acordo com"
+cDesc2           := "intervalo informado na op‡„o Parƒmetros."
+cDesc3           := " "
+nRegistro        := 0
+cKey             := ""
+nIndex           := ""
+cIndex           := ""//  && Variaveis para a criacao de Indices Temp.
+cCondicao        := ""
+lEnd             := .T.
+cPerg            := ""
+aReturn          := { "Zebrado", 1,"Administracao", 2, 2, 1, "",0 }
+nomeprog         := "TMKR03"
+nLastKey         := 0
+nBegin           := 0
+aLinha           := { }
+li               := 80
+limite           := 132
+lRodape          := .F.
+// cPictQtd         :=""
+nTotQtd          := 0
+nTotVal          := 0
+nTotIPI          := 0
+nFrete           := 0
+nVlDesc          := 0        
+aPedCli          := {}
+wnrel            := "TMKR03"
+cString          := "SUB"
+COMPRA1	 	     := "" // variavel para definir se eh a 1a. Copra do Cliente
+MSTATUS          := " "                        
+
+
+Public nPerc
+private nvlicm
+private cTES
+private cEstCli
+private cME  
+PRIVATE MSTATUS 
+//X:=Upper(FUNNAME())
+
+If TYPE("uPorPrograma") == "U"
+   cPerg            :="MTR730"
+   //ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+   //³ Variaveis utilizadas para parametros                        ³
+   //³ mv_par01              Do Pedido                             ³
+   //³ mv_par02              Ate o Pedido                          ³
+   //ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+   pergunte(cPerg,.F.)
+   wnrel :=SetPrint(cString,wnrel,cPerg,titulo,cDesc1,cDesc2,cDesc3,.F.,,,,,.F.)
+Else
+   mv_pedde  := SC5->C5_NUM
+   mv_pedate := SC5->C5_NUM
+//   mv_pedde  := SUA->UA_NUM
+//   mv_pedate := SUA->UA_NUM
+//   mv_par01:=SUA->UA_NUM
+//   mv_par02:=SUA->UA_NUM
+   wnrel:=SetPrint(cString,wnrel,cPerg,titulo,cDesc1,cDesc2,cDesc3,.F.,,,,,.F.)
+Endif
+
+// wnrel:=SetPrint(cString,wnrel,cPerg,@Titulo,cDesc1,cDesc2,cDesc3,.F.)
+
+If nLastKey==27
+	Return
+Endif
+
+SetDefault(aReturn,cString)
+
+If nLastKey==27
+	Return
+Endif
+
+#IFDEF WINDOWS
+    RptStatus({||C730Imp()})// Substituido pelo assistente de conversao do AP5 IDE em 04/07/02 ==>     RptStatus({||Execute(C730Imp)})
+    Return
+// Substituido pelo assistente de conversao do AP5 IDE em 04/07/02 ==>     Function C730IMP
+Static Function C730IMP()
+#ENDIF
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Define Variaveis                                             ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+tamanho        := "M"
+titulo         := "EMISSAO DA CONFIRMACAO DO PEDIDO"
+cDesc1         := "Emiss„o da confirmac„o dos pedidos de venda, de acordo com"
+cDesc2         := "intervalo informado na op‡„o Parƒmetros."
+cDesc3         := " "
+nRegistro      := 0
+cKey           := ""
+nIndex         := ""
+cIndex         := "" //  && Variaveis para a criacao de Indices Temp.
+cCondicao      := ""
+Private nFrete := 0
+@ 0,0 PSay AvalImp(limite)
+pergunte("MTR730",.F.)
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Variaveis utilizadas para parametros                        ³
+//³ mv_par01              Do Pedido                             ³
+//³ mv_par02              Ate o Pedido                          ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+If Val(AllTrim(mv_pedate)) > Val(Alltrim(mv_pedde))
+   nReg := Val(mv_pedate) - Val(mv_pedde)
+Else
+   nReg := 10
+Endif
+  
+SetRegua(nReg)  // (RecCount())		// Total de Elementos da regua
+
+If TYPE("uPorPrograma") == "U"
+   mv_pedde  := mv_par01
+   mv_pedate := mv_par02
+Endif
+
+Dbselectarea("SC5")
+Dbsetorder(1)
+Dbseek(xFilial()+mv_pedde,.T.)
+nTotQtd   := 0
+nTotVal   := 0
+nTotValCM := 0
+nTotIPI   := 0
+nFrete    := 0
+
+While !Eof() .And. SC5->C5_NUM <= mv_pedate
+	
+   	nTotQtd   := 0
+   	nTotVal   := 0
+    nTotValCM := 0
+    nTotIPI   := 0        
+    nFrete    := 0     
+	
+    DbSelectArea("SUA")
+    DbSetOrder(8)
+    DbSeek(xFilial()+SC5->C5_NUM,.T.)
+    xNum := SUA->UA_NUM
+	dbSelectArea("SA4")
+	dbSeek(xFilial()+SUA->UA_TRANSP)
+	dbSelectArea("SA3")
+    dbSeek(xFilial()+SUA->UA_SUPLENT)
+    cNomSup := A3_NREDUZ
+	dbSeek(xFilial()+SUA->UA_VEND)
+	dbSelectArea("SE4")
+	dbSeek(xFilial()+SUA->UA_CONDPG)
+	
+	// cPictQtd := PESQPICTQT("UB_QUANT",10)
+	nRegistro:= RECNO()
+	#IFNDEF WINDOWS
+	If LastKey() == 286    //ALT_A
+		lEnd := .t.
+		exit
+	End
+	#ENDIF
+	
+	IF LastKey() == 286
+		@Prow()+1,001 PSAY "CANCELADO PELO OPERADOR"
+		Exit
+	Endif
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Monta tabela de pedidos do cliente p/ o cabe‡alho            ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+/*	aPedCli := {}
+	While !Eof() .And. SUB->UB_NUM == SUA->UA_NUM
+		// IF !Empty(SUB->UB_PEDCLI) .and. Ascan(aPedCli,SUB->UB_PEDCLI) == 0
+		//	AAdd(aPedCli,SUB->UB_PEDCLI)
+		// ENDIF
+		dbSkip()
+	Enddo
+*/	// aSort(aPedCli)
+        nBaseIcm:=0
+      	li := 0
+	    SetPrc(0,0)
+       	ImpCabec()
+	// li:=li+1
+	
+    fGrav := "FG -> "
+	dbSelectArea("SUB")
+    DbSetOrder(1)
+	dbSeek(xFilial()+xNum,.T.)
+	While !Eof() .And. SUB->UB_NUM == xNum
+		#IFNDEF WINDOWS
+		If LastKey() == 286    //ALT_A
+			lEnd := .t.
+		End
+		#ENDIF
+		
+		IF LastKey()==27
+			@Prow()+1,001 PSAY "CANCELADO PELO OPERADOR"
+			Exit
+		Endif
+		
+        If li > 34
+        	If lRodape
+            	li := 35
+                ImpRodape()
+                lRodape := .F.
+			    li:=li+5
+       		Endif
+       Endif
+        nBaseIcm:=nBaseIcm+SUB->UB_BASEICM
+		
+		ImpItem()
+		dbSkip()
+		li := li+1
+	Enddo
+
+	@ li,093 PSAY "DESCONTO ME -->"
+	@ li,110 PSAY nVlDesc   PICTURE "@E@Z 999,999.99"
+   //	nVlDesc:=0
+	IF lRodape
+ 		li := 35                
+   	    ImpRodape()
+	   	lRodape:=.F.
+	   	li:=li+2
+	Endif
+
+	dbSelectArea("SC5")
+	dbSkip()
+	
+	IncRegua()
+Enddo
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Deleta Arquivo Temporario e Restaura os Indices Nativos.     ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+RetIndex("SUA")
+//DBSetFilter()
+
+//Ferase(cIndex+OrdBagExt())
+
+dbSelectArea("SUB")
+// DBSetFilter()
+dbSetOrder(1)
+dbGotop()
+Set device to screen
+
+If aReturn[5] == 1
+	Set Printer To
+	dbCommitAll()
+	OurSpool(wnrel)
+Endif
+
+MS_FLUSH()
+
+/*/
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±³Funcao    ³ ImpCabec ³ Autor ³ Claudinei M. Benzi    ³ Data ³ 05.11.92 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descricao ³ Emissao da Pr‚-Nota                                        ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Sintaxe e ³ ImpCabec(void)                                             ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Matr730                                                    ³±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+// Substituido pelo assistente de conversao do AP5 IDE em 04/07/02 ==> Function ImpCabec
+
+Static Function ImpCabec()
+
+@ li, 000 PSAY CHR(15)
+
+lRodape     := .T.
+cHeader     := ""
+nPed        := ""
+cMoeda      := ""
+cCampo      := ""
+cComis      := ""
+//             0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111
+//              0000000000111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999000000000011111111112222222222333
+//              0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012
+cHeader     := "Codigo         Produto - Marca - Cor          CM   Quant  Atendido    Saldo  Atendido       Unitario       Total   %IPI    Total IPI"
+cHeader2    := "                                                          ___/___/___        ___/___/___"
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Posiciona registro no cliente do pedido                     ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+cMidia := ""
+
+// Para Versao 4.06
+// DbselectArea("SX5")
+// DbSeek("  "+"T2"+SUA->UA_MIDIA,.T.)
+// cMidia:=X5_DESCRI
+
+// Para versao 4.07
+DbSelectArea("SUH")
+DbSeek(xFilial()+SUA->UA_MIDIA,.T.)
+cMidia:=SUH->UH_DESC
+
+dbSelectArea("SA1")
+dbSeek(xFilial()+SUA->UA_CLIENTE+SUA->UA_LOJA)
+cCidCli  := Alltrim(SA1->A1_MUN)
+cEstCli  := Alltrim(SA1->A1_EST)
+cEndCli  := Alltrim(SA1->A1_END)
+cCepCli  := AllTrim(SA1->A1_CEP)
+cCobCli  := Alltrim(SA1->A1_ENDCOB)
+cEntCli  := Alltrim(SA1->A1_ENDENT)
+cNomCli  := Alltrim(SA1->A1_NOME)
+cCgcCli  := Alltrim(SA1->A1_CGC)
+cIECli   := Alltrim(SA1->A1_INSCR)
+cBaiCli  := AllTrim(SA1->A1_BAIRRO)
+cBaiCob  := AllTrim(SA1->A1_BAIRROC)
+cCidCob  := AllTrim(SA1->A1_MUNC)
+cTelCli  := AllTrim(SA1->A1_TEL)
+cFaxCli  := AllTrim(SA1->A1_FAX)
+cContat  := AllTrim(SA1->A1_CONTATO)
+lSuframa := IIF(Len(AllTrim(SA1->A1_SUFRAMA))>0,.T.,.F.)
+lZFranca := IIF(Len(AllTrim(SA1->A1_CODMUN))>0,.T.,.F.)
+nPerc    := 100 - 10.75
+cME      := SA1->A1_ME
+If (A1_PRICOM == A1_ULTCOM)
+	COMPRA1 := "SIM"
+Else
+	COMPRA1 := "NAO"
+EndIf                           
+
+dbSelectArea("SUA")
+
+AUTENT := ""
+If (UA_AUTENT == "S")
+	AUTENT := "SIM"
+EndIf
+If (UA_AUTENT == "N")     
+	AUTENT := "NAO"
+EndIf     
+
+// @ 01,000 PSAY Replicate("-",limite)
+
+@ 01,000 PSAY "PLASTICOS NOVEL"  // SM0->M0_NOME
+@ 01,095 PSAY "PEDIDO Num: "+CHR(18)+SUA->UA_NUMSC5+CHR(15)
+@ 02,000 PSAY SM0->M0_ENDCOB
+@ 02,095 PSAY "1a. Compra - "+COMPRA1
+@ 03,000 PSAY "Caixa Postal 10	 CEP "+SM0->M0_CEPCOB+"    "+SM0->M0_CIDCOB+" - Bahia - Brasil"
+@ 04,000 PSAY "Fones: "+SM0->M0_TEL+"  Fax: (71)379-0160  www.novel.com.br - nordeste@novel.com.br"   // SM0->M0_FAX
+@ 04,095 PSAY "2a. via vale como ordem de expedicao"
+@ 05,000 PSAY Replicate("-",limite)
+//             0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111
+//             0000000000111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999000000000011111111112222222222333
+//             0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012
+@ 06,000 PSAY "DATA DO PEDIDO | DATAS E VISTOS | B - VENDAS          | C - CREDITO/COBRANCA | D - EXPEDICAO        | E - FATURAMENTO      |F - TEMPO"
+//@ 07,004 PSAY SUA->UA_EMISSAO 
+@ 07,004 PSAY SC5->C5_EMISSAO  //ALTERACAO 07/11/2013
+@ 07,015 PSAY                "| RECEBIDO ----> | ___/___/___  ______ | ___/___/___  _______ | ___/___/___  _______ | ___/___/___  _______ |EXP -E-B"
+@ 08,000 PSAY "ESTOQUE:______ | EXP/APROV. --> | ___/___/___  ______ | ___/___/___  _______ | ___/___/___  _______ | ___/___/___  _______ |____ DIAS"
+@ 09,000 PSAY Replicate("-",limite)
+@ 10,000 PSAY "VENCIMENTO.....:"+Subs(AllTrim(SE4->E4_DESCRI),1,20)
+@ 10,031 PSAY " AUT. PRECO ESPECIAL Num.: " + SC5->C5_NUMLIB +" Dt. Faturamento:"
+//dbSelectArea("SUB")
+//dbSeek(xFilial()+cPedido,.T.)
+@ 10,86 PSAY SUA->UA_DATFAT   // SUA->UA_EMISSAO
+@ 10,101 PSAY " AUT. ENTREGA ANTECIPADA: "+AUTENT
+@ 11,000 PSAY Replicate("-",limite)
+@ 12,000 PSAY "Cliente...: "+cNomCli
+@ 12,063 PSAY "Cod: "+SUA->UA_CLIENTE
+@ 12,079 PSAY "CNPJ:"
+@ 12,088 PSAY cCgcCli Picture "@R 99.999.999/9999-99"
+@ 12,107 PSAY "INSCR.EST.: "+cIECli
+@ 13,000 PSAY "Endereco..:"+cEndCLi
+@ 13,049 PSAY "Bairro: "+cBaiCli 
+@ 13,079 PSAY "FAX "+cFaxCli
+@ 14,000 PSAY "Cep/Mun/Est.:"+cCepCli+" - "+Substr(cCidCli,1,15)+" "+cEstCli
+@ 14,049 PSAY "TEL: "+cTelCli
+@ 14,079 PSAY "COMPRADOR:"+cContat
+@ 15,000 PSAY "End.Pgto....:"+Substr(SUA->UA_ENDCOB,1,30)   // Substr(cCobCli,1,30)
+@ 15,049 PSAY "Bairro: "+SUA->UA_BAIRROC   // cBaiCob
+@ 15,079 PSAY "Cidade "+SUA->UA_MUNC+"-"+SUA->UA_ESTC   // cCidCob
+@ 15,107 PSAY "VEND/REP:"+SUA->UA_VEND+" / "+SUA->UA_SUPLENT // Colocar o Vendedor (Telemarketing)
+@ 16,000 PSAY "End.Entrega.:"+Substr(SUA->UA_ENDENT,1,30)
+@ 16,049 PSAY "Bairro: "+SUA->UA_BAIRROE
+@ 16,079 PSAY "Cidade "+SUA->UA_MUNE+"-"+SUA->UA_ESTE
+@ 17,000 PSAY Replicate("-",limite)
+@ 18,000 PSAY "Pedido confirmação de.:"+SubStr(cMidia,1,14) // + Colocar o tipo da confirmacao (Buscar do SUA MIDIA)
+@ 18,038 PSAY "Data: "
+@ 18,044 PSAY dDataBase
+
+cQQCor := ""
+If (SUA->UA_QQCOR=="S")
+   cQQCor := "Sim"
+Else
+   cQQCor := "Nao"
+EndiF
+@ 18,058 PSAY "Nao havendo as cores em estoque o cliente autoriza qualquer outra? " + cQQCor 
+
+cNatOper := ""
+                   
+
+If (SUA->UA_NATOPER == "1")
+   cNatOper := "Uso ou Consumo"
+ElseIf (SUA->UA_NATOPER == "2")
+   cNatOper := "Ativo Imobilizado"
+ElseIf (SUA->UA_NATOPER == "3")
+   cNatOper := "Industrializacao"
+ElseIF (SUA->UA_NATOPER == "4")
+   cNatOper := "Comercializacao"
+EndIf          
+
+@ 19,000 PSAY "Natureza de Operacao..: "+cNatOper // + Criar campo Nat Oper no SUA e SC5
+@ 20,000 PSAY Replicate("-",limite)
+li := 21
+@ li,000 PSAY cHeader
+li := li+1
+@ li,000 PSAY cHeader2
+li := li+1
+@ li,000 PSAY Replicate("-",limite)
+li := li+1
+// Substituido pelo assistente de conversao do AP5 IDE em 04/07/02 ==> __Return( .T. )
+Return( .T. )        // incluido pelo assistente de conversao do AP5 IDE em 04/07/02
+
+/*/
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±³Funcao    ³ ImpItem  ³ Autor ³ Claudinei M. Benzi    ³ Data ³ 05.11.92 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descricao ³ Emissao da Pr‚-Nota                                        ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Sintaxe e ³ ImpItem(void)                                              ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Matr730                                                    ³±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+// Substituido pelo assistente de conversao do AP5 IDE em 04/07/02 ==> Function ImpItem
+Static Function ImpItem()
+nIPI       := 0
+nVipi      := 0
+nBaseIPI   := 100
+nValBase   := 0
+nValItem   := 0
+lIpiBruto  := IIF(GETMV("MV_IPIBRUT")=="S",.T.,.F.)
+
+dbSelectArea("SB1")
+dbSeek(xFilial()+SUB->UB_PRODUTO)
+dbSelectArea("SF4")
+dbSeek(xFilial()+SUB->UB_TES)
+IF SF4->F4_IPI == "S"
+	nBaseIPI  := IIF(SF4->F4_BASEIPI > 0,SF4->F4_BASEIPI,100)
+	nIPI 	  := SB1->B1_IPI
+// Alterado por Elisângela em 26/09/02 
+// Objetivo: Atender alteração de desconto.
+	nValBase  := If(lIPIBruto .And. ((SUB->UB_VRUNIT*100)/nPerc) > 0,((SUB->UB_VRUNIT*100)/nPerc),((SUB->UB_VLRITEM*100)/nPerc))*SUB->UB_QUANT
+//	nValBase  := If(lIPIBruto .And. SUB->UB_VRUNIT > 0,SUB->UB_VRUNIT,SUB->UB_VLRITEM)*SUB->UB_QUANT
+	nVipi	  := nValBase * (nIPI/100)*(nBaseIPI/100)
+Endif
+    
+// WELLINGTON 10/10/2013 IPI EMPRESA NORMAL
+
+IF SF4->F4_IPI == "S"
+	nBaseIPI  := IIF(SF4->F4_BASEIPI > 0,SF4->F4_BASEIPI,100)
+	nIPI 	  := SB1->B1_IPI
+// Alterado por Elisângela em 26/09/02 
+// Objetivo: Atender alteração de desconto.
+//	nValBase  := If(lIPIBruto .And. ((SUB->UB_VRUNIT*100)/nPerc) > 0,((SUB->UB_VRUNIT*100)/nPerc),((SUB->UB_VLRITEM*100)/nPerc))*SUB->UB_QUANT
+	nValBase  := If(lIPIBruto .And. SUB->UB_VRUNIT > 0,SUB->UB_VRUNIT,SUB->UB_VLRITEM)*SUB->UB_QUANT
+	nVipi	  := nValBase * (nIPI/100)*(nBaseIPI/100)
+Endif
+                                           
+// WELLINGTON 10/10/2013 IPI MICROEMPRESA 
+
+IF SF4->F4_IPI == "S" .AND. cME=="S" .AND. cEstCli=="BA"
+	nBaseIPI  := IIF(SF4->F4_BASEIPI > 0,SF4->F4_BASEIPI,100)
+	nIPI 	  := SB1->B1_IPI
+// Alterado por Elisângela em 26/09/02 
+// Objetivo: Atender alteração de desconto.
+	nValBase  := If(lIPIBruto .And. ((SUB->UB_VRUNIT*100)/nPerc) > 0,((SUB->UB_VRUNIT*100)/nPerc),((SUB->UB_VLRITEM*100)/nPerc))*SUB->UB_QUANT
+//	nValBase  := If(lIPIBruto .And. SUB->UB_VRUNIT > 0,SUB->UB_VRUNIT,SUB->UB_VLRITEM)*SUB->UB_QUANT
+	nVipi	  := nValBase * (nIPI/100)*(nBaseIPI/100)
+Endif      
+
+
+cTES:=SUB->UB_TES      
+
+// ALTERAdo POR MONICA EM 08/10/02
+IF cME=="S" .AND. cEstCli=="BA"  .AND. SUB->UB_TES<>"529" .AND. SF4->F4_IPI == "S" 
+   nVlUnit:=INT(ROUND((SUB->UB_VRUNIT*100)/nPerc,2)*100)/100     
+   nVlDesc:=nVlDesc+(INT(nVlUnit*SUB->UB_QUANT*100)/100-INT(SUB->UB_VRUNIT*SUB->UB_QUANT*100)/100)
+Else   
+   IF cME=="S" .AND. cEstCli=="BA"  .AND. SUB->UB_TES<>"529" .AND. SF4->F4_IPI == "N"  
+     // nVlUnit := SUB->UB_VRUNIT    
+      nVlUnit := SUB->UB_VUNTREA 
+      nVlDesc:=nVlDesc+((nVlUnit*SUB->UB_QUANT)*0.1075)        
+   ELSE 
+      nVlUnit:=SUB->UB_VRUNIT
+   ENDIF   
+   
+EndIf
+//nVlUnt:=SUB->UB_VRUNIT
+
+@ li,000 PSAY Left(SUB->UB_PRODUTO,11)
+@ li,012 PSAY Left(SB1->B1_DESC,29)
+@ li,042 PSAY SUB->UB_CM         Picture "@E 999.99"
+@ li,049 PSAY SUB->UB_QUANT      Picture "@E 999,999"  // cPictQtd 
+@ li,058 PSAY "__________"
+@ li,070 PSAY "_____"
+@ li,077 PSAY "__________"
+//@ li,089 PSAY SUB->UB_VRUNIT     Picture PesqPict("SUB","UB_VRUNIT",12)
+@ li,089 PSAY nVlUnit            Picture PesqPict("SUB","UB_VRUNIT",12)
+nValItem   := int(nVlUnit*SUB->UB_QUANT*100)/100
+nVlIt      := int(SUB->UB_VRUNIT*SUB->UB_QUANT*100)/100
+
+// Alterado por Elisângela em 26/09/02 
+// Objetivo: Atender alteração de desconto.
+//nPercIPI   := Round( ((nVipi/nValItem)*100),2 )
+@ li,103 PSAY nValItem           Picture PesqPict("SUB","UB_VLRITEM",14)
+If lSuframa
+   nPercIpi := 0
+   nVIpi    := 0
+EndIf
+@ li,119 PSAY nIPI           Picture "99"
+// Alterado por Elisângela em 26/09/02 
+// Objetivo: Atender alteração de desconto.
+//@ li,119 PSAY nPercIPI           Picture "99"
+@ li,122 PSAY nVIpi              Picture "@E 999,999.99"
+      
+
+ntotValCM  := nTotValCM + ((SUB->UB_CM/100)*nValItem)
+nTotIPI    := nTotIPI + nVipi
+nTotVal    := nTotVal + nVlIt   //nValItem
+nTotValIPI := nTotVal + nTotIPI
+
+nFrete   := SUA->UA_FRETE
+
+
+dbSelectArea("SUB")
+If !Empty(UB_NRFG)
+   fGrav := fGrav + UB_ITEM + ":" + UB_NRFG + "  "
+Endif
+
+// Substituido pelo assistente de conversao do AP5 IDE em 04/07/02 ==> __Return ( NIL )
+Return( NIL )        // incluido pelo assistente de conversao do AP5 IDE em 04/07/02
+
+/*/
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±³Funcao    ³ ImpRodape³ Autor ³ Claudinei M. Benzi    ³ Data ³ 05.11.92 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descricao ³ Emissao da Pre-Nota                                        ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Sintaxe   ³ ImpRodape(void)                                            ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Matr730                                                    ³±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+// Substituido pelo assistente de conversao do AP5 IDE em 04/07/02 ==> Function ImpRodape
+
+Static Function ImpRodape()
+    li := li+1
+    @ li,000 PSAY Replicate("-",limite)
+    li := li+1
+    nPcICM:=0  
+    nVlIcm:=0
+    dbSelectArea("SA1")
+    dbSeek(xFilial()+SUA->UA_CLIENTE+SUA->UA_LOJA)
+	If SA1->A1_ME=="S" .AND. SA1->A1_EST=="BA"  .and. cTES<>"529"
+	  nVlIcm:=nBaseIcm*0.07 
+	  nPcICM:=7
+	Else             
+	  If SA1->A1_EST = "BA"
+	     nPcICM := 17
+         nVlIcm:=nBaseIcm*(nPcICM/100)
+	  Else
+	     nPcICM := 12
+         nVlIcm:=nBaseIcm*(nPcICM/100)
+	  Endif   
+	  /*
+	  renata 07/04/03
+	  nParam:=GETMV("MV_ESTICM")
+	  For j:=1 to len(nParam)
+	    If substr(nParam,j,2)==SA1->A1_EST 
+	       nPcICM:=val(substr(nParam,j+2,2))
+	       nVlIcm:=nBaseIcm*(nPcICM/100)
+	   
+	    ENDIF 
+	    J:=J+3
+	  next
+	  */
+	Endif
+/*
+cGrav := ""
+If (SUA->UA_GRAVA=="S")
+
+   cGrav   := "SIM"
+   cTipoG1 := ""
+   cTipoG2 := ""
+
+   If (Alltrim(SUA->UA_TPGRAV1) == "H")
+      cTipoG1 := "Hot"
+   EndIf                        
+   
+   If (Alltrim(SUA->UA_TPGRAV1) == "S")
+      cTipoG1 := "Silk"
+   EndIf
+   
+   If (Alltrim(SUA->UA_TPGRAV1) == "A")
+      cTipoG1 := "Adesivo"
+   EndIf
+   
+   If (Alltrim(SUA->UA_TPGRAV1) == "V")
+      cTipoG1 := "Vazada"
+   EndIf
+   
+
+   If (Alltrim(SUA->UA_TPGRAV2) == "L")
+      cTipoG2 := "Lateral"
+   ElseIf (Alltrim(SUA->UA_TPGRAV2) == "T")
+      cTipoG2 := "Testeira"
+   ElseIf (Alltrim(SUA->UA_TPGRAV2) == "A")
+      cTipoG2 := "Lateral/Testeira"
+   ElseIf (Alltrim(SUA->UA_TPGRAV2) == "F")
+      cTipoG2 := "Atras"      
+   EndIf
+
+Else
+
+   cGrav := "NAO"
+
+EndIf
+@ li,000 PSAY "Gravacao..: "+cGrav
+If (Substr(AllTrim(cGrav),1,1)=="S")
+   @ li,025 PSAY "Tipo: "+cTipoG1+" - "+cTipoG2
+   @ li,055 PSAY "Cor: " +SUA->UA_COR
+   @ li,085 PSAY SUA->UA_DIZERES
+EndIf
+*/
+If Len(fGrav) > 6
+   @ li,000 PSAY fGrav
+Endif
+li := li+1
+@ li,000 PSAY Replicate("-",limite)
+li := li+1
+@ li,000 PSAY "Vend.|Rep.:"+AllTrim(SUA->UA_VEND)+"  "+(SA3->A3_NREDUZ)
+nPerCMFin := Round( ((nTotValCM/nTotVal)*100), 2 )
+@ li,034 PSAY "CM:"
+@ li,037 PSAY nPerCMFin      Picture "999.99" 
+@ li,090 PSAY "Vr. Frete.:"
+@ li,111 PSAY nFrete Picture "@E 99,999,999.99"
+
+If (SUA->UA_CMSUPLE>0)
+   @ li,050 PSAY "Suplente: "+AllTrim(cNomSup)
+   @ li,078 PSAY "CM Suplente:"
+   @ li,092 PSAY SUA->UA_CMSUPLE PICTURE "@E 99.99"
+EndIf
+
+li := li+1
+@ li,000 PSAY "Total IPI.:"
+@ li,012 PSAY nTotIPI        Picture PesqPict("SUB","UB_VLRITEM",10)
+@ li,031 PSAY "% ICMS.:"
+nValICM  := nVlICM //nBaseIcm//SUA->UA_VALICM
+nValMerc := SUA->UA_VALMERC 
+
+// msgbox(AllTrim(Str(nValICM))+"-"+AllTrim(Str(nValMerc)))
+if SA1->A1_ME=="S"
+  nPercICM := 7 //IIF(nBaseIcm>0, Round( (nValICM/nValMerc)*100, 2 ), 0)
+else   
+  nPercICM :=nPcICM
+endif
+// Tratamento Zona Franca (ICMS)
+If lZFranca
+   nPercICM := 0
+   nValICM  := 0
+EndIf    
+
+IF SUA->UA_NATOPER == "1"
+   nValICM = nTotValIPI * (nPercICM / 100)
+ENDIF                               
+
+TOTPED := nVlDesc  
+nFrete   := SUA->UA_FRETE
+
+@ li,040 PSAY nPercICM       Picture "@E 99.99"
+@ li,049 PSAY "Vr. ICMS ja incluso:"
+@ li,070 PSAY nValICM Picture "@E 9,999,999.99"
+@ li,090 PSAY "Vr. Total do Pedido.:"
+@ li,111 PSAY nTotValIPI + nFrete Picture "@E 99,999,999.99"
+     
+
+li := li+1
+
+cCIFAte := ""
+
+If SC5->C5_TPFRETE="C"
+   cCIFAte := "Cif (pago) ate "+AllTrim(SUA->UA_CIF_ATE)
+Else
+   cCIFAte := "FOB (a pagar) "+AllTrim(SUA->UA_CIF_ATE)
+EndIf      
+
+@ li,000 PSAY "Despesas com fretes/seguros.:"+cCIFAte // + Ex.: CIF pago ate TELEMACO BORBA - PR
+@ li,090 PSAY "Tempo exp.: ____________________"
+
+li := li+1
+@ li,000 PSAY Replicate("-",limite)
+li := li+1
+@ li,000 PSAY "Transportador:"+SUA->UA_TRANSP+" "+SA4->A4_NOME
+@ li,062 PSAY "Placa.:___________________"
+@ li,097 PSAY "Fone:"+SA4->A4_TEL
+li := li+1
+@ li,000 PSAY "Endereco.....:"+SA4->A4_END
+@ li,062 PSAY "Mun./Estado: " +Substr(SA4->A4_MUN,15)+"-"+SA4->A4_EST
+
+cTCarga := ""
+If (SUA->UA_TPCARGA == "C")
+   cTCarga := "Completa"
+ElseIf (SUA->UA_TPCARGA == "F")
+   cTCarga := "Francionada"
+ElseIf (SUA->UA_TPCARGA == "R")
+   cTCarga := "Retira"
+EndIf
+
+@ li,097 PSAY "Carga:"+cTCarga
+li := li+1
+@ li,000 PSAY Replicate("-",limite)
+li := li+1
+@ li,000 PSAY "CONDICOES GERAIS DE VENDA:"
+li := li+1
+@ li,000 PSAY "1)Salvo indicacao em contrario os produtos destinam-se a industrializacao e ou comercalizacao"
+li := li+1
+//@ li,000 PSAY "2)Na hipotese de nao pagamento dos debitos vencidos ha mais de 15(quinze) dias e, sendo o cliente Sociedade por Quotas de Responsa-"
+@ li,000 PSAY "2)Para possibilitar cargas completas, o cliente autoriza o embarque de mais o menos 10% da qualidade pedida."
+li := li+1
+//@ li,000 PSAY "  bilidade Ltda, os socios obrigar-se-ao ilimitada e solidariamente por forca desse contrato pelo pagamento integral da divida,res-"
+//li := li+1
+//@ li,000 PSAY "  ponsabilizando-se portanto,como pessoas fisicas,contra os quais podera a NOVEL emitir letra de cambio para recebimento do debito."
+//li:= li+1
+//@ li,000 PSAY "3)No caso de venda com pagamento a prazo,quando o produto adiquirido integrar o ativo imobilizado do comprador a NOVEL mantera o do-" 
+@ li,000 PSAY "3)Quando fabricado com material reciclado podem apresentar variação de cores."
+li := li+1
+//@ li,000 PSAY "  minio do produto que cessara quando da integralizacao total da divida."
+//li := li+1
+//@ li,000 PSAY "4)Para possibilitar cargas completas, o cliente autoriza o embarque de mais o menos 10% da qualidade pedida."
+@ li,000 PSAY "4)Prazo de entrega do pedido em até 30 dias a contar da data de emissão." 
+
+li := li+1
+@ li,000 PSAY "5)Favor analisar o seu pedido e caso contenha alguma divergência favor entrar em contato."
+li := li+2
+@ li,000 PSAY "          ATENÇÃO MOTORISTA: NÃO SERÁ PERMITIDA A SUA ENTRADA NA NOVEL VESTINDO BERMUDA, CAMISA CAVADA E CALÇADOS ABERTOS." 
+li := li+1
+@ li,000 PSAY Replicate("-",limite)
+li := li+1
+@ li,000 PSAY "|           RECIBO PAGAMENTO ANTECIPADO:        |      ASS.CLIENTE.:________________________         PEDIDO CLIENTE Num.: " + SUA->UA_PEDCLI // Numero Pedido no Cliente
+li := li+1
+@ li,000 PSAY "|  Valor Recebido R$ __________________________ |      ASS.REP/VEND:________________________"      
+li := li+1
+@ li,000 PSAY "|  Cheque Num./O Pgto.Num _____________________ |"
+li := li+1
+@ li,000 PSAY "|  Banco Emitente _____________________________ |      Observacoes |" + Substr(SUA->UA_OBS1,1,70) // + Campo MSG1 no SUA
+li := li+1
+@ li,000 PSAY "|  Datas ____/____/____          ____/____/____ |      e clausulas |" + Substr(SUA->UA_OBS2,1,70) // + Campo MSG2 no SUA
+li := li+1
+@ li,000 PSAY "|  Vend. ______________ Cx.NOVEL ______________ |      de reajuste |" + Substr(SUA->UA_OBS3,1,70) // + Campo MSG3 no SUA
+li := li+1
+@ li,000 PSAY Replicate("-",limite)
+//li := li+6
+li := li+1
+@ li,000 PSAY Replicate("-",limite)
+li := li+1
+@ li,000 PSAY "|           STATUS ATUAL DO PEDIDO===>>>>>      |" + "  " + MSTATUS
+li := li+1
+@ li,000 PSAY Replicate("-",limite)
+li := li+3
+ 
+@ li,000 PSAY chr(18)
+
+// Substituido pelo assistente de conversao do AP5 IDE em 04/07/02 ==> __Return( NIL )
+Return( NIL )        // incluido pelo assistente de conversao do AP5 IDE em 04/07/02
+
+/*/
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±³Funcao    ³A730verIcm³ Autor ³ Claudinei M. Benzi    ³ Data ³ 11.02.92 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descricao ³ Rotina para verificar qual e o ICM do Estado               ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ MATA460                                                    ³±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+// Substituido pelo assistente de conversao do AP5 IDE em 04/07/02 ==> Function A730VerIcm
+Static Function A730VerIcm()
+
+nPerRet   := 0                // Percentual de retorno
+cEstado   := GetMV("mv_estado")
+tNorte    := GetMV("MV_NORTE")
+cEstCli   := SA1->A1_EST
+cInscrCli := SA1->A1_INSCR
+
+If SF4->F4_ICM == "S"
+	// IF !(SC5->C5_TIPO $ "D")
+	
+	If SA1->A1_TIPO == "F" .and. Empty(cInscrCli)
+		nPerRet := iif(SB1->B1_PICM>0,SB1->B1_PICM,GetMV("MV_ICMPAD"))
+	Elseif SB1->B1_PICM > 0 .And. cEstCli == cEstado
+		nPerRet := SB1->B1_PICM
+	Elseif cEstCli == cEstado
+		nPerRet := GetMV("MV_ICMPAD")
+	Elseif cEstCli $ tNorte .And. At(cEstado,tNorte) == 0
+		nPerRet := 7
+	Elseif SA1->A1_TIPO == "X"
+		nPerRet := 13
+	Else
+		nPerRet := 12
+	Endif
+	
+	/*/
+	Else
+		If cEstCLI == GetMV("MV_ESTADO")
+			nPerRet := GetMV("MV_ICMPAD")
+		Elseif !(cEstCli $ GetMV("MV_NORTE")) .And. ;
+				GetMv("mv_estado") $ GetMV("MV_NORTE")
+			nPerRet := 7
+		Else
+			nPerRet := 12
+		Endif
+		If SB1->B1_PICM != 0 .And. (cEstCli==GetMv("MV_ESTADO"))
+			nPerRet := SB1->B1_PICM
+		Endif
+	Endif
+	/*/
+Endif
+Set Softseek off
+// Substituido pelo assistente de conversao do AP5 IDE em 04/07/02 ==> __Return(nPerRet)
+Return(nPerRet)        // incluido pelo assistente de conversao do AP5 IDE em 04/07/02

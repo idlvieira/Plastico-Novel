@@ -1,0 +1,29 @@
+#INCLUDE "rwmake.ch" 
+
+User Function mudasd1
+
+dbSelectArea("SB9")
+dbgotop()
+
+wProd:=Space(15)
+wTipo:=space(2)
+While !EOF()
+    
+    wProd:= SB9->B9_COD 
+    
+    dbSelectArea("SB1") 
+    DbSeek(xFilial("SB1") + wProd, .T.)
+    If found()   
+         wTipo:= SB1->B1_LOCPAD
+         dbSelectArea("SB9")
+         RecLock("SB9",.f.)
+         REPLACE SB9->B9_LOCAL with WTIPO
+         MSUNLOCK()
+    endif
+
+    dbSelectArea("SB9")   
+    
+    Dbskip()
+enddo  
+
+return

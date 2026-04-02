@@ -1,0 +1,27 @@
+#include "rwmake.ch"
+
+USER FUNCTION PNVCC03()
+//----------------------------------------------------------------------------
+//|Programa  | PNVCC03     | Autor | Eliene Cerqueira    |Criado| 20.Jun.2005|  
+//----------------------------------------------------------------------------
+//|Descricao | Gatilho do campo UB_QUANT - Verifica multiplo de embalagens   |
+//----------------------------------------------------------------------------
+//|Uso       | SIGATMK                                                       |
+//---------------------------------------------------------------------------- 
+
+
+
+nQt:=acols[n][5]   //M->UB_QUANT
+
+If ! (alltrim(substr(cusuario,7,15)) $ getmv("MV_AMGRAT"))
+   DbSelectArea("SB1")
+   If B1_QE<>0 .and. nQt <> Int(nQt/B1_QE)*B1_QE       
+      msgBox(alltrim(substr(cusuario,7,15)))                                                              
+      msgBox("Quantidade não é multiplo da embalagem","Atencao")
+      nQt := 0
+   Endif
+Endif   
+
+
+
+Return(nQt) 

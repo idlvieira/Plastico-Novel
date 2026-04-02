@@ -1,0 +1,822 @@
+#INCLUDE "TBICONN.CH" 
+#INCLUDE "AP5MAIL.CH"
+
+User Function IMPPED()
+
+qout("ESTA ENTRANDO")
+
+Prepare Environment Empresa "01" Filial "01" Tables "SA1","SUA","SUB","SC5","SC6","SM0","SB1"
+
+cFtp        := GetMv("MV_FTP")
+cUser       := GetMv("MV_USERFTP")
+cPassJob  	:= GetMv("MV_PASSFTP")
+cEnv       	:= GetMv("MV_ENVIA")
+cPath      	:= GetMv("MV_BXPED")
+_cEstCli	:= "BA"
+_cEstPad    := getmv("MV_ESTADO")  
+_Vd         := ""
+cEstado	    := GetMV("MV_ESTADO")
+cNorte	    := GetMV("MV_NORTE")
+
+Ceol      := Chr(13) + Chr(10)
+aFiles    := {}  // Vetor que armazenará os arquivos das ordens de servico
+
+// (endereco ftp, numero da porta, usuario, senha)
+lOk := FTPConnect ( cFtp,21,cUser,cPassJob)
+qout(lok) 
+
+If lOk                        
+ 
+	// Pasta onde estão os arquivos a serem baixados do ftp
+	FTPDirChange (cPath)  
+    qout(cpath)
+ 	
+ 	// Filtra os arquivos referentes as ordens de serviço - somente os TXT's
+ 	aFiles   := FTPDirectory( '*.TXT' )   
+ 	teste    := len(aFiles)   
+ 
+	qout(teste)
+ 
+	If Len(aFiles) > 1 
+   		For i := 1 To Len(aFiles)   
+   
+     		// Download do arquivo texto
+     		lRet := FTPDownLoad (GetMv("MV_IMPPED")+aFiles[i][1], aFiles[i][1] ) 
+  
+     		qout(aFiles[i][1])
+     		qout(lret)
+     		// Renomeia o arquivo com outra extensão para não ser baixado de novo
+     		lRet := FtpRenameFile( aFiles[i][1], Substr(aFiles[i][1],1,8)+'old')
+  		Next                                  
+  
+   		RunPed()
+ 	ElseIf Len(aFiles) == 1
+   		lRet := FTPDownLoad (GetMv("MV_IMPPED")+aFiles[1][1], aFiles[1][1] )
+   		lRet := FtpRenameFile( aFiles[1][1], Substr(aFiles[1][1],1,8)+'old')
+   		
+   		RunPed()
+ 	Endif 
+ 
+ 	FTPDisconnect()                    
+ 
+Endif
+
+Return
+
+/*/
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ºFun‡„o    ³ RUNCONT  º Autor ³ AP5 IDE            º Data ³  27/08/01   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDescri‡„o ³ Funcao auxiliar chamada pela PROCESSA.  A funcao PROCESSA  º±±
+±±º          ³ monta a janela com a regua de processamento.               º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ Programa principal                                         º±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+
+Static Function RunPed
+
+Local nTamFile, nTamLin, cBuffer, nBtLidos
+aPedidos := {}
+aCliente := {}
+aNomeCli := {}
+cNomeArq := "" 
+
+For i:= 1 To Len(aFiles)
+	
+	cArq      := AllTrim(GetMV("MV_IMPPED"))+aFiles[i][1]
+    cNomeArq  := GetMv("MV_IMPPED")+aFiles[i][1]
+    cDest     := "C:\Microsiga\Protheus8\Protheus_Data\Pedido\txt\importado"
+//    cDest     := AllTrim(GetMV("MV_IMPPED"))+"importado\"
+	nHdl      := fOpen(cArq,68)
+	nTamFile  := fSeek(nHdl,0,2)
+	
+	fSeek(nHdl,0,0)
+	
+	nTamLin  := 284+Len(cEOL)          //288
+	cBuffer  := Space(nTamLin) // Variavel para criacao da linha do registro para leitura
+	nBtLidos := fRead(nHdl,@cBuffer,nTamLin) // Leitura da primeira linha do arquivo texto
+	nVez     := 1           
+	nItem    := 1             
+	nTotPed  := 0
+    xVol:=0
+    xobs:=""
+    cPedCall := ""                                                                                             
+    cNumPedido:=""
+    nComis1   := 0.00
+    nValItem  := 0.00
+    nTotVal   := 0.00
+    nTotValCM := 0.00            
+    nTotValCMSP := 0.00            
+                                                                     
+    // Verifica se o pedido web já foi importado, em caso afirmativo não importa novamente e renomeia o arquivo
+    lGrvSUB  := .F.
+    
+    DbSelectArea("SC5")
+    SC5->( DbSetOrder(5) )
+    SC5->( DbSeek(xFilial()+SubStr(cBuffer,1,6),.T.) )
+    
+    If SC5->( !Found() )
+		
+qout("BYTES LIDOS "+Str(nBtLidos,2)) 
+qout("TAM. LINHA "+Str(nTamLin,2)) 
+		While nBtLidos >= nTamLin
+	    	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+    		//³ Grava os campos obtendo os valores da linha lida do arquivo texto.  ³
+	    	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+          	lGrvSUB := .T.
+           	//_Vd     := SubStr(cBuffer,274,6)
+
+	      	If nVez == 1    
+	    
+    			cNumPedido := GetSX8Num("SC5","C5_NUM")
+    	   		
+    	   		DbSelectArea("SA4")
+    	   		SA4->( DbSetOrder(1) )
+    	   		SA4->( DbSeek(xFilial()+ Substr(cBuffer,18,06),.T.) )
+    	   
+	  		    VEND1           := SubStr(cBuffer,274,6)
+	       		dbSelectArea("SA3")
+	       		SA3->( dbSetOrder(1) )
+	       		SA3->( dbSeek(xFilial()+VEND1,.T.) )
+	       
+	       		dbSelectArea("SA1")
+    	   		SA1->( DbSetOrder(1) )
+	       		SA1->( DbSeek(xFilial()+Substr(cBuffer,07,06)+SubStr(cBuffer,272,2),.T.) )
+//	       		SA1->( DbSeek(xFilial()+Substr(cBuffer,07,06),.T.) )
+	       		
+	       		qout("cliente:"+SA1->A1_COD+"-"+SA1->A1_LOJA)
+
+    	   		If SA1->( !Found() )
+	          		QOUT("Pedido nao importado: Arquivo "+cArq+ " .Cliente Inexistente!!")
+    	      		Return
+	       		Endif                                         
+	       		
+	       		QOUT("numero do pedido "+CNUMPEDIDO)
+    	   		    	   		    	   		
+    	   		AADD(aPedidos,cNumPedido)
+	   	   		AADD(aCliente,SA1->A1_COD)
+	   	   		AADD(aNomeCli,SA1->A1_NOME)
+	   	   		
+	   	   		cNomeCli 	:= SA1->A1_NOME
+	   	   		cMailCli 	:= SA1->A1_EMAIL
+	   	   		cMailVend 	:= SA3->A3_EMAIL
+   	   	   		_cEstCli	:= SA1->A1_EST                  
+	   			
+	   			dbSelectArea("SC5")
+				RecLock("SC5",.T.)
+	         	 	SC5->C5_FILIAL  := xFilial()
+    	      		SC5->C5_NUM     := cNumPedido // Substr(cBuffer,01,06)    
+	          		cPedido         := Substr(cBuffer,01,06)    
+//    	      		AADD(aPedidos,cNumPedido)
+              		SC5->C5_PEDWEB  := cPedido
+    	      		SC5->C5_CLIENTE := Substr(cBuffer,07,06) 
+        	  		cCliente        := Substr(cBuffer,07,06)
+	          		SC5->C5_TPFRETE := Substr(cBuffer,13,01)
+    	      		SC5->C5_CONDPAG := Substr(cBuffer,14,03)
+        	  		SC5->C5_TIPO    := Substr(cBuffer,17,01)
+	          		SC5->C5_TRANSP  := Substr(cBuffer,18,06)
+    	      		dEmissao        := (Substr(cBuffer,24,08))
+        	  		dData           := SubStr(dEmissao,7,2)+"/"+SubStr(dEmissao,5,2)+"/"+SubStr(dEmissao,3,2)  
+	          		SC5->C5_EMISSAO := Ctod(dData)
+    	      		SC5->C5_LOJAENT := SubStr(cBuffer,272,2)
+        	  		SC5->C5_LOJACLI := SubStr(cBuffer,272,2)
+	          		SC5->C5_TABELA  := "1"
+    	      		SC5->C5_TIPOCLI := SA1->A1_TIPO
+        	  		SC5->C5_QQCOR   := SubStr(cBuffer,32,1)
+			  		SC5->C5_GRAVA   := SubStr(cBuffer,33,1)          
+			  		SC5->C5_FCHGRAV := SubStr(cBuffer,34,1)
+			  		SC5->C5_COR     := SubStr(cBuffer,35,12)
+			  		SC5->C5_DIZERES := SubStr(cBuffer,47,30)
+			  		SC5->C5_TPGRAV1 := SubStr(cBuffer,77,1)
+			  		SC5->C5_TPGRAV2 := SubStr(cBuffer,78,1)
+			  		SC5->C5_TPCARGA := SubStr(cBuffer,79,1)
+			  		SC5->C5_CIF_ATE := SubStr(cBuffer,80,20)
+			  		SC5->C5_PEDCLI  := SubStr(cBuffer,100,6)
+			  		SC5->C5_NATOPER := SubStr(cBuffer,106,1)
+			  		SC5->C5_OBS1    := SubStr(cBuffer,107,55)
+			  		SC5->C5_OBS2    := SubStr(cBuffer,162,55)
+			  		SC5->C5_OBS3    := SubStr(cBuffer,217,55)
+			  		SC5->C5_VEND1   := SubStr(cBuffer,274,6)   
+			  
+			  		//_Vd             := SubStr(cBuffer,274,6)
+			  
+			  		SC5->C5_COMIS1  := NoRound(Val(Substr(cBuffer,280,5)),02)/100 
+			  		SC5->C5_ENDENT  := SA1->A1_ENDENT
+			  		SC5->C5_BAIRROE := SA1->A1_BAIRROE
+			  		SC5->C5_ESTE    := SA1->A1_ESTE
+			  		SC5->C5_MUNE    := SA1->A1_MUNE
+			  		SC5->C5_NTRANSP := SA4->A4_NOME
+			  		SC5->C5_MUNTRAN := SA4->A4_MUN
+			  		SC5->C5_UFTRANS := SA4->A4_EST
+            	MsUnlock()
+            	
+            	nVez++                                 
+       	    	ConfirmSX8() 
+       
+	       		// Gravação no SUA
+    	   		cPedCall := GetSX8Num("SUA","UA_NUM")
+	       		
+	       		DbSelectArea("SUA")
+		   		RecLock("SUA",.T.)
+	          		SUA->UA_FILIAL  := xFilial()
+    	      		SUA->UA_NUM     := cPedCall // Substr(cBuffer,01,06)    
+    	      		SUA->UA_CLIENTE := Substr(cBuffer,07,06) 
+//	          		SUA->UA_TPFRETE := Substr(cBuffer,13,01)
+    	      		SUA->UA_CONDPG  := Substr(cBuffer,14,03)
+        	  		SUA->UA_TIPO    := Substr(cBuffer,17,01)
+	          		SUA->UA_TRANSP  := Substr(cBuffer,18,06)
+    	      		dEmissao        := (Substr(cBuffer,24,08))
+        	  		dData           := SubStr(dEmissao,7,2)+"/"+SubStr(dEmissao,5,2)+"/"+SubStr(dEmissao,3,2)  
+	          		SUA->UA_EMISSAO := Ctod(dData)
+    	      		SUA->UA_LOJA    := SubStr(cBuffer,272,2)
+        	  		SUA->UA_QQCOR   := SubStr(cBuffer,32,1)
+			  		SUA->UA_GRAVA   := SubStr(cBuffer,33,1)          
+			  		SUA->UA_FCHGRAV := SubStr(cBuffer,34,1)
+			  		SUA->UA_COR     := SubStr(cBuffer,35,12)
+			  		SUA->UA_DIZERES := SubStr(cBuffer,47,30)
+			  		SUA->UA_TPGRAV1 := SubStr(cBuffer,77,1)
+			  		SUA->UA_TPGRAV2 := SubStr(cBuffer,78,1)
+			  		SUA->UA_TPCARGA := SubStr(cBuffer,79,1)
+			  		SUA->UA_CIF_ATE := SubStr(cBuffer,80,20)
+			  		SUA->UA_PEDCLI  := SubStr(cBuffer,100,6)
+			  		SUA->UA_NATOPER := SubStr(cBuffer,106,1)
+			  		SUA->UA_OBS1    := SubStr(cBuffer,107,55)
+			  		SUA->UA_OBS2    := SubStr(cBuffer,162,55)
+			  		SUA->UA_OBS3    := SubStr(cBuffer,217,55)
+			  		SUA->UA_VEND    := SubStr(cBuffer,274,6)
+			  		SUA->UA_COMIS   := NoRound(Val(Substr(cBuffer,280,5)),02)/100 
+			  		SUA->UA_ENDENT  := SA1->A1_ENDENT
+			  		SUA->UA_BAIRROE := SA1->A1_BAIRROE
+			  		SUA->UA_ESTE    := SA1->A1_ESTE
+			  		SUA->UA_MUNE    := SA1->A1_MUNE
+			  		SUA->UA_NUMSC5  := cNumPedido  
+			  		SUA->UA_OPER    := "1" //Faturamento
+			  		SUA->UA_MIDIA   := "000001" // Internet
+			  		SUA->UA_ENDCOB  := SA1->A1_ENDCOB
+			  		SUA->UA_BAIRROC := SA1->A1_BAIRROC 
+			  		SUA->UA_CEPE    := SA1->A1_CEP
+			  		SUA->UA_CEPC    := SA1->A1_CEPC
+			  		SUA->UA_ESTC    := SA1->A1_ESTC
+			  		SUA->UA_MUNC    := SA1->A1_MUNC
+			  		SUA->UA_STATUS  := "SUP"
+			  		SUA->UA_TMK     := "4"   			  		
+//			  		SUA->UA_OPERADO := 
+//			  		SUA->UA_VLRLIQ := 
+//			  		SUA->UA_DTLIM := Ctod(dData)
+//			  		SUA->UA_VALBRUT := 
+//			  		SUA->UA_VALMERC := 
+//			  		SUA->UA_FINANC := 
+//			  		SUA->UA_PARCELA := "1" 
+	       		MsUnlock()        
+                NatOpe:=SUA->UA_NATOPER
+                Estcli:=AllTrim(SUA->UA_ESTE)
+                CidCli:=AllTrim(SUA->UA_MUNE)
+                WMicro:=SA1->A1_ME
+                WNome:=SUBSTR(SA1->A1_NOME,1,16)
+	       
+    	   		ConfirmSX8()               
+                                                         
+	       		cPedido := cNumPedido
+       
+    	   		MailCli() // Envia e-mail de confirmação para o cliente e para o vendedor
+       
+	    	Else                   
+	  
+	       		dbSelectArea("SB1")
+    	   		SB1->( DbSetOrder(1) )
+	       		SB1->( dbSeek(xFilial()+Substr(cBuffer,3,15),.T.) )
+
+   		      	TES             := SB1->B1_TS          
+  	      		qout("produto:"+SB1->B1_COD+"   TES:"+TES)
+//
+                WEst:=0
+                If (Estcli="AM" .and. (CidCli="MANAUS" .or. CidCli="TABATINGA")) .or. (Estcli="AP" .and. (CidCli="SANTANA" .or. CidCli="MACAPA")) .or.;
+                   (Estcli="RR" .and. (CidCli="BONFIM" .or. CidCli="PACARAIMA")) .or. (Estcli="RO" .and. CidCli="GUAJARA-MIRIM") .or.;
+                   (Estcli="AC" .and. (CidCli="CRUZEIRO DO SUL" .or. CidCli="BRASILEIA" .or. CidCli="EPITACIOLANDIA"))
+                    WEst:=1
+                ElseIf (Estcli="AM" .and. CidCli<>"MANAUS" .and. CidCli<>"TABATINGA") .or. (Estcli="AP" .and. CidCli<>"SANTANA" .and. CidCli<>"MACAPA") .or.;
+                       (Estcli="RR" .and. CidCli<>"BONFIM" .and. CidCli<>"PACARAIMA") .or. (Estcli="RO" .and. CidCli<>"GUAJARA-MIRIM") .or.;
+                       (Estcli="AC" .and. CidCli<>"CRUZEIRO DO SUL" .and. CidCli<>"BRASILEIA" .and. CidCli<>"EPITACIOLANDIA")
+                       WEst:=2
+                ElseIF WMicro=="S"  .AND. Estcli=="BA"  .AND. SB1->B1_TS<>'529'
+                       WEst:=4
+                Else
+                       WEst:=3
+                Endif
+                If SB1->B1_TS="503" .and. WEst<>1 .and. WEst<>4
+                   Tes:=SB1->B1_TS
+                ElseIf SB1->B1_TS="503" .and. WEst=4
+                   Tes:="504"
+                Else
+                   If NatOpe = "1" .OR. NatOpe = "2"
+                      If SB1->B1_GRUPO="0001"
+                         If     WEst=1
+                                Tes:="507"
+                         ElseIf WEst=2
+                                Tes:="503"
+                         ElseIf WEst=3
+                                Tes:="502"
+                         ElseIf WEst=4
+                                Tes:="506"
+                         Endif
+                      Endif
+                      If SB1->B1_GRUPO="0002"
+                         If     WEst=1
+                                Tes:="514"
+                         ElseIf (WEst=2 .or. WEst=3) .and. WNome<>"MAKRO ATACADISTA"
+                                Tes:="511"
+                         ElseIf (WEst=2 .or. WEst=3) .and. WNome="MAKRO ATACADISTA"
+                                Tes:="502"
+                         ElseIf WEst=4 
+                                Tes:="512"
+                         Endif
+                      Endif
+                      If SB1->B1_GRUPO="0008"
+                         Tes:="519"
+                      Endif
+                   Endif
+                   If NatOpe = "3" .OR. NatOpe = "4"
+                      If SB1->B1_GRUPO="0001"
+                         If     WEst=1
+                                Tes:="507"
+                         ElseIf WEst=2
+                                Tes:="503"
+                         ElseIf WEst=3
+                                Tes:="501"
+                         ElseIf WEst=4
+                                Tes:="505"
+                         Endif
+                      Endif
+                      If SB1->B1_GRUPO="0002"
+                         If     WEst=1
+                                Tes:="514"
+                         ElseIf (WEst=2 .or. WEst=3) .and. WNome<>"MAKRO ATACADISTA"
+                                Tes:="511"
+                         ElseIf (WEst=2 .or. WEst=3) .and. WNome="MAKRO ATACADISTA"
+                                Tes:="501"
+                         ElseIf WEst=4
+                                Tes:="512"
+                         Endif
+                      Endif
+                   Endif
+                Endif 
+    	   		dbselectArea("SF4")
+    	   		SF4->( dbSetOrder(1) )
+    	   		SF4->( dbSeek(xFilial()+TES,.T.) )
+
+                If SA3->A3_TIPO=="E"
+                   wComis1:=SA3->A3_COMIS
+                Else
+                   DbSelectArea("SB1")
+                   wComis1:=SB1->B1_COMIS
+                   If Date()-SB1->B1_DATREF<120
+                      wComis1:=SB1->B1_COMIS*2
+                   Endif
+                Endif
+
+    	   		dbselectArea("SC6")
+    	   		RecLock("SC6",.T.)
+        	  		SC6->C6_FILIAL  := xFilial()
+	          		SC6->C6_ITEM    := StrZero(nItem,2) //SubStr(cBuffer,1,2)
+    	      		SC6->C6_PRODUTO := Substr(cBuffer,3,15)
+    	      		
+        	  		SC6->C6_UM      := "UN" //SB1->B1_UM
+	          		nQuant          := NoRound(Val(Substr(cBuffer,18,14))/100,02)
+                    DbSelectArea("SB1")
+                    If B1_QE<>0 .and. nQuant <> Int(nQuant/B1_QE)*B1_QE
+    	      		   SC6->C6_QTDVEN  := 0
+                       If EMPTY(xobs)
+    	      		      xobs:="QTDE INVALIDA:"
+                       Endif
+    	      		   xobs:=xobs+" "+StrZero(nItem,2)+" "+STR(nQuant,6,2)
+                    Else
+    	      		   SC6->C6_QTDVEN  := nQuant
+                    Endif
+        	  		SC6->C6_SEGUM   := SB1->B1_SEGUM
+        	  		SC6->C6_LOCAL   := "01" //SB1->B1_LOCPAD
+	          		SC6->C6_CLI     := cCliente
+    	      		nPercDesc       := NoRound(Val(Substr(cBuffer,70,4)),02)/100 // Percentual de Desconto
+//        	  		nTotItem  := NoRound(Val(Substr(cBuffer,46,14)),02)/100 // Total do Item
+    	      		nPrUnit         := NoRound(Val(Substr(cBuffer,32,14)),02)/100       
+			  		SC6->C6_VUNTREA := nPrUnit
+    	            Valbase         := nPrUnit
+    	            
+    	      		qout("CLIENTE:"+SA1->A1_COD+"   ME:"+SA1->A1_ME+"   UF:"+SA1->A1_EST+"   TS:"+SB1->B1_TS)
+    	      		If SA1->A1_ME == "S"  .AND. SA1->A1_EST=="BA"  .AND. SB1->B1_TS<>'529'
+				 		nPrUnit:=round(nPrUnit-(nPrUnit *  SA1->A1_DESC/100),2)       
+			  		ENDIF
+	       	  
+	       		  	SC6->C6_PRCVEN  := nPrUnit
+	       	  		SC6->C6_VEND1   := VEND1
+    	      		SC6->C6_PRUNIT  := nPrUnit        	  
+    	      		nTotItem        := nQuant * nPRUnit
+	          		nValDesc        := (nTotItem * nPercDesc)/100
+					SC6->C6_DESCONT := nPercDesc
+		          	SC6->C6_VALDESC := nValDesc 
+                    SC6->C6_TES     := Tes
+              
+              		If alltrim(_cEstCli) == alltrim(_cEstPad)
+	    	     	 	WCF  := "5"+substr(SF4->F4_CF,2,3)
+    	      		Else
+	    	      		WCF  := "6"+substr(SF4->F4_CF,2,3)
+    	      		Endif
+    	      
+                    SC6->C6_CF  := WCF
+    	      		SC6->C6_VALOR   := nTotItem  
+         	  		nTotPed         += nTotItem        	  
+	          		dEntreg         := SubStr(cBuffer,74,8)                                                                                                                     
+    	      		dData           := SubStr(dEntreg,7,2)+"/"+SubStr(dEntreg,5,2)+"/"+SubStr(dEntreg,3,2)  
+        	  		SC6->C6_ENTREG  := Ctod(dData)
+	          		SC6->C6_LOJA    := SA1->A1_LOJA
+    	      		SC6->C6_NUM     := cNumPedido
+        	  		SC6->C6_DESCRI  := SB1->B1_DESC
+			  		SC6->C6_COMIS1  := NoRound(Val(Substr(cBuffer,82,5)),02)/100
+			  		SC6->C6_SERVICO := "N"
+			  		SC6->C6_COMIS1  := wComis1
+			  		SC6->C6_PCM     := SB1->B1_PRV1
+
+                    Aliq    := 0
+                    Tserv:="N"
+                    If SA1->A1_EST==cEstado .or. Empty(Alltrim(SA1->A1_INSCR))
+                       Aliq:=GetMV("MV_ICMPAD")
+                    Else
+                       Aliq:=12
+                    Endif   
+                    Aliq:=(100-Aliq)/100
+                    PCM:=SB1->B1_PRV1/Aliq
+                    DESC:=0
+                    If SB1->B1_SUBGRUP="01" .OR. SB1->B1_SUBGRUP="02" .OR. SB1->B1_SUBGRUP="03"
+                       DESC:=0.85
+                    ElseIf (SB1->B1_SUBGRUP="04" .OR. SB1->B1_SUBGRUP="05") .AND. Tserv='N'
+                       If SB1->B1_SUBGRUP="05" .AND. (SB1->B1_CLASSE1="061" .OR. SB1->B1_CLASSE1="062")
+                          DESC:=0.5
+                       Else
+                          DESC:=0.9
+                       Endif
+                    ElseIf (SB1->B1_SUBGRUP="04" .OR. SB1->B1_SUBGRUP="05") .AND. Tserv='S'
+                       DESC:=0.45
+                    Endif
+                    If Valbase<(PCM*DESC)
+  	       		  	   SC6->C6_PRCVEN  := 0
+                    Endif
+   				    SC6->C6_ENCOMED := "N"
+    				SC6->C6_INIPROD := Date()
+       			MSUnLock()   
+                If  trim(SB1->B1_CLASSE1) = "031" .or. trim(SB1->B1_CLASSE1) = "035" .or. trim(SB1->B1_CLASSE1) = "039"
+                    xVol:=xVol+((SC6->C6_QTDVEN/SB1->B1_QE)*2)
+                Else
+                    xVol:=xVol+(SC6->C6_QTDVEN/SB1->B1_QE)
+                Endif
+   
+       			// GRAVAÇÃO NO SUB
+       			dbselectArea("SUB")
+       			RecLock("SUB",.T.)
+        	  		SUB->UB_FILIAL  := xFilial()
+	          		SUB->UB_ITEM    := StrZero(nItem,2) //SubStr(cBuffer,1,2)
+    	      		SUB->UB_PRODUTO := Substr(cBuffer,3,15)  
+        	  		SUB->UB_UM      := SB1->B1_UM
+        	  		SUB->UB_LOCAL   := "01" //SB1->B1_LOCPAD
+	          		nQuant          := NoRound(Val(Substr(cBuffer,18,14))/100,02)
+    	      		SUB->UB_QUANT   := nQuant
+    	      		nPercDesc       := NoRound(Val(Substr(cBuffer,70,4)),02)/100 // Percentual de Desconto
+//        	  		nTotItem        := NoRound(Val(Substr(cBuffer,46,14)),02)/100 // Total do Item
+    	      		nPrUnit         := NoRound(Val(Substr(cBuffer,32,14)),02)/100               
+				  	SUB->UB_VUNTREA := nPrUnit
+
+    	      		IF SA1->A1_ME=="S"  .AND. SA1->A1_EST=="BA"  .AND. SB1->B1_TS<>'529'
+				 		nPrUnit:=round(nPrUnit-(nPrUnit *  SA1->A1_DESC/100),2)       
+			  		ENDIF
+      	      		
+      	      		nTotItem        := nQuant * nPRUnit
+	          		nValDesc        := (nTotItem * nPercDesc)/100
+	       	  		SUB->UB_VRUNIT  := nPrUnit    	      
+    	      		SUB->UB_DESC    := nPercDesc
+	          		SUB->UB_VALDESC := nValDesc 
+    	      		SUB->UB_TES     := TES
+    	      		SUB->UB_CF      := WCF
+    	      		SUB->UB_VLRITEM := nTotItem          	  
+	          		dEntreg         := SubStr(cBuffer,74,8)                                                                                                                     
+    	      		dData           := SubStr(dEntreg,7,2)+"/"+SubStr(dEntreg,5,2)+"/"+SubStr(dEntreg,3,2)  
+    	      		cEntreg         := Ctod(dData)
+        	  		SUB->UB_DTENTRE := Ctod(dData)
+    	      		SUB->UB_NUM     := cPedCall
+//        	  		SUB->UB_DESCRI  := SB1->B1_DESC
+			  		SUB->UB_CM      := NoRound(Val(Substr(cBuffer,82,5)),02)/100 
+			  		SUB->UB_SERVICO := "N"
+			  		SUB->UB_CM      := wComis1
+			  		SUB->UB_PCM      := SB1->B1_PRV1
+    	   		MSUnLock()            
+             
+      	 		nItem++
+                nValItem := (SUB->UB_VRUNIT)*(SUB->UB_QUANT) 
+                nTotValCM:= nTotValCM + ((SUB->UB_CM/100)*nValItem)
+                nTotVal  := nTotVal + nValItem
+	    	Endif                    
+	                                                    
+	    	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		    //³ Leitura da proxima linha do arquivo texto.                          ³
+	    	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+    	    
+    	    nTamLin  := 88
+	    	nBtLidos := fRead(nHdl,@cBuffer,nTamLin) // Leitura da proxima linha do arquivo texto
+        
+    		dbSkip()
+ 
+	   	EndDo
+qout("QUANT. LIDA "+Str(NVEZ,2)) 
+	
+	Else
+		qout("pedido"+SubStr(cBuffer,1,6))   
+    Endif
+	
+	fClose(nHdl) 
+	//Close(oLeTxt)       
+    CpyS2T(cNomeArq,cDest,.F.)
+    fErase(cNomeArq)    
+
+    dbSelectArea("SUA")
+    SUA->( dbSetOrder(1) )
+    SUA->( dbseek(xFilial()+cPedCall,.T.) )
+    
+    If SUA->( Found() ) .and. lGrvSUB 
+	    dbSelectArea("SUA")
+    	RecLock("SUA",.F.)
+		  	SUA->UA_VLRLIQ  := nTotPed
+		  	SUA->UA_VALBRUT := nTotPed
+		  	SUA->UA_VALMERC := nTotPed
+		  	SUA->UA_DATFAT  := cEntreg
+       	MsUnlock()       
+	Endif
+
+    nComis1 := Round( ((nTotValCM/nTotVal)*100), 2 )
+
+    dbSelectArea("SC5")
+    SC5->( dbSetOrder(1) )
+    SC5->( dbseek(xFilial()+cNumPedido,.T.) )
+    
+    If SC5->( Found() ) .and. lGrvSUB 
+    	RecLock("SC5",.F.)
+		  	SC5->C5_COMIS1  := nComis1  
+            SC5->C5_VOLUME1 := xVol
+            If !EMPTY(xObs)
+  	  		   SC5->C5_MENPED1    := xObs
+            Endif
+       	MsUnlock()       
+	Endif
+    
+Next       
+
+If Len(aPedidos) > 0
+    EnvMail()
+Endif
+
+Return                        
+
+
+Static Function EnvMail
+qout("rotina envio de email")
+cServer      := Trim(GetMv("MV_WFSMTP"))
+cAccount   	 := Trim(GetMv("MV_WFACC"))
+cEnvia       := Trim(GetMv("MV_WFMAIL"))
+cPassword 	 := Trim(GetMv("MV_WFPASSW"))
+cRecebe 	 := Trim(GETMV("MV_ENVIA"))
+
+If Dow(Date()) = 1
+	cDia := "Domingo"
+ElseIf Dow(Date()) = 2
+    cDia := "Segunda-Feira"
+ElseIf Dow(Date()) = 3
+    cDia := "Terça-Feira"
+ElseIf Dow(Date()) = 4
+    cDia := "Quarta-Feira"
+ElseIf Dow(Date()) = 5
+    cDia := "Quinta-Feira"
+ElseIf Dow(Date()) = 6
+    cDia := "Sexta-Feira"
+ElseIf Dow(Date()) = 7
+    cDia := "Sabado"
+Endif    
+  
+cData := cDia +", "+StrZero(Day(Date()),02)+ " de " + MesExtenso(Date()) + " de " + StrZero(Year(Date()),4)
+
+cBody := '<head> '+CHR(13)
+cBody += '<title></title>'+CHR(13)
+cBody +=' </head>'+CHR(13)
+cBody +=' <form action="" method="post" name="FormCliente">'+CHR(13)
+cBody +=' <div align="center">'+CHR(13)
+cBody +='            <center>'+CHR(13)
+cBody +='            <table border="0" cellpadding="0" cellspacing="0" width="80%">'+CHR(13)
+cBody +='              <tr>'+CHR(13)
+cBody +='                <td class="txt_preto2">'+CHR(13)
+
+cBody +='<table border="0" cellpadding="0" cellspacing="0" width="100%">'+CHR(13)
+cBody +='  <tr>'+CHR(13)
+cBody +='    <td>'+CHR(13)
+
+cBody +='<table border="0" cellpadding="0" cellspacing="0" width="100%" height="74">'+CHR(13)
+cBody +='  <tr>'+CHR(13)
+cBody +='    <td valign="middle">'+CHR(13)
+cBody +='<table border="0" cellpadding="0" cellspacing="0" width="100%" height="74" background="http://pedidonovel.locaweb.com.br/img/home_topo_fundo.jpg">'+CHR(13)
+cBody +='  <tr>'+CHR(13)
+cBody +='    <td valign="middle">'+CHR(13)
+cBody +='      <p align="center"><a href="http://pedidonovel.locaweb.com.br/home/index.asp"><font face="tahoma, verdana, arial" size="2"><img border="0" src="http://pedidonovel.locaweb.com.br/img/home_topo_logo.gif" width="73" height="76"></font></a></td>'+CHR(13)
+cBody +='  </tr>'+CHR(13)
+cBody +='</table>'+CHR(13)
+
+cBody +='    </td>'+CHR(13)
+cBody +='  </tr>'+CHR(13)
+cBody +='</table>'+CHR(13)
+
+cBody +='    </td>'+CHR(13)
+cBody +='  </tr>'+CHR(13)
+cBody +='  <tr>'+CHR(13)
+cBody +='    <td valign="top">'+CHR(13)
+cBody +='      <table border="0" cellspacing="0" height="100%" width="100%" cellpadding="0">'+CHR(13)
+cBody +='        <tr>'+CHR(13)
+cBody +='          <td background="http://pedidonovel.locaweb.com.br/img/home_topo_regua_fundo.gif" class="txt_branco1" valign="top" height="12">'+CHR(13)
+cBody +='            <p align="center"><font face="tahoma, verdana, arial" size="2" color="#FFFFFF">' + cData + '</font></p>'+CHR(13)
+cBody +='          </td>'+CHR(13)
+cBody +='        </tr>'+CHR(13)
+cBody +='      </table>'+CHR(13)
+cBody +='    </td>'+CHR(13)
+cBody +='  </tr>'+CHR(13)
+cBody +='</table>'+CHR(13)
+
+cBody +='                  <div align="center">'+CHR(13)
+cBody +='                    <table border="0" cellpadding="3" cellspacing="3">'+CHR(13)
+cBody +='                      <tr>'+CHR(13)
+cBody +='                        <td>'+CHR(13)
+cBody +='                          <p align="center"><font face="tahoma, verdana, arial" size="2">Prezado'+CHR(13)
+cBody +='                          Usuário,</font>'+CHR(13)
+cBody +='                          <p align="center"><font face="tahoma, verdana, arial" size="2">Foram'+CHR(13)
+cBody +='                          importados os seguintes Pedidos:</font><p align="center"><font face="tahoma, verdana, arial" size="2"><b>'+CHR(13)
+For i:= 1 To Len(aPedidos)
+	 cBody +='                   Pedido:  '+aPedidos[i]+' Cliente: '+aCliente[i]+' - '+aNomeCli[i]+'<br>'+CHR(13)
+Next
+cBody +='                          </b></font><p align="center"><font face="tahoma, verdana, arial" size="2"><b>Os'+CHR(13)
+cBody +='                          mesmos estão aguardando liberação. </b></font><p align="center"><font face="tahoma, verdana, arial" size="2">Por'+CHR(13)
+cBody +='                          favor, consulte-os.</font></td>'+CHR(13)
+cBody +='                      </tr>'+CHR(13)
+cBody +='                    </table>'+CHR(13)
+cBody +='                  </div>'+CHR(13)
+cBody +='                </td>'+CHR(13)
+cBody +='              </tr>'+CHR(13)
+cBody +='              <tr>'+CHR(13)
+cBody +='                <td class="txt_preto2">'+CHR(13)
+
+cBody +='      <table border="0" cellspacing="0" height="100%" width="100%" cellpadding="0">'+CHR(13)
+cBody +='        <tr>'+CHR(13)
+cBody +='          <td background="http://pedidonovel.locaweb.com.br/img/home_topo_regua_fundo.gif" class="txt_branco1" valign="top" height="12">'+CHR(13)
+cBody +='            <p align="center"><font face="tahoma, verdana, arial" size="2" color="#FFFFFF"><a href="http://pedidonovel.locaweb.com.br">pedidonovel.locaweb.com.br</a></font></p>'+CHR(13)
+cBody +='          </td>'+CHR(13)
+cBody +='        </tr>'+CHR(13)
+cBody +='      </table>'+CHR(13)
+cBody +='                </td>'+CHR(13)
+cBody +='              </tr>'+CHR(13)
+cBody +='            </table>'+CHR(13)
+cBody +='                      </center>'+CHR(13)
+cBody +='</div>'+CHR(13)
+
+CONNECT SMTP SERVER cServer ACCOUNT cAccount PASSWORD cPassword Result lConectou
+
+SEND MAIL FROM cEnvia;
+		  TO cRecebe;
+		  SUBJECT 'Novel - Pedido Web' ;
+	      BODY cBody ;
+ 	      RESULT lEnviado
+
+If !lEnviado
+	//GET MAIL ERROR cMensagem 
+//	MsgAlert("Nao foi possivel enviar a mensagem. Tente novamente.")
+    qout("Nao foi possivel enviar a mensagem")
+Endif
+   
+DISCONNECT SMTP SERVER Result lDisConectou
+
+Return 
+
+
+Static Function MailCli
+qout("rotina envio de email")
+cServer      := Trim(GetMv("MV_WFSMTP"))
+cAccount   	 := Trim(GetMv("MV_WFACC"))
+cEnvia       := Trim(GetMv("MV_WFMAIL"))
+cPassword 	 := Trim(GetMv("MV_WFPASSW"))
+//cRecebe 	 := Trim(GETMV("MV_ENVIA"))     
+
+cRecebe := cMailVend+";"+cMailCli
+
+If Dow(Date()) = 1
+    cDia := "Domingo"
+ElseIf Dow(Date()) = 2
+    cDia := "Segunda-Feira"
+ElseIf Dow(Date()) = 3
+    cDia := "Terça-Feira"
+ElseIf Dow(Date()) = 4
+    cDia := "Quarta-Feira"
+ElseIf Dow(Date()) = 5
+    cDia := "Quinta-Feira"
+ElseIf Dow(Date()) = 6
+    cDia := "Sexta-Feira"
+ElseIf Dow(Date()) = 7
+    cDia := "Sabado"
+Endif    
+  
+cData := cDia +", "+StrZero(Day(Date()),02)+ " de " + MesExtenso(Date()) + " de " + StrZero(Year(Date()),4)
+
+cBody := '<head> '+CHR(13)
+cBody += '<title></title>'+CHR(13)
+cBody +=' </head>'+CHR(13)
+cBody +=' <form action="" method="post" name="FormCliente">'+CHR(13)
+cBody +=' <div align="center">'+CHR(13)
+cBody +='            <center>'+CHR(13)
+cBody +='            <table border="0" cellpadding="0" cellspacing="0" width="80%">'+CHR(13)
+cBody +='              <tr>'+CHR(13)
+cBody +='                <td class="txt_preto2">'+CHR(13)
+
+cBody +='<table border="0" cellpadding="0" cellspacing="0" width="100%">'+CHR(13)
+cBody +='  <tr>'+CHR(13)
+cBody +='    <td>'+CHR(13)
+
+cBody +='<table border="0" cellpadding="0" cellspacing="0" width="100%" height="74">'+CHR(13)
+cBody +='  <tr>'+CHR(13)
+cBody +='    <td valign="middle">'+CHR(13)
+cBody +='<table border="0" cellpadding="0" cellspacing="0" width="100%" height="74" background="http://pedidonovel.locaweb.com.br/img/home_topo_fundo.jpg">'+CHR(13)
+cBody +='  <tr>'+CHR(13)
+cBody +='    <td valign="middle">'+CHR(13)
+cBody +='      <p align="center"><a href="http://pedidonovel.locaweb.com.br/home/index.asp"><font face="tahoma, verdana, arial" size="2"><img border="0" src="http://pedidonovel.locaweb.com.br/img/home_topo_logo.gif" width="73" height="76"></font></a></td>'+CHR(13)
+cBody +='  </tr>'+CHR(13)
+cBody +='</table>'+CHR(13)
+
+cBody +='    </td>'+CHR(13)
+cBody +='  </tr>'+CHR(13)
+cBody +='</table>'+CHR(13)
+
+cBody +='    </td>'+CHR(13)
+cBody +='  </tr>'+CHR(13)
+cBody +='  <tr>'+CHR(13)
+cBody +='    <td valign="top">'+CHR(13)
+cBody +='      <table border="0" cellspacing="0" height="100%" width="100%" cellpadding="0">'+CHR(13)
+cBody +='        <tr>'+CHR(13)
+cBody +='          <td background="http://pedidonovel.locaweb.com.br/img/home_topo_regua_fundo.gif" class="txt_branco1" valign="top" height="12">'+CHR(13)
+cBody +='            <p align="center"><font face="tahoma, verdana, arial" size="2" color="#FFFFFF">' + cData + '</font></p>'+CHR(13)
+cBody +='          </td>'+CHR(13)
+cBody +='        </tr>'+CHR(13)
+cBody +='      </table>'+CHR(13)
+cBody +='    </td>'+CHR(13)
+cBody +='  </tr>'+CHR(13)
+cBody +='</table>'+CHR(13)
+
+cBody +='                  <div align="center">'+CHR(13)
+cBody +='                    <table border="0" cellpadding="3" cellspacing="3">'+CHR(13)
+cBody +='                      <tr>'+CHR(13)
+cBody +='                        <td>'+CHR(13)
+cBody +='                          <p align="center"><font face="tahoma, verdana, arial" size="2">Prezado'+CHR(13)
+cBody +='                          Cliente ('+cNomeCli+'),</font>'+CHR(13)
+cBody +='                          <p align="center"><font face="tahoma, verdana, arial" size="2">O'+CHR(13)
+cBody +='                          pedido número '+cPedido+' foi importado com sucesso." </font><p align="center"><font face="tahoma, verdana, arial" size="2"><b>'+CHR(13)
+//For i:= 1 To Len(aPedidos)
+//	 cBody +='                          - '+aPedidos[i]+' Cliente: '+aCliente[i]+' - '+aNomeCli[i]+'<br>'+CHR(13)
+//Next
+cBody +='                          </b></font><p align="center"><font face="tahoma, verdana, arial" size="2"><b>O'+CHR(13)
+cBody +='                          mesmo está aguardando liberação. </b></font><p align="center"><font face="tahoma, verdana, arial" size="2">'+CHR(13)
+cBody +='                          '+CHR(13)
+cBody +='                      </tr>'+CHR(13)
+cBody +='                    </table>'+CHR(13)
+cBody +='                  </div>'+CHR(13)
+cBody +='                </td>'+CHR(13)
+cBody +='              </tr>'+CHR(13)
+cBody +='              <tr>'+CHR(13)
+cBody +='                <td class="txt_preto2">'+CHR(13)
+
+cBody +='      <table border="0" cellspacing="0" height="100%" width="100%" cellpadding="0">'+CHR(13)
+cBody +='        <tr>'+CHR(13)
+cBody +='          <td background="http://pedidonovel.locaweb.com.br/img/home_topo_regua_fundo.gif" class="txt_branco1" valign="top" height="12">'+CHR(13)
+cBody +='            <p align="center"><font face="tahoma, verdana, arial" size="2" color="#FFFFFF"><a href="http://pedidonovel.locaweb.com.br">pedidonovel.locaweb.com.br</a></font></p>'+CHR(13)
+cBody +='          </td>'+CHR(13)
+cBody +='        </tr>'+CHR(13)
+cBody +='      </table>'+CHR(13)
+cBody +='                </td>'+CHR(13)
+cBody +='              </tr>'+CHR(13)
+cBody +='            </table>'+CHR(13)
+cBody +='                      </center>'+CHR(13)
+cBody +='</div>'+CHR(13)
+
+CONNECT SMTP SERVER cServer ACCOUNT cAccount PASSWORD cPassword Result lConectou
+
+SEND MAIL FROM cEnvia;
+		  TO cRecebe;
+		  SUBJECT 'Novel - Pedido Web' ;
+	      BODY cBody ;
+ 	      RESULT lEnviado
+
+If !lEnviado
+	//GET MAIL ERROR cMensagem 
+//	Alert("Nao foi possivel enviar a mensagem. Tente novamente.")
+    qout("Nao foi possivel enviar a mensagem")
+Endif
+   
+DISCONNECT SMTP SERVER Result lDisConectou
+
+Return

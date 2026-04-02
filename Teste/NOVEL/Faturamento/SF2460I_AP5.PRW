@@ -1,0 +1,425 @@
+#include "rwmake.ch"     
+
+User Function SF2460I()       
+//
+
+//
+// 02/09/05 - Reducao do frete na base do IPI.
+// 19/09/05 - Não altera a NF. Guarda o valor do frete digitado em F2_VLFRETE e o novo valor do IPI com desconto em F2_IPISFR.
+
+ 
+ nDesci1  := 0
+ cDoc     := SF2->F2_DOC
+ cCliente := SF2->F2_CLIENTE
+ cSerie   := SF2->F2_SERIE
+ cEmissao := SF2->F2_EMISSAO
+ cLoja    := SF2->F2_LOJA
+ nCont    := 0  
+ ntotori  := 0            
+ 
+////
+
+// MICROEMPRESSA, PARA USO E CONSUMO.
+ 
+ 
+ DbSelectArea("SA1") 
+ DbSetOrder(1) 
+ DbSeek( xFilial() + SF2->F2_CLIENTE )
+ mEMPRESA := alltrim(SA1->A1_ME)      
+    
+DbSelectArea("SD2")
+DbSetOrder(3)
+DbSeek( xFilial() + cDoc + cSerie + cCliente + cLoja )
+mTES := SD2->D2_TES
+
+
+// GUARDA VALOR DO FRETE PARA TODA NOTA DE SAIDA
+
+
+@ 150,000 TO 300,650 DIALOG oDlg4 TITLE "INFORMAR O VALOR DO FRETE DA NF!!"
+fretetot := 0.00    
+@ 15,19  SAY "NOTA FISCAL =>>        "
+@ 15,75  SAY CDOC
+@ 30,19  SAY "VLR. DO FRETE DA NF R$:"
+@ 30,75  get fretetot size 50,50 Picture "@E 999,999.99"
+@ 50,150 BMPBUTTON TYPE 1 ACTION OkProc4()
+ACTIVATE DIALOG oDlg4 CENTER
+
+
+Static Function OkProc4()
+RecLock("SD2",.F.)
+SD2->D2_FRETENF := fretetot
+MsUnlock()   
+Close(oDlg4)
+      
+ 
+If mempresa = "S" .and. mTES = "506"    
+
+    vlrICMS    = 0.00
+    BaseICMS   = 0.00         
+    vlripi     = 0.00
+    
+                    
+    tvlrICMS    = 0.00
+    tBaseICMS   = 0.00
+    tvlripi     = 0.00
+    TBASEIPI    = 0.00
+    
+    vlrmerc  = 0.00 
+    tvlrmerc = 0.00    
+       
+
+
+    DbSelectArea("SD2")
+    DbSetOrder(3)
+    Dbgotop()
+    DbSeek( xFilial() + cDoc + cSerie + cCliente + cLoja )     
+    
+        
+    DbSelectArea("SF3")    // Altera Livro Fiscal
+    DbSetOrder(4) 
+    DBGOTOP()        
+    DbSeek( xFilial() + cCliente + cLOJA + cDOC + cSerie )
+    
+    DbSelectArea("SD2")    
+       
+    while TRIM(SF2->F2_DOC)==TRIM(SD2->D2_DOC) .AND. TRIM(SF2->F2_SERIE)==TRIM(SD2->D2_SERIE)
+    
+       mpedido  = SD2->D2_PEDIDO 
+       mitem    = SD2->D2_ITEMPV 
+       mqtdped  = SD2->D2_QUANT
+       mproduto = SD2->D2_COD
+       
+       aliqipi  = (SD2->D2_IPI / 100)
+       aliqicm  = (SD2->D2_PICM / 100)
+       
+       DbSelectArea("SC6")
+       DbSetOrder(1)
+       Dbgotop()
+       DbSeek( xFilial() + mpedido + mitem + mproduto )
+       mprcped = SC6->C6_VUNTREA
+      // mvlrtotfat = SD2->D2_QUANT * mprcped
+       mvlrtotfat = SD2->D2_BASIMP5
+       mprcipi = SC6->C6_VUNTREA * SD2->D2_QUANT 
+       DbSelectArea("SD2")    
+        
+       // Acumulado na NF. / IPI                
+       
+       tbaseipi  = tbaseipi + mprcipi
+       tvlripi   = tvlripi  + (mprcipi * aliqipi)
+                 
+       // Valor do item  
+                                     
+       baseipi = mprcipi
+       vlripi  = mprcipi * aliqipi
+        
+       baseicms = mvlrtotfat + vlripi
+       vlricms  = baseicms * aliqicm 
+              
+       vlrmerc  = mqtdped * mprcped 
+          
+       tvlrmerc = tvlrmerc + vlrmerc    
+              
+       RecLock("SD2",.F.)              
+       
+       Replace SD2->D2_PRCVEN  with mprcped
+       Replace SD2->D2_TOTAL   with vlrmerc
+       
+       Replace SD2->D2_BASEICM  with baseicms     
+	   Replace SD2->D2_VALICM   with vlricms       
+        
+       Replace SD2->D2_BASEIPI  with baseIPI     
+	   Replace SD2->D2_VALIPI   with vlriPI
+       DbUnlock()      
+       
+       tBaseICMS = tBaseICMS + baseicms
+       tVlrICMS  = tVlrICMS  + vlricms
+       
+       dbSelectArea("SD2")
+       dbSkip()
+       
+    enddo                                    
+    
+    DbSelectArea("SF3")    // Altera Livro Fiscal
+    
+    RecLock("SF3",.F.)
+       
+    Replace SF3->F3_BASEICM    With tBaseICMS      
+    Replace SF3->F3_VALICM     With tVlrICMS
+    Replace SF3->F3_BASEIPI    with tbaseIPI     
+    Replace SF3->F3_VALIPI     with tvlriPI
+    
+    Replace SF3->F3_VALCONT    with tbaseICMS
+                  
+    DbUnlock()
+    
+    DbSelectArea("SF2")   // Altera Cabecalho de Nf's de Saida
+    DbSetOrder(2)                              
+    Dbgotop()
+    DbSeek( xFilial() + cCliente + cLoja + cDoc + cSerie )
+    
+    RecLock("SF2",.F.)
+    Replace SF2->F2_BASEICM With tBaseICMS
+    Replace SF2->F2_VALICM  With tVlrICMS  
+    
+    Replace SF2->F2_BASEIPI With Tbaseipi 
+    Replace SF2->F2_VALIPI  With Tvlripi     
+    
+    
+    
+    DbUnlock()
+               
+ endif      
+
+/////////////////////////////////////////////////////
+          
+// CALCULO DE PESO LIQUIDO E PESO BRUTO           
+ 
+
+DbSelectArea("SA1") 
+DbSetOrder(1) 
+DbSeek( xFilial() + cCliente )
+MEST := SA1->A1_EST      
+ 
+IF MEST <> "EX"
+
+   DbSelectArea("SD2")
+   DbSetOrder(3)
+   DbSeek( xFilial() + cDoc + cSerie + cCliente + cLoja )        
+
+   DbSelectArea("SD2")    
+       
+   MPESO := 0.00
+   MPESO := 0.00
+   MQTDEMB := 0.00
+   MPESOEMB := 0.00
+   MPESOLIQ  := 0.00
+   MQTDEMBVD := 0.00
+   MPESOLIQEMB := 0.00
+   MPESOBRUTO  := 0.00
+   MPESOBRTOTAL := 0.00  
+   MPESOLIQT  := 0.00
+
+   while TRIM(SF2->F2_DOC)==TRIM(SD2->D2_DOC) .AND. TRIM(SF2->F2_SERIE)==TRIM(SD2->D2_SERIE)
+      MCOD    := SD2->D2_COD
+      MQTDVEN := SD2->D2_QUANT   
+      DbSelectArea("SB1")
+      DbSetOrder(1)
+      DbSeek( xFilial() + MCOD )     
+      MPESO := SB1->B1_PESO
+      MQTDEMB := SB1->B1_QE
+      MPESOEMB := SB1->B1_PESOEMB
+      IF MPESO <> 0 .AND. MQTDEMB <> 0 .AND. MPESOEMB <> 0  
+         MPESOLIQ  := (MPESO * MQTDVEN)
+         MQTDEMBVD := (MQTDVEN / MQTDEMB)
+         MPESOLIQEMB := (MPESOEMB * MQTDEMBVD)
+         MPESOBRUTO   := (MPESOLIQ + MPESOLIQEMB)
+         MPESOLIQT    := (MPESOLIQT + MPESOLIQ)     
+         MPESOBRTOTAL := MPESOBRTOTAL + MPESOLIQEMB + MPESOLIQ    
+      ENDIF
+      DbSelectArea("SD2")      
+      dbSkip()
+    enddo
+                  
+    DbSelectArea("SF2")   // Altera Peso na Nf's de Saida
+    DbSetOrder(2)                              
+    Dbgotop()
+    DbSeek( xFilial() + cCliente + cLoja + cDoc + cSerie )
+    RecLock("SF2",.F.)
+    Replace SF2->F2_PLIQUI With MPESOLIQT
+    Replace SF2->F2_PBRUTO   With MPESOBRTOTAL  
+    DbUnlock()          
+ENDIF          
+// FIM CALCULO DO PESO          
+          
+          
+          
+                 
+
+
+// IPI ZERO - ATUALIZAÇÃO DE IPI OUTRAS LIVROS FISCAIS
+
+DbSelectArea("SD2")
+DbSetOrder(3)
+DbSeek( xFilial() + cDoc + cSerie + cCliente + cLoja )
+
+
+DbSelectArea("SF3")    // Altera Livro Fiscal
+DbSetOrder(4) 
+DBGOTOP()        
+DbSeek( xFilial() + cCliente + cLOJA + cDOC + cSerie )
+    
+DbSelectArea("SD2")    
+MIPIOUTRAS = 0       
+while TRIM(SF2->F2_DOC)==TRIM(SD2->D2_DOC) .AND. TRIM(SF2->F2_SERIE)==TRIM(SD2->D2_SERIE)
+      IF SD2->D2_IPI = 0
+         MIPIOUTRAS =  MIPIOUTRAS + SD2->D2_TOTAL  
+      ENDIF 
+   DbSelectArea("SD2")      
+   dbSkip()
+enddo
+
+DbSelectArea("SF3")    // Altera Livro Fiscal
+DbSetOrder(4) 
+DBGOTOP()        
+DbSeek( xFilial() + cCliente + cLOJA + cDOC + cSerie )
+IF !EOF()  
+   recLock("SF3",.F.)
+   replace SF3->F3_OUTRIPI with MIPIOUTRAS   
+   msUnlock()                 
+ENDIF
+
+//////////////////////////////////
+
+
+dbSelectArea("SD2")
+dbSetOrder(3)
+DbSeek( xFilial() + cDoc + cSerie + cCliente + cLoja )
+
+dbSelectArea("SC5")
+dbSetOrder(1)
+dbSeek( xFilial()+SD2->D2_PEDIDO,.F.)
+If SF2->F2_VALIPI<>0 .AND. SC5->C5_TPFRETE="C"
+   WFrete:=0
+   @ 96,42 TO 323,505 DIALOG oDlg2 TITLE "Recalculo do IPI"
+   @ 8,10 TO 84,222
+   @ 13,14  SAY "Esta rotina tem como objetivo recalcular a base e o valor do IPI"
+   @ 23,14  SAY "abatendo o valor do frete."
+   @ 43,14  SAY "N.Fiscal :"
+   @ 43,44  SAY cDoc
+   @ 43,74  SAY "N.Pedido :"
+   @ 43,104 SAY SC5->C5_NUM
+   @ 63,14  SAY "VLR. FRETE :"
+   @ 63,44  GET WFrete size 50,50 Picture "@E 999,999.99" valid tstfrete()
+   @ 91,196 BMPBUTTON TYPE 1 ACTION OkProc2()
+   ACTIVATE DIALOG oDlg2 CENTER
+Endif
+
+Return
+
+Static Function OkProc2()
+
+XVLBRUT:=0
+XVLIPI:=0
+XVLBIPI:=0
+XVLICM:=0
+XVLBICM:=0
+dbSelectArea("SD2")
+While !Eof() .And. cDoc = SD2->D2_DOC .And. cSerie = SD2->D2_SERIE .And. cCliente = SD2->D2_CLIENTE .And. cLoja = SD2->D2_LOJA 	
+   VIPI:=0
+   If D2_IPI<>0
+      dbSelectArea("SF4")
+	  dbseek(xFilial()+SD2->D2_TES)
+      dbSelectArea("SD2")
+      VlFrete:=Wfrete*(D2_TOTAL*100/SF2->F2_VALMERC)/100
+      BIPI:=D2_TOTAL-VlFrete
+      VIPI:=BIPI*D2_IPI/100
+      XVLBIPI:=XVLBIPI+BIPI
+      XVLIPI:=XVLIPI+VIPI
+   Endif
+   XVLBRUT:=XVLBRUT+D2_TOTAL+VIPI
+   XVLICM:=XVLICM+D2_VALICM
+   XVLBICM:=XVLBICM+D2_BASEICM
+   dbSelectArea("SD2")
+   DbSkip()
+Enddo             
+recLock("SF2",.F.)              
+SF2->F2_VLFRETE := WFRETE
+SF2->F2_IPISFR  := XVLIPI
+msUnlock()
+XDFIPI:=SF2->F2_VALIPI-SF2->F2_IPISFR
+//Close(oDlg2)
+cMen1:=cMen2:=cMen3:=cMen4:=cMen5:=cMen6:=cMen7:=cMen8:=cMen9:=cMenA:=cMenB:=cMenC:=cMenD:=cMenE:=cMenF:=Space(55)
+cMen1 := SC5->C5_DESCR1
+cMen2 := SC5->C5_DESCR2
+cMen3 := SC5->C5_DESCR3               
+cMen4 := SC5->C5_DESCR4
+cMen5 := SC5->C5_DESCR5
+cMen6 := SC5->C5_DESCR6
+cMen7 := SC5->C5_DESCR7
+cMen8 := SC5->C5_DESCR8
+cMen9 := SC5->C5_DESCR9
+cMenA := SC5->C5_DESCR10
+cMenB := SC5->C5_DESCR11
+cMenC := SC5->C5_DESCR12
+cMenD := SC5->C5_DESCR13
+cMenE := SC5->C5_DESCR14
+cMenF := SC5->C5_DESCR15
+@ 0,00 TO 500,650 DIALOG oDlg3 TITLE "Recalculo do IPI"
+@ 3,05 TO 220,320
+@ 13,14  SAY "N.Fiscal :"
+@ 13,44  SAY cDoc 
+@ 13,74  SAY "N.Pedido :"
+@ 13,104 SAY SC5->C5_NUM
+@ 33,14  SAY "VLR. FRETE :"
+@ 33,44  SAY WFrete Picture "@E 999,999.99"
+@ 33,85  SAY "VLR. IPI S/FRETE:"
+@ 33,136 SAY XDFIPI Picture "@E 999,999.99"
+@ 53,14 SAY "Mens NF  1"
+@ 53,44 GET cMen1 PICTURE "@!" Size 260,50
+@ 63,14 SAY "Mens NF  2"
+@ 63,44 GET cMen2 PICTURE "@!" Size 260,50
+@ 73,14 SAY "Mens NF  3"
+@ 73,44 GET cMen3 PICTURE "@!" Size 260,50
+@ 83,14 SAY "Mens NF  4"
+@ 83,44 GET cMen4 PICTURE "@!" Size 260,50
+@ 93,14 SAY "Mens NF  5"
+@ 93,44 GET cMen5 PICTURE "@!" Size 260,50
+@ 103,14 SAY "Mens NF  6"
+@ 103,44 GET cMen6 PICTURE "@!" Size 260,50
+@ 113,14 SAY "Mens NF  7"
+@ 113,44 GET cMen7 PICTURE "@!" Size 260,50
+@ 123,14 SAY "Mens NF  8"
+@ 123,44 GET cMen8 PICTURE "@!" Size 260,50
+@ 133,14 SAY "Mens NF  9"
+@ 133,44 GET cMen9 PICTURE "@!" Size 260,50 
+@ 143,14 SAY "Mens NF 10"
+@ 143,44 GET cMenA PICTURE "@!" Size 260,50
+@ 153,14 SAY "Mens NF 11"
+@ 153,44 GET cMenB PICTURE "@!" Size 260,50
+@ 163,14 SAY "Mens NF 12"
+@ 163,44 GET cMenC PICTURE "@!" Size 260,50
+@ 173,14 SAY "Mens NF 13"
+@ 173,44 GET cMenD PICTURE "@!" Size 260,50
+@ 183,14 SAY "Mens NF 14"
+@ 183,44 GET cMenE PICTURE "@!" Size 260,50
+@ 193,14 SAY "Mens NF 15"
+@ 193,44 GET cMenF PICTURE "@!" Size 260,50
+@ 228,150 BMPBUTTON TYPE 1 ACTION OkProc3()
+ACTIVATE DIALOG oDlg3 CENTER
+
+Close(oDlg2)
+Return(nil)       
+
+Static Function OkProc3()
+
+RecLock("SC5",.F.)
+SC5->C5_DESCR1  := cMen1
+SC5->C5_DESCR2  := cMen2  
+SC5->C5_DESCR3  := cMen3  
+SC5->C5_DESCR4  := cMen4  
+SC5->C5_DESCR5  := cMen5  
+SC5->C5_DESCR6  := cMen6  
+SC5->C5_DESCR7  := cMen7  
+SC5->C5_DESCR8  := cMen8  
+SC5->C5_DESCR9  := cMen9  
+SC5->C5_DESCR10 := cMenA  
+SC5->C5_DESCR11 := cMenB  
+SC5->C5_DESCR12 := cMenC  
+SC5->C5_DESCR13 := cMenD 
+SC5->C5_DESCR14 := cMenE  
+SC5->C5_DESCR15 := cMenF  
+MsUnlock()   
+Close(oDlg3)
+Return(nil)           
+
+
+Static Function TSTFRETE()
+ 
+If WFrete=0
+   Msgbox("Frete inválido!")
+   Return .F.
+Endif
+Return    
+            
+Return     

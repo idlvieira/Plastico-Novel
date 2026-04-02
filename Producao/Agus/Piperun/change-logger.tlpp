@@ -1,0 +1,448 @@
+#include 'tlpp-core.th'
+
+namespace load.change.logger
+
+#define CRLF chr(13) + chr(10) // pulo de linha
+
+/*/{Protheus.doc} ChangeLogger
+    Classe para análise e gravação de logs de registros e auditoria
+    @author Lucas Silva Vieira
+    @since 01/02/2024
+    @version 1.0
+/*/
+class ChangeLogger
+    // atributos private, somente de uso e visibilidade na própria classe
+    private data oldValues     as json      // JsonObject dos valores antigos
+    private data newValues     as json      // JsonObject dos valores novos
+    private data tableAlias    as character // alias da tabela
+    private data tableSeek     as character // valor para busca do registro
+    private data tableIndex    as character // índice da busca
+    private data tableRecno    as numeric   // recno do registro na tabela
+    private data operation     as numeric   // operação executada
+    private data messages      as array     // mensagens do processo
+    private data oldProperties as array     // propriedades do JsonObject para valores antigos
+    private data newProperties as array     // propriedades do JsonObject para valores novos
+    private data result        as array     // resultado da comparação
+
+    // métodos public, de uso e visibilidade na própria classe e em suas instâncias
+    public method new()            as object    // método construtor da classe
+    public method setOldValues()                // método para atribuição dos valores antigos
+    public method setNewValues()                // método para atribuição dos valores novos
+    public method setOperation()                // método para atribuição da operação executada
+    public method compare()                     // método para comparação de valores antigos e novos
+    public method save()                        // método para salvar os resultados da comparação
+    public method getMessages()    as array     // método que retorna as mensagens do processo
+    public method getResult()      as array     // método que retorna o resultado da comparação
+
+    // métodos private, somente de uso e visibilidade na própria classe
+    private method addMessage()                 // método para adicionar uma nova mensagem
+endClass
+
+/*/{Protheus.doc} new
+    construtor da classe
+    @author Lucas Silva Vieira
+    @since 01/02/2024
+    @version 1.0
+    @param tableAlias, character, alias da tabela
+    @param tableRecno, numeric  , recno do registro na tabela
+    @param tableSeek , character, valor para busca do registro
+    @param tableIndex, character, índice para busca do registro
+
+    @return self, object, instância ativa da classe
+/*/
+method new(tableAlias as character, tableRecno as numeric,;
+    tableSeek as character, tableIndex as character) as object class ChangeLogger
+    // inicialização de atributos
+    self:messages      := {}
+    self:oldProperties := {}
+    self:newProperties := {}
+    self:result        := {}
+    self:operation     := 0
+    self:oldValues     := JsonObject():new()
+    self:newValues     := JsonObject():new()
+    self:tableAlias    := tableAlias
+    self:tableRecno    := tableRecno
+    self:tableSeek     := tableSeek
+    self:tableIndex    := tableIndex
+    
+    self:addMessage('new', 'info', 'inicializando nova instância da classe ChangeLogger')
+return self
+
+/*/{Protheus.doc} setOldValues
+    método para atribuição dos valores antigos
+    @author Lucas Silva Vieira
+    @since 01/02/2024
+    @version 1.0
+    @param oldValues, json, JsonObject dos valores antigos
+/*/
+method setOldValues(oldValues as json) class ChangeLogger
+    // valida o parâmetro
+    if (valType(oldValues) == 'J')
+        self:oldProperties := oldValues:getNames()
+
+        if (len(self:oldProperties) > 0)
+            self:oldValues := oldValues
+        else
+            self:addMessage('setOldValues', 'error', 'Parâmetro "oldValues" não possui propriedades')    
+        endIf
+    else
+        self:addMessage('setOldValues', 'error', 'Parâmetro "oldValues" não é do tipo JSON')
+    endIf
+return
+
+/*/{Protheus.doc} setNewValues
+    método para atribuição dos valores antigos
+    @author Lucas Silva Vieira
+    @since 01/02/2024
+    @version 1.0
+    @param newValues, json, JsonObject dos valores novos
+/*/
+method setNewValues(newValues as json) class ChangeLogger
+    // valida o parâmetro
+    if (valType(newValues) == 'J')
+        self:newProperties := newValues:getNames()
+
+        if (len(self:newProperties) > 0)
+            self:newValues := newValues
+        else
+            self:addMessage('setNewValues', 'error', 'Parâmetro "newValues" não possui propriedades')    
+        endIf
+    else
+        self:addMessage('setNewValues', 'error', 'Parâmetro "newValues" não é do tipo JSON')
+    endIf
+return
+
+/*/{Protheus.doc} setOperation
+    método para atribuição da operação executada
+    @author Lucas Silva Vieira
+    @since 01/02/2024
+    @version 1.0
+
+    @param operation, numeric, operação executada
+/*/
+method setOperation(operation as numeric) class ChangeLogger
+    // valida o parâmetro
+    if (valType(operation) == 'N')
+        if (operation >= 02 .AND. operation <= 04)
+            self:operation := operation
+        else
+            self:addMessage('setOperation', 'error', 'Operação Inválida, ' +;
+                'utilize 3 para Inclusão, 4 para Alteração ou 2 para Exclusão')
+        endIf
+    else
+        self:addMessage('setOperation', 'error', 'Parâmetro "operation" não é do tipo NUMERIC')
+    endIf
+return
+
+/*/{Protheus.doc} compare
+    método para comparação de valores antigos e novos
+    @author Lucas Silva Vieira
+    @since 01/02/2024
+    @version 1.0
+/*/
+method compare() class ChangeLogger
+    local info     as json    // JsonObject com informações
+    local property as character // propriedade do JSON
+    local oldType  as character // tipo do conteúdo do valor antigo
+    local newType  as character // tipo do conteúdo do valor novo
+    local index    as numeric // controle de FOR
+    
+    // verifica se possui os valores necessários
+    do case
+        case self:operation == 03 // inclusão
+            // por se tratar de uma inclusão, os valores novos são os que interessa
+            for index := 01 to len(self:newProperties)
+                // atribui a propriedade
+                property := self:newProperties[index]
+
+                // adiciona as informações
+                info := JsonObject():new()
+
+                info['field']       := property
+                info['type']        := valType(self:newValues[property])
+                info['description'] := allTrim(FWSX3Util():getDescription(property))
+                info['options']     := getOptions(allTrim(getSX3Cache(property, 'X3_CBOX')))
+                info['old_value']   := ''
+                info['new_value']   := getValue(self:newValues[property], info['type'])
+                info['observation'] := 'VALOR ATRIBUIDO NA INCLUSÃO'
+
+                aAdd(self:result, info)
+            next index
+        case self:operation == 04 // alteração
+            // por se tratar de uma alteração, verifica sempre nos novos valores e os comparo com os antigos
+            for index := 01 to len(self:newProperties)
+                // atribui a propriedade
+                property := self:newProperties[index]
+
+                // verifica se a possui nos valores antigos
+                if (self:oldValues:hasProperty(property))
+                    // verifica o tipo do conteúdo
+                    oldType := valType(self:oldValues[property])
+                    newType := valType(self:newValues[property])
+
+                    // efetua a comparação
+                    if (oldType != newType)
+                        // adiciona as informações
+                        info := JsonObject():new()
+
+                        info['field']       := property
+                        info['type']        := newType
+                        info['description'] := allTrim(FWSX3Util():getDescription(property))
+                        info['options']     := getOptions(allTrim(getSX3Cache(property, 'X3_CBOX')))
+                        info['old_value']   := getValue(self:oldValues[property], oldType)
+                        info['new_value']   := getValue(self:newValues[property], newType)
+                        info['observation'] := 'VALOR ATRIBUIDO NA ALTERAÇÃO - ' +;
+                            'TIPOS INCOMPATÍVEIS ' + oldType + '->' + newType
+
+                        aAdd(self:result, info)
+                    elseIf (self:oldValues[property] != self:newValues[property])
+                        // adiciona as informações
+                        info := JsonObject():new()
+
+                        info['field']       := property
+                        info['type']        := newType
+                        info['description'] := allTrim(FWSX3Util():getDescription(property))
+                        info['options']     := getOptions(allTrim(getSX3Cache(property, 'X3_CBOX')))
+                        info['old_value']   := getValue(self:oldValues[property], info['type'])
+                        info['new_value']   := getValue(self:newValues[property], info['type'])
+                        info['observation'] := 'VALOR ATRIBUIDO NA ALTERAÇÃO'
+
+                        aAdd(self:result, info)
+                    endIf
+                endIf
+            next index
+        case self:operation == 02 // exclusão
+            // por se tratar de uma exclusão, os valores antigos são os que interessa
+            for index := 01 to len(self:oldProperties)
+                // atribui a propriedade
+                property := self:oldProperties[index]
+
+                // adiciona as informações
+                info := JsonObject():new()
+
+                info['field']       := property
+                info['type']        := valType(self:oldValues[property])
+                info['description'] := allTrim(FWSX3Util():getDescription(property))
+                info['options']     := getOptions(allTrim(getSX3Cache(property, 'X3_CBOX')))
+                info['old_value']   := getValue(self:oldValues[property], info['type'])
+                info['new_value']   := ''
+                info['observation'] := 'VALOR ATRIBUIDO NA EXCLUSÃO'
+
+                aAdd(self:result, info)
+            next index
+    endCase
+return
+
+/*/{Protheus.doc} save
+    método para salvar os resultados da comparação
+    @author Lucas Silva Vieira
+    @since 01/02/2024
+    @version 1.0
+/*/
+method save() class ChangeLogger
+    local code     as character // código sequencial da tabela SZD
+    local index    as numeric // controle de FOR
+    
+    // gera código sequencial
+    code := getSXENum('SZD', 'ZD_CODIGO')
+    confirmSX8()
+
+    // inclui o registro no cabeçalho
+    if (recLock('SZD', .T.))
+        SZD->ZD_FILIAL  := FWxFilial('SZD')
+        SZD->ZD_CODIGO  := code
+        SZD->ZD_ALIAS   := self:tableAlias
+        SZD->ZD_NOME    := FWSX2Util():getX2Name(self:tableAlias)
+        SZD->ZD_RECNO   := self:tableRecno
+        SZD->ZD_OPERACA := cValToChar(self:operation)
+        SZD->ZD_DATA    := dDataBase
+        SZD->ZD_HORA    := left(time(), 05)
+        SZD->ZD_CODUSU  := retCodUsr()
+        SZD->ZD_NOMEUSU := usrRetName(retCodUsr())
+        SZD->ZD_SEEK    := self:tableSeek
+        SZD->ZD_INDEX   := self:tableIndex
+        SZD->(msUnlock())
+    endIf
+
+    // inclui o(s) registro(s) das alterações
+    for index := 01 to len(self:result)
+        if (recLock('SZE', .T.))
+            SZE->ZE_FILIAL  := FWxFilial('SZE')
+            SZE->ZE_CODIGO  := code
+            SZE->ZE_CAMPO   := self:result[index]['field']
+            SZE->ZE_TIPO    := self:result[index]['type']
+            SZE->ZE_DESCRIC := self:result[index]['description']
+
+            // verifica se tem lista de opções
+            if (!empty(self:result[index]['options']))
+                SZE->ZE_OLDVALU := getOptionById(self:result[index]['old_value'],;
+                    self:result[index]['options'])
+                SZE->ZE_NEWVALU := getOptionById(self:result[index]['new_value'],;
+                    self:result[index]['options'])
+            else
+                SZE->ZE_OLDVALU := self:result[index]['old_value']
+                SZE->ZE_NEWVALU := self:result[index]['new_value']
+            endIf
+
+            SZE->ZE_OBS     := 'OBSERVAÇÕES: ' + self:result[index]['observation'] + CRLF +;
+                'LISTA DE OPÇÕES: ' + self:result[index]['options']
+            SZE->(msUnlock())
+        endIf
+    next index
+return
+
+/*/{Protheus.doc} getMessages
+    retorna as mensagens do processo
+    @author Lucas Silva Vieira
+    @since 01/02/2024
+    @version 1.0
+/*/
+method getMessages() as array class ChangeLogger
+return self:messages
+
+/*/{Protheus.doc} getResult
+    retorna o resultado da comparação
+    @author Lucas Silva Vieira
+    @since 01/02/2024
+    @version 1.0
+/*/
+method getResult() as array class ChangeLogger
+return self:result
+
+/*/{Protheus.doc} addMessage
+    adiciona mensagem
+    @author Lucas Silva Vieira
+    @since 01/02/2024
+    @version 1.0
+
+    @param origin , character, origem da mensagem
+    @param type   , character, tipo da mensagem
+    @param message, character, mensagem a ser adicionada
+
+    @see
+    por se tratar de um método private, entende-se que seu uso será interno
+    e por isso não necessita de validação
+/*/
+method addMessage(origin as character, type as character, message as character) class ChangeLogger
+    local item as json // novo item de mensagem
+
+    // adiciona nova mensagen de acordo com os parâmetros recebidos
+    item := JsonObject():new()
+
+    item['origin']          := origin
+    item['type']            := type
+    item['message']         := message
+
+    // definindo a data e hora da mensagem
+    item['messageDateTime'] := formatDate(dDataBase, time())
+
+    // adiciona ao array de mensagens
+    aAdd(self:messages, item)
+return
+
+/*/{Protheus.doc} formatDate
+    Retorna Data e Hora formatadas
+    @type  Function
+    @author Lucas Silva Vieira
+    @since 01/02/2024
+    @version 1.0
+
+    @param original, date     , data original
+    @param time    , character, hora no formatado HH:MM:ss
+    
+    @return newDate, character, data e hora formatado em AAAA-MM-DD T HH:MM:SS
+/*/
+static function formatDate(original As date, time as character) as character
+    local newDate as character
+
+    default time := ''
+
+    newDate := cValToChar(year(original)) + '-' +;
+        strZero(month(original), 02) + '-' +;
+        strZero(day(original), 02)
+
+    if (!empty(time))
+        newDate += 'T' + time
+    endIf
+return newDate
+
+/*/{Protheus.doc} getValue
+    Retorna valor formatado de acordo com o tipo
+    @type  Function
+    @author Lucas Silva Vieira
+    @since 01/02/2024
+    @version 1.0
+    @param value       , any      , valor
+    @param type        , character, tipo do valor
+    @return prettyValue, character, valor formatado
+/*/
+static function getValue(value, type as character) as character
+    local prettyValue as character // valor formatado
+
+    // valida o tipo
+    do case
+        case type == 'C' // character
+            prettyValue := value
+        case type == 'N' // numeric
+            prettyValue := cValToChar(value)
+        case type == 'D' // date
+            prettyValue := dToC(value)
+        otherwise
+            prettyValue := value
+    endCase
+return prettyValue
+
+/*/{Protheus.doc} getOptions
+    rotina para retornar a lista de opções de um campo
+    @type  Function
+    @author Lucas Silva Vieira
+    @since 01/02/2024
+    @version 1.0
+    @param options    , character, lista de opções
+    @return newOptions, character, lista de opções e seus valores
+/*/
+static function getOptions(options as character) as character
+    local newOptions as character // lista de opções e seus valores
+
+    newOptions := ''
+    
+    // verificar se possui opções
+    if (!empty(options))
+        // verificar se é uma função que será macroexecutada
+        if (at('#', options) > 0)
+            options := allTrim(&(strTran(options, '#', '')))
+        endIf
+
+        newOptions := options
+    endIf
+return newOptions
+
+/*/{Protheus.doc} getOptionById
+    recupera a opção selecionada com a sua descrição
+    @type  Function
+    @author Lucas Silva Vieira
+    @since 01/02/2024
+    @version 1.0
+    @param option      , character, opção selecionada
+    @param options     , character, lista de opções
+    @return description, character, opção seleciona + descrição
+/*/
+static function getOptionById(option as character, options as character) as character
+	local values      as array // opções quebradas em array
+	local aux         as array // auxiliar de valores
+	local position    as numeric // posição da opção selecionada no array
+	local description as character // opção selecionada + descrição
+
+	// quebra as opções
+	values := strToKarr2(options, ';')
+
+	// procura a opção selecionada
+	for position := 01 to len(values)
+		// quebra em chave e valor
+		aux := strToKarr2(allTrim(values[position]), '=')
+		
+		if (len(aux) == 02 .AND. allTrim(option) == aux[01])
+			description := aux[01] + '=' + aux[02]
+		endIf
+	next position
+return description

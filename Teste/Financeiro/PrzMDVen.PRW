@@ -1,0 +1,214 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP5 IDE em 06/09/02
+#INCLUDE "TOPCONN.CH"      
+      
+
+User Function PRZMDVEN()        // incluido pelo assistente de conversao do AP5 IDE em 06/09/02    
+
+
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³ Programa ³ PRZMDVEN ³ Autor ³ wellington carvalho   ³ Data ³ 17.11.04 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Relatório de Prazo Médio de Vendas        (Plasticos Novel)³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Sigafin                                                    ³±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+
+
+SetPrvt("WNREL,TAMANHO,TITULO,CDESC1,CDESC2,CDESC3")
+SetPrvt("NREGISTRO,CKEY,NINDEX,CINDEX,CCONDICAO,LEND")
+SetPrvt("CPERG,ARETURN,NOMEPROG,NLASTKEY,NBEGIN,ALINHA")
+SetPrvt("LI,LIMITE,LRODAPE,CPICTQTD,NTOTQTD,NTOTVAL")
+SetPrvt("NTOTIPI,APEDCLI,CSTRING,AQUANT,AQTOTAL,ASTRU")
+SetPrvt("CARQTRAB,CIND,ASTRU2,XCLIME,CNOM_VEND,CDESC_PROD")
+SetPrvt("CGRP_PROD,CCODP,CCODV,NQTD,NLIQ,NIPI")
+SetPrvt("ASTRU3,CCODVEN,CNOMVEN,NTOTVEND,M,K")
+SetPrvt("NVINI,W,LVOLTA,LTOPOP,LREG,LITEM")
+SetPrvt("_NREG,CDINI,CDFIM,NTOTGER,NTOTLIQ,CGRP")
+SetPrvt("LACHOUGRP,CDESC,NTOT,NTLIQ,NTIPI,CHEADER")
+SetPrvt("CHEADER2,CVEND1,NAJUSTE,LCONTINUA,CCODPROD,I")
+SetPrvt("LPULOUP,_CALIASTEMP,_NREGTEMP1,_NREGTEMP2,LACHOU,J")
+SetPrvt("G,")
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Define Variaveis                                             ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+//
+
+wnrel            :=""
+tamanho          :="G"
+titulo           :="RELATORIO DE PRAZO MEDIO DE VENDAS"
+cDesc1           :="Relatorio de Prazo Medio de Vendas."
+cDesc2           :=""
+cDesc3           :=" "
+nRegistro        := 0
+cKey             :=""
+nIndex           :=""
+cIndex           :="" //  && Variaveis para a criacao de Indices Temp.
+cCondicao        :=""
+lEnd             := .T.
+cPerg            :="ATC010"
+aReturn          := { "Zebrado", 1,"Administracao", 2, 2, 1, "",0 }
+nomeprog         :="PRZMDFIN"
+nLastKey         :=0
+nBegin           :=0
+aLinha           :={ }
+li               :=80
+limite           :=80
+lRodape          :=.F.
+cPictQtd         :=""
+nTotQtd          :=nTotVal:=0
+nTotIPI          :=0
+aPedCli          := {}
+wnrel            := "PRZMDFIN"
+cString          := "SE1"     
+NPag             := 0
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Verifica as perguntas selecionadas                          ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+pergunte(cPerg,.F.)
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Variaveis utilizadas para parametros                        ³
+//³ mv_par01              De Emissao                            ³
+//³ mv_par02              Ate Emissao  
+//  mv_par03              DIAS                                      ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+//wnrel:=SetPrint(cString,wnrel,cPerg,@Titulo,cDesc1,cDesc2,cDesc3,.F.)
+wnrel:=SetPrint(cString,wnrel,cPerg,@Titulo,cDesc1,cDesc2,cDesc3,.F.,,,Tamanho)
+
+If nLastKey==27
+   Return
+Endif
+
+SetDefault(aReturn,cString)
+
+If nLastKey==27
+   Return
+Endif
+
+RptStatus({||Gera()})// Substituido pelo assistente de conversao do AP5 IDE em 06/09/02 ==>     RptStatus({||Execute(C730Imp)})
+
+Return
+
+// Substituido pelo assistente de conversao do AP5 IDE em 06/09/02 ==>     Function C730IMP
+Static Function Gera()
+pergunte(cPerg,.F.)
+limite   := 220
+li       := 80
+nPag     := 0
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Inicializa os codigos de caracter Comprimido/Normal da impressora ³
+//³ Faz manualmente porque nao chama a funcao Cabec()                 ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+@ 0,0 PSAY AvalImp(Limite)
+
+QtdNF:=0                       
+QtdDias:=0
+MVALOR:=0
+MMULTA:=0
+DbSelectArea("SE1")
+DbSetOrder(6)
+DbSeek(xFilial("SE1")+Dtos(mv_par01),.T.)
+SetRegua(RecCount())  
+li := 75
+While !EOF() .AND. E1_EMISSAO <= mv_par02
+  IncRegua()
+  If li > 59 
+     If li <> 75
+        @ li,000 PSAY Replicate("-",limite)
+     Endif
+     ImpCabec()
+     li:=li+1
+  EndIF
+  If (E1_VENCTO-E1_EMISSAO) < 1
+     DbSkip()
+     Loop
+  Endif
+               
+  IF E1_VENCTO-E1_EMISSAO <= mv_par03
+  
+     jrspg =0.00  
+
+     QtdNF:=QtdNF+1
+     QtdDias:=QtdDias+(E1_VENCTO-E1_EMISSAO) 
+  
+     @ li,003 PSAY E1_PREFIXO 
+     @ li,009 PSAY E1_NUM 
+     @ li,005 psay E1_CLIENTE+"-"+SUBSTR(E1_NOMCLI,1,10)
+     @ li,021 psay E1_VALOR Picture "@E 999,999,999.99"
+     @ li,034 psay E1_MULTA Picture "@E 999,999,999.99"
+     @ li,052 psay E1_PARCELA 
+     @ li,060 psay E1_EMISSAO  
+     @ li,073 PSAY E1_VENCTO
+     @ li,090 PSAY E1_VENCTO-E1_EMISSAO
+     MVALOR = MVALOR + E1_VALOR
+     MMULTA = MMULTA + E1_MULTA  
+     li:=li+1
+  ENDif
+  
+  DbSkip()
+  
+End
+
+
+If QtdNF>0 
+   li:=li+1
+   @ li,041 psay MVALOR Picture "@E 999,999,999.99"
+   @ li,054 psay MMULTA Picture "@E 999,999,999.99"
+   li:=li+2
+   @ li,010    PSAY "Quant. de NF   : " 
+   @ li,PCol() PSAY QtdNF Picture "@E 999,999"
+   li:=li+1
+   @ li,010    PSAY "Quant. de Dias : " 
+   @ li,PCol() PSAY QtdDias Picture "@E 999,999"
+   li:=li+1
+   @ li,010    PSAY "PM             : " 
+   @ li,PCol() PSAY QtdDias/QtdNF Picture "@E 999,999"
+   li:=li+1
+   @ li,000 PSAY Replicate("-",limite)
+   li:=li+1     
+   @ li,000 PSAY " "
+Endif
+
+If aReturn[5] == 1
+	Set Printer To
+	dbCommitAll()
+	OurSpool(wnrel)
+Endif
+
+MS_FLUSH()
+
+Static Function ImpCabec()
+
+  NPag:=NPag+1
+  @ 02,000 PSAY Replicate("-",limite)
+  li := 03
+  @ li,000 PSAY SM0->M0_NOMECOM
+  cDIni:=DTOS(DATE())
+  @ li,211 PSAY SubStr(cDIni,7,2)+"/"+SubStr(cDIni,5,2)+"/"+SubStr(cDIni,1,4)
+  li := li+1   
+  @ li,000 PSAY "PRAZO MEDIO DE VENDAS"
+  @ li,215 PSAY Npag Picture "999"
+  li := li+1
+  cDIni:=Dtos(mv_par01)
+  cDFin:=Dtos(mv_par02)  
+  cdias:=mv_par03
+  @ li,000 PSAY "EMISSAO DE " +SubStr(cDIni,7,2)+"/"+SubStr(cDIni,5,2)+"/"+SubStr(cDIni,1,4)
+  @ li,PCol() PSAY " A "+SubStr(cDFin,7,2)+"/"+SubStr(cDFin,5,2)+"/"+SubStr(cDFin,1,4)
+  li := li+1 
+  @ li,000 PSAY "Dias :"+str(cdias)
+  li := li+1
+  @ li,000 PSAY Replicate("-",limite)
+  li := li+1
+  @ li,000 PSAY "PREFIXO    TITULO     CLIENTE                   VALOR        JRSPG   PARCELA    EMISSAO     VENCIMENTO   PRAZO "
+//                 UNI   999999 XXXXX-NOME CLIENTE   999,999,999.99   999,999,999.99    A        99/99/99     99/99/99      999
+  li := li+1
+  @ li,000 PSAY Replicate("-",limite)
+  li:=li+1
+
+Return( .T. )        // incluido pelo assistente de conversao do AP5 IDE em 06/09/02

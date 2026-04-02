@@ -1,0 +1,36 @@
+00001#STR0001#ALL#Este programa ira imprimir o Balancete de Conta / 
+00002#STR0002#ALL#de acordo com os parametros solicitados pelo Usuario. 
+00003#STR0003#ALL#Balancete de Verificacao de Conta / 
+00004#STR0004#ALL#|  CODIGO                     |      D E S C R I C A O                          |    SALDO ANTERIOR              |    DEBITO       |      CREDITO      |    MOVIMENTO DO PERIODO       |         SALDO ATUAL               |
+00005#STR0005#ALL#|  CODIGO               |   D  E  S  C  R  I  C  A  O    |   SALDO ANTERIOR  |      DEBITO    |      CREDITO   |   SALDO ATUAL     |
+00006#STR0006#ALL#BALANCETE ANALITICO DE CONTA / 
+00007#STR0007#ALL#BALANCETE SINTETICO DE CONTA / 
+00008#STR0008#ALL#BALANCETE DE CONTA / 
+00009#STR0009#ALL# DE 
+00010#STR0010#ALL# ATE 
+00011#STR0011#ALL# EM 
+00012#STR0012#ALL# (ORCADO)
+00013#STR0013#ALL# (GERENCIAL)
+00014#STR0014#ALL#Criando Arquivo Temporario...
+00015#STR0015#ALL#Zebrado
+00016#STR0016#ALL#Administracao
+00017#STR0017#ALL#***** CANCELADO PELO OPERADOR *****
+00018#STR0018#ALL#T O T A I S  D O  P E R I O D O: 
+00019#STR0019#ALL#T O T A I S  D O  G R U P O (
+00020#STR0020#ALL#T O T A I S  D A  C O N T A: 
+00021#STR0021#ALL# Conta 
+00022#STR0022#ALL#DIV.
+00023#STR0023#ALL#|  CODIGO                     |      D E S C R I C A O                          |    SALDO ANTERIOR              |    DEBITO       |      CREDITO      |    MOVIMENTO DO PERIODO       |         SALDO ATUAL               |
+00024#STR0024#ALL#|  CODIGO               |   D  E  S  C  R  I  C  A  O    |   SALDO ANTERIOR  |      DEBITO    |      CREDITO   |   SALDO ATUAL     |
+00025#STR0025#ALL#Conta
+00026#STR0026#ALL#Código
+00027#STR0027#ALL#Cód. reduzido
+00028#STR0028#ALL#Descrição
+00029#STR0029#ALL#Saldo anterior
+00030#STR0030#ALL#Débito
+00031#STR0031#ALL#Crédito
+00032#STR0032#ALL#Movimento do periodo
+00033#STR0033#ALL#Saldo atual
+00034#STR0034#ALL#Tipo
+00035#STR0035#ALL#Nivel 1
+00036#STR0036#ALL#Esse relatorio tem o limite de 20 filiais, caso não seja escolhida a opção de todas

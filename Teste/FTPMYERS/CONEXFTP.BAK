@@ -1,0 +1,182 @@
+#INCLUDE "PROTHEUS.CH"   
+
+   
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณCONEXFTP  บAutor  ณ Mario F. Silveira  บ Data ณ  18/07/06   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Classe para manipular arquivos em FTP.                     บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Gen้rico.                                                  บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+CLASS CONEXFTP
+  DATA cServer
+  DATA nPorta
+  DATA cUser
+  DATA cSenha
+  DATA cDir
+  
+  METHOD NEW( cServer , nPorta , cUser , cSenha , cDir )
+  METHOD CONECTAR( )
+  METHOD MUDARDIR( cDir )
+  METHOD LERDIR( cMascara , cAtrib )
+  METHOD DESCONEC()
+  METHOD DOWNLOAD( cDirSave , cFile )
+  METHOD DELARQ( cFile )
+  METHOD GETDIR()
+  METHOD RENARQ( cFile , cName )
+  METHOD UPLOAD( cArqOri , cArqDest )
+ENDCLASS
+
+METHOD NEW( cServer , nPorta , cUser , cSenha , cDir ) CLASS CONEXFTP
+  DEFAULT cServer := ""
+  DEFAULT nPorta  := nil
+  DEFAULT cUser   := ""
+  DEFAULT cSenha  := ""
+  DEFAULT cDir    := ""
+
+  ::cServer := "24.140.148.148"
+  ::nPorta  := 50
+  ::cUser   := "cifnov1"
+  ::cSenha  := "nov1cif"
+  ::cDir    := cDir
+RETURN
+
+METHOD CONECTAR( ) CLASS CONEXFTP
+  Local aArea := GetArea()
+  Local lRet  := .T.
+  
+//  If !(FTPCONNECT( ::cServer , ::nPorta , ::cUser , ::cSenha ))
+  If !(FTPCONNECT( ::cServer , ::nPorta , ::cUser , ::cSenha ))
+    lRet := .F.
+    Alert("Erro ao conectar no servidor de FTP.")
+    Conout("Erro ao conectar no servidor de FTP.")
+  Endif
+
+  RestArea(aArea)
+RETURN lRet
+
+METHOD MUDARDIR( cDir ) CLASS CONEXFTP
+  Local aArea := GetArea()
+  Local lRet  := .T.
+  DEFAULT cDir := ""
+  
+  If !(FTPDIRCHANGE( cDir ))
+    lRet := .F.
+    Alert("Erro ao mudar para o diret๓rio "+ cDir +" no servidor de FTP.")
+    Conout("Erro ao mudar para o diret๓rio "+ cDir +" no servidor de FTP.")
+  Else
+    ::cDir := ::GETDIR()
+  Endif
+
+  RestArea(aArea)
+RETURN lRet
+
+METHOD LERDIR( cMascara , cAtrib ) CLASS CONEXFTP
+  Local aArea := GetArea()
+  Local aRet  := {}
+  
+  DEFAULT cMascara := "*.*"
+  DEFAULT cAtrib   := nil
+  
+  aRet := FTPDirectory( cMascara , cAtrib  )
+
+  RestArea(aArea)
+RETURN aRet
+
+METHOD DESCONEC() CLASS CONEXFTP
+  Local aArea := GetArea()
+  Local lRet := .T.
+  
+  If !(FTPDisconnect())
+    lRet := .F.
+    Alert("Erro ao desconectar no servidor de FTP.")
+    Conout("Erro ao desconectar no servidor de FTP.")
+  Endif
+
+  RestArea(aArea)
+RETURN lRet
+
+METHOD DOWNLOAD( cDirSave , cFile ) CLASS CONEXFTP
+  Local aArea := GetArea()
+  Local lRet  := .T.
+  
+  DEFAULT cDirSave := ""
+  DEFAULT cFile    := ""
+  
+  If !(FTPDownload( cDirSave , cFile ) )
+    lRet := .F.
+    Alert("Erro ao copiar o arquivo "+ cFile +" do servidor de FTP.")
+    Conout("Erro ao copiar o arquivo "+ cFile +" do servidor de FTP.")
+  Endif
+
+  RestArea(aArea)
+RETURN lRet
+
+METHOD DELARQ( cFile ) CLASS CONEXFTP
+  Local aArea := GetArea()
+  Local lRet  := .T.
+  
+  DEFAULT cFile := ""
+  
+  If !(FTPErase( cFile ))
+    lRet := .F.
+    Alert("Erro ao excluir o arquivo "+ cFile +" do servidor de FTP.")
+    Conout("Erro ao excluir o arquivo "+ cFile +" do servidor de FTP.")
+  Endif
+
+  RestArea(aArea)
+RETURN lRet
+
+METHOD GETDIR() CLASS CONEXFTP
+  Local aArea := GetArea()
+  Local cRet  := ""
+  
+  cRet := FTPGetCurDir()
+
+  RestArea(aArea)
+RETURN cRet
+
+METHOD RENARQ( cFile , cName ) CLASS CONEXFTP
+  Local aArea := GetArea()
+  Local lRet  := .T.
+  
+  DEFAULT cFile := ""
+  DEFAULT cName := ""
+  
+  If !(FTPRenameFile( cFile , cName ))
+    lRet := .F.
+    Alert("Erro ao renomear o arquivo "+ cFile +" para "+ cName +" no servidor de FTP.")
+    Conout("Erro ao renomear o arquivo "+ cFile +" para "+ cName +" no servidor de FTP.")
+  Endif
+
+  RestArea(aArea)
+RETURN lRet
+
+METHOD UPLOAD( cArqOri , cArqDest ) CLASS CONEXFTP
+  Local aArea := GetArea()
+  Local lRet  := .T.
+  
+  DEFAULT cArqOri  := ""
+  DEFAULT cArqDest := ""
+  
+  If !(File(cArqOri))
+    lRet := .F.
+    Alert("Arquivo "+ cArqOri +" nใo encontrado.")
+    Conout("Arquivo "+ cArqOri +" nใo encontrado.")
+  Endif
+  
+  If lRet .AND. !(FTPUpload( cArqOri , cArqDest ))
+    lRet := .F.
+    Alert("Erro ao fazer upload "+ cArqOri +" para o servidor de FTP.")
+    Conout("Erro ao fazer upload "+ cArqOri +" para o servidor de FTP.")
+  Endif
+
+  RestArea(aArea)
+RETURN lRet

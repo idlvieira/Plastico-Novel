@@ -1,0 +1,50 @@
+#include "rwmake.ch"
+USER FUNCTION PNVFT104()
+
+//----------------------------------------------------------------------------
+//|Programa  | PNVFT104    | Autor | Eliene Cerqueira    |Criado| 05.Jan.2005|  
+//----------------------------------------------------------------------------
+//|Descricao | Gatilho do campo C6_ENCOMED                                   |
+//----------------------------------------------------------------------------
+//|Uso       | SIGAFAT                                                       |
+//----------------------------------------------------------------------------
+nvalor:=acols[n][7]
+cEstado	:= GetMV("MV_ESTADO")
+cNorte	:= GetMV("MV_NORTE")
+Aliq    := 0
+If EMPTY(acols[n][5])
+   acols[n][5]:="N"
+Endif
+Tserv:=acols[n][5]
+DbSelectArea("SA1")
+If SA1->A1_EST==cEstado .or. Empty(Alltrim(SA1->A1_INSCR))
+   Aliq:=GetMV("MV_ICMPAD")
+Else
+   Aliq:=12
+Endif   
+
+DbSelectArea("SB1")
+SB1->( DbSetOrder(1) )
+SB1->( dbSeek(xFilial()+acols[n][2],.T.) )
+Aliq:=(100-Aliq)/100
+PCM:=SB1->B1_PRV2/Aliq
+DESC:=0
+If SB1->B1_SUBGRUP="01" .OR. SB1->B1_SUBGRUP="02" .OR. SB1->B1_SUBGRUP="03"
+   DESC:=0.85
+ElseIf (SB1->B1_SUBGRUP="04" .OR. SB1->B1_SUBGRUP="05") .AND. Tserv='N'
+   If SB1->B1_SUBGRUP="05" .AND. (SB1->B1_CLASSE1="061" .OR. SB1->B1_CLASSE1="062")
+      DESC:=0.5
+   Else
+      DESC:=0.9
+   Endif
+ElseIf (SB1->B1_SUBGRUP="04" .OR. SB1->B1_SUBGRUP="05") .AND. Tserv='S'
+   DESC:=0.45
+Endif
+DbSelectArea("SUA")
+DbSetOrder(8)
+dbSeek(xFilial("SUA")+SC5->C5_NUM,.F.)
+If nValor<(PCM*DESC) .and. SUA->UA_CODLIG<>"SS" .and. SC5->C5_OK<>"SS" // SUA->UA_CODLIG=liberação de preço
+   msgBox("Valor do produto inferior ao PCM")
+   nValor:=0
+ENDIF
+return(nValor)

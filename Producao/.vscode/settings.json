@@ -1,0 +1,7 @@
+{
+    "totvsLanguageServer.welcomePage": false,
+    "totvsLanguageServer.askCompileResult": false,
+    "advpl.debug_multiThread": true,
+    "totvsLanguageServer.editor.linter.includes": "C:\\TOTVS\\Microsiga\\Protheus\\include",
+    "totvsLanguageServer.workspaceServerConfig": true
+}

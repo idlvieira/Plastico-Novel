@@ -1,0 +1,221 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP5 IDE em 13/08/02
+                                                           
+
+User Function LIBPARC()        // incluido pelo assistente de conversao do AP5 IDE em 13/08/02
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³ Programa ³ LIBPARC   ³ Autor ³  Eliene Cerqueira    ³ Data ³ 17.06.05 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Rotina para liberação parcial do pedido/item               ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Sigafat                                                    ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+SetPrvt("WPEDIDO,WITEM")
+
+XPRODUTO:=SPACE(15)
+wPedido:=Space(6)
+wItem:=Space(2)
+QTDLIB:=0
+@ 0,0 TO 230,500 DIALOG oDlg1 TITLE "Liberação Parcial de Pedido"
+@ 3,5 TO 90,250
+
+@ 12,12 SAY "Pedido :"
+@ 22,12 SAY "Item   :"
+
+@ 12,40 GET wPedido PICTURE X3Picture("C5_NUM") VALID NaoVazio() .and. ExistCpo("SC5")
+//@ 22,40 GET wItem   PICTURE X3Picture("C6_ITEM") VALID NaoVazio() .And. TSTITEM() 
+@ 22,40 GET wItem   PICTURE "99" VALID NaoVazio() .And. TSTITEM()
+
+@ 72,12 SAY "QTDE Liberada   : "
+@ 72,60 GET QTDLIB    Picture "@E 999,999.99" SIZE 50,50
+
+@ 95,40  BMPBUTTON TYPE 1 ACTION OkProc1()// Substituido pelo assistente de conversao do AP6 IDE em 23/03/04 ==> @ 105,155 BMPBUTTON TYPE 1 ACTION Execute(OkProc2)
+@ 95,100 BMPBUTTON TYPE 2 ACTION Close(oDlg1)
+ACTIVATE DIALOG oDlg1 CENTER
+
+Return
+
+****************
+// Substituido pelo assistente de conversao do AP6 IDE em 23/03/04 ==> Function OkProc2
+Static Function TSTITEM()
+****************
+//Close(oDlg1)
+
+DbSelectArea("SC6")
+DbSetOrder(1) // 
+Dbgotop()
+DbSeek(xFilial("SC6")+WPedido+WItem,.F.)
+If EOF()
+   Msgbox("Pedido/item não existe!")
+   Return .F.
+Endif
+
+If SC6->C6_QTDVEN-SC6->C6_QTDENT = 0
+   Msgbox("Pedido/item totalmente atendido!")
+   Return .F.
+Endif                 
+
+XPRODUTO := C6_PRODUTO
+@ 22,60 SAY C6_PRODUTO + " - " + C6_DESCRI
+@ 42,12 SAY "QTDE Vendida    : " + Transform(C6_QTDVEN,"@E 999,999.99")
+@ 52,12 SAY "Saldo a Liberar : " + Transform(SC6->C6_QTDVEN-SC6->C6_QTDENT,"@E 999,999.99")
+
+Return
+
+****************
+// Substituido pelo assistente de conversao do AP6 IDE em 23/03/04 ==> Function OkProc2
+Static Function OkProc1()
+****************
+If QTDLIB>=SC6->C6_QTDVEN-SC6->C6_QTDENT
+   Msgbox("Quantidade a ser liberada superior ou igual ao saldo!")
+   Return .F.
+Endif                 
+
+dbSelectArea("SC9")
+dbSetOrder(1)
+dbSeek(xFilial("SC9")+SC6->C6_NUM+SC6->C6_ITEM,.F.)
+   
+If !Found()// Bloqueado em vendas
+   Msgbox("Pedido está bloqueado em vendas!")
+   Return .F.
+Else
+   While !EOF() .AND. SC6->C6_NUM=SC9->C9_PEDIDO .AND. SC6->C6_ITEM=SC9->C9_ITEM
+   	  dbSkip()
+   Enddo
+   dbSkip(-1)
+   If C9_BLCRED="10" .and. C9_BLEST="10" // Já faturado
+      Msgbox("Pedido já foi totalmente faturado!")
+      Return .F.
+   ElseIf (C9_BLCRED="01" .and. C9_BLEST="02") .or. (C9_BLCRED="01" .and. C9_BLEST="  ") // Bloqueado no crédito
+      Msgbox("Pedido está bloqueado no crédito!")
+      Return .F.
+   Else
+      XOK :=C9_OK
+      XFILIAL:=C9_FILIAL
+      XCLIENTE:=C9_CLIENTE
+      XLOJA:=C9_LOJA
+      XPRODUTO:=C9_PRODUTO
+      XSLD:=C9_QTDLIB-QTDLIB
+      XDATALIB:=C9_DATALIB
+      XSEQ:=STRZERO(VAL(C9_SEQUEN)+1,3)
+      XGRUPO:=C9_GRUPO
+      XPRCVEN:=C9_PRCVEN
+      XAGREG:=C9_AGREG
+      XIDENTB6:=C9_IDENTB6
+      XVENDA:=C9_VENDA
+      XBLCRED:=C9_BLCRED
+      XBLEST:=C9_BLEST
+      XQTDLIB:=C9_QTDLIB
+      XBLOQUEI:=C9_BLOQUEI
+      XLOTECTL:=C9_LOTECTL
+      XNUMLOTE:=C9_NUMLOTE
+      XNUMSERI:=C9_NUMSERI
+      XREMITO:=C9_REMITO
+      XITEMREM:=C9_ITEMREM
+      XDTVALID:=C9_DTVALID
+      XRESERVA:=C9_RESERVA
+      XQTDRESE:=C9_QTDRESE
+      XLOCAL:=C9_LOCAL
+      XCONDPAG:=C9_CONDPAG
+      XDESCCP:=C9_DESCCP
+      XUSERLGI:=C9_USERLGI
+      XUSERLGA:=C9_USERLGA
+      Reclock("SC9",.F.)
+      C9_QTDLIB:=QTDLIB
+      C9_BLEST:="02"
+      MSUnlock()
+
+      Reclock("SC9",.T.)
+      C9_OK  := XOK
+      C9_FILIAL:=XFILIAL
+      C9_PEDIDO:=WPEDIDO
+      C9_ITEM:=WITEM
+      C9_CLIENTE:=XCLIENTE
+      C9_LOJA:=XLOJA
+      C9_PRODUTO:=XPRODUTO
+      C9_QTDLIB:=XSLD
+      C9_DATALIB:=XDATALIB
+      C9_SEQUEN:=XSEQ
+      C9_GRUPO:=XGRUPO
+      C9_PRCVEN:=XPRCVEN
+      C9_AGREG:=XAGREG
+      C9_IDENTB6:=XIDENTB6
+      C9_VENDA:=XVENDA
+      C9_BLCRED:=XBLCRED
+      C9_BLEST:="02"
+      C9_BLOQUEI:=XBLOQUEI
+      C9_LOTECTL:=XLOTECTL
+      C9_NUMLOTE:=XNUMLOTE
+      C9_NUMSERI:=XNUMSERI
+      C9_REMITO:=XREMITO
+      C9_ITEMREM:=XITEMREM
+      C9_DTVALID:=XDTVALID
+      C9_RESERVA:=XRESERVA
+      C9_QTDRESE:=XQTDRESE
+      C9_LOCAL:=XLOCAL
+      C9_CONDPAG:=XCONDPAG
+      C9_DESCCP:=XDESCCP
+      C9_USERLGI:=XUSERLGI
+      C9_USERLGA:=XUSERLGA
+      MSUnlock()
+
+// Recalcula a reserva do produto   
+      XQTDRES:=0
+      dbSelectArea("SC6")
+      dbSetOrder(2) // produto+pedido+item
+      dbGoTop()
+      dbSeek(xFilial("SC6")+XPRODUTO,.F.)	
+      While !EOF() .AND. SC6->C6_PRODUTO=XPRODUTO
+         dbSelectArea("SC5")
+         dbSetOrder(1) 
+         dbSeek(xFilial("SC5")+SC6->C6_NUM,.F.)	
+         If !Found()
+            dbSelectArea("SC6")
+            dbSkip()
+            Loop
+         Endif
+         dbSelectArea("SC6")
+         IF SC6->C6_TES$"508/515/516/517/521/522/523/524/528/529/531/536/537/538/543/544/545/546/547/548/549/550/555/556/557"
+	        dbSkip()
+            Loop
+         Endif
+         If SC6->C6_QTDVEN-SC6->C6_QTDENT = 0
+            dbSkip()
+            Loop
+         Endif
+         dbSelectArea("SC9")
+         dbSetOrder(1)
+         dbSeek(xFilial("SC9")+SC6->C6_NUM+SC6->C6_ITEM,.F.)
+         If !Found()// Bloqueado em vendas
+            dbSelectArea("SC6")
+            dbSkip()
+            Loop
+         Else
+            While !EOF() .AND. SC6->C6_NUM=SC9->C9_PEDIDO .AND. SC6->C6_ITEM=SC9->C9_ITEM
+               BLCRED:=C9_BLCRED               
+               BLEST :=C9_BLEST           
+               DATLIB:=C9_DATALIB
+               If BLCRED="  " .and. BLEST="  "
+                  XQTDRES:=XQTDRES+SC9->C9_QTDLIB
+               Endif
+        	   dbSkip()
+            Enddo
+         Endif
+         dbSelectArea("SC6")
+         dbSkip()
+      Enddo
+      dbSelectArea("SB2")
+      Reclock("SB2",.F.)
+      B2_RESERVA  := XQTDRES
+      MSUnlock()
+   Endif
+Endif
+Close(oDlg1)
+
+Return

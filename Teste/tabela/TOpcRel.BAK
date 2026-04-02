@@ -1,0 +1,292 @@
+#INCLUDE "protheus.ch"
+#INCLUDE "topconn.ch"
+#INCLUDE "ap5mail.ch"
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºClasse    ³TOPCREL   ºAutor  ³QSdoBrasil          º Data ³  08/11/07   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³Funcao resposavel por montar tela para usuario selecionar	  º±±
+±±º          ³qual relatorio deseja visualizar							  º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ MP 10 Ms-Sql Server                                        º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+
+User Function TOpcRel()
+
+	local lOTireP := .F.
+	local lOPlasP := .F.
+	local lOPlasI := .F.
+	local lOPlasE := .F.
+	local oOTireP
+	local oOPlasP
+	local oOPlasI
+	local oOPlasE
+	local oDlg
+	local bGeraRel := { || fGeraRel(lOPlasP,lOPlasI,lOPlasE),oDlg:End()}
+	
+	private lOK	   := .T. &&Flag para confirmacao de envio de e-mail
+	
+	DEFINE MSDIALOG oDlg TITLE "Selecione relatorio para visualizacao" FROM 178,181 TO 280,484 PIXEL
+	
+	&& cria as groups do sistema
+	@ 004,004 TO 026,150 LABEL "Orçamento Plastico" PIXEL OF oDlg
+	&& cria componentes padroes do sistema
+	@ 013,009 CheckBox oOPlasP Var lOPlasP Prompt "Portugues" Size 048,008 PIXEL OF oDlg
+	@ 013,059 CheckBox oOPlasI Var lOPlasI Prompt "Ingles" Size 048,008 PIXEL OF oDlg
+	@ 013,109 CheckBox oOPlasE Var lOPlasE Prompt "Espanhol" Size 039,008 PIXEL OF oDlg
+	@ 033,072 Button "Cancelar" Size 035,010 PIXEL OF oDlg ACTION (oDlg:End())
+	@ 033,115 Button "OK" Size 034,011 PIXEL OF oDlg ACTION Eval(bGeraRel)
+	
+	ACTIVATE MSDIALOG oDlg CENTERED
+	
+return
+
+&& funcao resposavel gerar os relatorios
+Static Function fGeraRel(lOPlasP,lOPlasI,lOPlasE)
+
+	local lImpPlasP := .F. &&Flag Impressao Orcamento Plastico Portugues
+	local lImpPlasI := .F. &&Flag Impressao Orcamento Plastico Ingles
+	local lImpPlasE := .F. &&Flag Impressao Orcamento Plastico Espanhol
+	local cArq		:= ""
+	local lEnvia	:= .F.
+	
+	&&Visualizacao Orcamento Plastico Portugues
+	if lOPlasP
+		SX1->(dbSetOrder(1)) &&X1_GRUPO+X1_ORDEM
+		if SX1->(dbSeek(Padr("MYRPLZ",10)+"01"))
+			recLock("SX1",.F.)
+			SX1->X1_CNT01 := M->UA_NUM
+			SX1->(msUnlock())
+		endif
+		//U_MYRORCPZ()
+		
+		//Customizado///////////////////////////////////////////////////////////
+		U_MYTM01(UA_NUM)
+		
+		
+		////////////////////////////////////////////////////////////////////////
+		lImpPlasP := .T.
+	endif
+	&&Visualizacao Orcamento Plastico Ingles
+	if lOPlasI
+		SX1->(dbSetOrder(1)) &&X1_GRUPO+X1_ORDEM
+		if SX1->(dbSeek(Padr("MYRPLI",10)+"01"))
+			recLock("SX1",.F.)
+			SX1->X1_CNT01 := M->UA_NUM
+			SX1->(msUnlock())
+		endif
+		U_MYRORCPI()
+		lImpPlasI := .T.
+	endif
+	&&Visualizacao Orcamento Plastico Espanhol
+	if lOPlasE
+		SX1->(dbSetOrder(1)) &&X1_GRUPO+X1_ORDEM
+		if SX1->(dbSeek(Padr("MYRPLE",10)+"01"))
+			recLock("SX1",.F.)
+			SX1->X1_CNT01 := M->UA_NUM
+			SX1->(msUnlock())
+		endif
+		U_MYRORCPE()
+		lImpPlasE := .T.
+	endif
+	&&Chama tela para envio de e-mail
+	&&if lImpTireP .or. lImpPlasP .or. lImpPlasI .or. lImpPlasE
+	if !lBloq
+		if lImpPlasP .or. lImpPlasI .or. lImpPlasE
+			lEnvia := MSGYESNO("Deseja enviar por e-mail Orçamento ?")
+			if lEnvia
+				TelaEmail(lImpPlasP,lImpPlasI,lImpPlasE)
+			endif
+		endif 
+	endif
+	
+	lBloq := .F.
+
+return
+
+&& funcao resposavel de montar tela para usuario anexar os orcamento para enviar por e-mail
+Static Function TelaEmail(lImpPlasP,lImpPlasI,lImpPlasE)
+
+	local oPara
+	local oCC
+	local oCCO
+	local oAssunto
+	local oEndOTireP
+	local oEndOPlasP
+	local oEndOPlasI
+	local oEndOPlasE
+	local oImagem
+	local oDlg2						&& DiSalog Principal
+	local cDrivers		:= "Selecione Orcamento (.PDF) | *.PDF |" + "Imagem Bitmap (.BMP) | *.BMP |" + "Imagem JPEG (.JPG) | *.JPG |"
+	local cEndOPlasP	:= ""       && Endereco arquivo Orcamento Plastico Portugues
+	local cEndOPlasI	:= ""       && Endereco arquivo Orcamento Plastico Ingles
+	local cEndOPlasE	:= ""       && Endereco arquivo Orcamento Plastico Espanhol  
+	local cImagem		:= ""
+	local bValEndArq 	:= { || fValEndArq(cEndOPlasP,cEndOPlasI,cEndOPlasE,lImpPlasP,lImpPlasI,lImpPlasE),IIF(lOK ,EnvEmail(oDlg2,cEndOPlasP,cEndOPlasI,cEndOPlasE,lImpPlasP,lImpPlasI,lImpPlasE,cImagem),"")}
+	
+	private cPara	   	:= Space(100)
+	private cCC			:= Space(150)
+	private cCCO		:= Space(150)
+	private cAssunto 	:= Space(100)
+	private cRemet 		:= ""
+	
+	cAssunto := "Envio de Orçamento Plástico - " + allTrim(M->UA_NOME)
+	
+	&&ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	&&³Alteracao: Francys W. Soares - 06/04/10                   ³
+	&&³Apresenta mensagem para selecionar e-mail do destinatario.³
+	&&ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	if Aviso("Informacao","Selecione o destinatario do e-mail.",{"Contato","Cliente"},2,FunDesc()) == 1
+		if !Empty(M->UA_CODCONT)
+			SU5->(dbSetOrder(1))
+			SU5->(dbSeek(xFilial("SU5")+M->UA_CODCONT))
+			cPara := SU5->U5_EMAIL
+			M->UA_EMAIL := SU5->U5_EMAIL
+		endif
+	else
+		cPara := M->UA_EMAIL
+	endif
+	
+	DEFINE MSDIALOG oDlg2 TITLE "Orçamento - E-mail" FROM 178,181 TO 580,631 PIXEL
+	
+	&& Cria as Groups do Sistema
+	@ 060,002 TO 155,223 LABEL "Selecione Orçamento para ser enviado como anexo no e-mail." PIXEL OF oDlg2
+	
+	@ 003,029 MsGet oPara Var cPara Size 193,009 COLOR CLR_BLACK PIXEL OF oDlg2
+	@ 004,004 Say "Para:" Size 018,008 COLOR CLR_BLACK PIXEL OF oDlg2
+	@ 015,029 MsGet oCC Var cCC Size 193,009 COLOR CLR_BLACK PIXEL OF oDlg2
+	@ 016,004 Say "Cc:" Size 018,008 COLOR CLR_BLACK PIXEL OF oDlg2
+	@ 027,029 MsGet oCCO Var cCCO Size 193,009 COLOR CLR_BLACK PIXEL OF oDlg2
+	@ 028,004 Say "Cco:" Size 018,008 COLOR CLR_BLACK PIXEL OF oDlg2
+	@ 039,029 MsGet oAssunto Var cAssunto Size 193,009 When .F. COLOR CLR_BLACK PIXEL OF oDlg2
+	@ 040,004 Say "Assunto:" Size 022,008 COLOR CLR_BLACK PIXEL OF oDlg2
+	
+	if lImpPlasP
+		@ 071,006 Say "Orcamento Plastico Portugues" Size 081,008 COLOR CLR_BLUE PIXEL OF oDlg2
+		@ 081,204 Button "..." Size 014,011 When lImpPlasP PIXEL OF oDlg2 Action {|| cEndOPlasP:=cGetFile(cDrivers,"Selecione o arquivo",1,"C:\",.T.,GETF_ONLYSERVER/*GETF_LOCALHARD+GETF_NETWORKDRIVE*/)}
+		@ 081,006 MsGet oEndOPlasP Var cEndOPlasP Size 197,009 COLOR CLR_BLACK When lImpPlasP Picture "@!" PIXEL OF oDlg2
+	elseif lImpPlasI
+		@ 071,006 Say "Orcamento Plastico Ingles" Size 070,008 COLOR CLR_BLUE PIXEL OF oDlg2
+		@ 081,204 Button "..." Size 014,011 When lImpPlasI PIXEL OF oDlg2 Action {|| cEndOPlasI:=cGetFile(cDrivers,"Selecione o arquivo",1,"C:\",.T.,GETF_ONLYSERVER/*GETF_LOCALHARD+GETF_NETWORKDRIVE*/)}
+		@ 081,006 MsGet oEndOPlasI Var cEndOPlasI Size 197,009 COLOR CLR_BLACK When lImpPlasI Picture "@!" PIXEL OF oDlg2
+	elseif lImpPlasE
+		@ 071,006 Say "Orcamento Plastico Espanhol" Size 072,008 COLOR CLR_BLUE PIXEL OF oDlg2
+		@ 081,204 Button "..." Size 014,011 When lImpPlasE PIXEL OF oDlg2 Action {|| cEndOPlasE:=cGetFile(cDrivers,"Selecione o arquivo",1,"C:\",.T.,GETF_ONLYSERVER/*GETF_LOCALHARD+GETF_NETWORKDRIVE*/)}
+		@ 081,006 MsGet oEndOPlasE Var cEndOPlasE Size 197,009 COLOR CLR_BLACK When lImpPlasE Picture "@!" PIXEL OF oDlg2  
+	endif
+	
+	@ 097,006 Say "Solicitacao de Gravacao" Size 070,008 COLOR CLR_BLUE PIXEL OF oDlg2
+	@ 107,204 Button "..." Size 014,011 When .T. PIXEL OF oDlg2 Action {|| cImagem:=cGetFile(cDrivers,"Selecione o arquivo",1,"C:\",.T.,GETF_ONLYSERVER/*GETF_LOCALHARD+GETF_NETWORKDRIVE*/)}
+	@ 107,006 MsGet oImagem Var cImagem Size 197,009 COLOR CLR_BLACK When .T. Picture "@!" PIXEL OF oDlg2
+	
+	@ 159,143 Button "Cancelar" Size 037,011 PIXEL OF oDlg2 ACTION (oDlg2:End())
+	@ 159,184 Button "Enviar" Size 037,011 PIXEL OF oDlg2 ACTION Eval(bValEndArq)
+	
+	ACTIVATE MSDIALOG oDlg2 CENTERED
+
+return
+
+&& funcao resposavel de validar se os enderecos dos arquivos sao validos
+Static Function fValEndArq(cEndOPlasP,cEndOPlasI,cEndOPlasE,lImpPlasP,lImpPlasI,lImpPlasE)
+
+	local cMsg := ""
+	
+	lOk := .T.
+	&&Selecionando e-mail do usuario logado
+	cRemet := GetMv("MV_RELACNT")
+	if Empty(cRemet)
+		cMsg += "E-mail Remetente em branco" + Chr(10)+Chr(13)
+		lOK := .F.
+	endif
+	if Empty(cPara)
+		cMsg += "E-mail Destinatario em branco" + Chr(10)+Chr(13)
+		lOK := .F.
+	endif
+	if Empty(cAssunto)
+		cMsg += "Assunto em branco" + Chr(10)+Chr(13)
+		lOK := .F.
+	endif
+	
+	if lImpPlasP
+		if !File(cEndOPlasP)
+			cMsg += "Endereco do arquivo Orcamento Plastico Portugues invalido!" + Chr(10)+Chr(13)
+			lOK := .F.
+		endif
+	endif
+	if lImpPlasI
+		if !File(cEndOPlasI)
+			cMsg += "Endereco do arquivo Orcamento Plastico Ingles invalido!" + Chr(10)+Chr(13)
+			lOK := .F.
+		endif
+	endif
+	if lImpPlasE
+		if !File(cEndOPlasE)
+			cMsg += "Endereco do arquivo Orcamento Plastico Espanhol invalido!" + Chr(10)+Chr(13)
+			lOK := .F.
+		endif
+	endif
+	if !lOK
+		msgInfo(cMsg)
+	endif
+
+return lOK
+
+&& funcao resposavel enviar e-mail para o cliente
+Static Function EnvEmail(oDlg2,cEndOPlasP,cEndOPlasI,cEndOPlasE,lImpPlasP,lImpPlasI,lImpPlasE,cImagem)
+
+	local oHtml
+	local oEmail
+	local cServidor	:=	GetMv("MV_RELSERV")
+	local cConta	:=	GetMv("MV_RELACNT")
+	local cPassWord	:=	GetMv("MV_RELPSW")
+	local cAutentic	:=	GetMv("MV_RELAUTH")
+	local cAnexo    := ""
+	local cTitulo 	:= ""
+	local aCorpo  	:= {}
+	local aRodape 	:= {}
+	
+	if lImpPlasP
+		cAnexo += allTrim(cEndOPlasP)+";"
+		cAnexo += allTrim(cImagem)+";"
+	endif
+	if lImpPlasI
+		cAnexo += allTrim(cEndOPlasI)+";"
+		cAnexo += allTrim(cImagem)+";"
+	endif
+	if lImpPlasE
+		cAnexo += allTrim(cEndOPlasE)+";"
+		cAnexo += allTrim(cImagem)+";"
+	endif
+	
+	aAdd(aCorpo,"Prezado cliente ")
+	aAdd(aCorpo,"")
+	aAdd(aCorpo,"Conforme solicitacao,segue em anexo proposta.")
+	aAdd(aCorpo,"")
+	aAdd(aCorpo,"Caso haja dúvida,favor entrar em contato.")
+	aAdd(aCorpo,"")
+	aAdd(aRodape,"Obrigado(a)")
+	
+	oHtml := CorpoEmail():new(cTitulo,aCorpo,aRodape)
+	oHtml:geraHtml()
+
+	&& enviando e-mail
+	oEmail := ConEmail():new(cServidor,cConta,cPassWord,,cAutentic,)
+	oEmail:emailUsr()
+	oEmail:conectar()
+
+	if oEmail:Enviar(allTrim(cRemet),allTrim(cPara),allTrim(cCC),allTrim(cCCO),allTrim(cAssunto),oHtml:cHtml,cAnexo)
+		lRetorno := .T.
+		aviso(funDesc(),"E-mail enviado com SUCESSO.",{"OK"})
+	endif
+
+	oEmail:desconec()
+	
+	oDlg2:end()
+
+return

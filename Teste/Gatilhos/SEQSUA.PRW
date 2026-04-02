@@ -1,0 +1,13 @@
+#include "rwmake.ch"      
+ 
+
+USER FUNCTION SEQSUA()
+
+unumero := space(6)
+
+DbSelectArea("SUA") 
+dbSetOrder(1)
+dbGoBottom()
+unumero :=  STRZERO((VAL(SUA->UA_NUM)+1),6)
+
+return(unumero)

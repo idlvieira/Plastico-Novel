@@ -1,0 +1,195 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP6 IDE em 11/03/03
+#INCLUDE "TOPCONN.CH"
+
+User Function CONLIBAV()        // incluido pelo assistente de conversao do AP6 IDE em 11/03/03
+
+/*/
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±³ Programa ³ CONLIBAV  ³ Autor ³   Eliene Cerqueira   ³ Data ³ 09.05.05    ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Consulta dos pedidos liberados p/expedição a vista            ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Faturamento                                                   ³±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+
+Processa({|| GERA() },"Pesquisando pedidos a vista liberados p/expedição...")
+
+Return
+
+Static Function GERA()
+
+cQry := " SELECT SC5.C5_NUM, SC5.C5_CLIENTE, SC5.C5_CONDPAG, SA1.A1_NREDUZ, SE4.E4_DESCRI, SC6.C6_ITEM, SC6.C6_VALOR"
+cQry := cQry + " FROM SC5010 AS SC5, SC6010 AS SC6, SA1010 AS SA1, SE4010 AS SE4"
+cQry := cQry + " WHERE SC5.C5_NUM = SC6.C6_NUM"
+cQry := cQry + " AND SC6.C6_QTDVEN-SC6.C6_QTDENT>0"
+cQry := cQry + " AND SA1.A1_COD = SC5.C5_CLIENTE"
+cQry := cQry + " AND SA1.A1_LOJA = SC5.C5_LOJACLI"
+cQry := cQry + " AND (SC5.C5_CONDPAG IN ('002','042') OR SUBSTRING(SE4.E4_DESCRI,1,5)='CH P/')"
+cQry := cQry + " AND SE4.E4_CODIGO = SC5.C5_CONDPAG"
+cQry := cQry + " AND SC5.C5_TIPO = 'N'"
+cQry := cQry + " AND SC6.C6_TES NOT  IN ('508', '515', '516', '517', '521', '522', '523', '524', '528', '529', '531', '536', '537', '543', '544', '545', '546', '547', '548', '549', '550', '555', '556', '557')"
+cQry := cQry + " AND SC6.D_E_L_E_T_<>'*'"
+cQry := cQry + " AND SC5.D_E_L_E_T_<>'*'"
+cQry := cQry + " ORDER BY SC5.C5_NUM, SC6.C6_ITEM ASC"
+
+Tcquery cQry new alias "LIB"
+
+aStru:={}
+AADD( aStru, {"PEDIDO"  ,"C" ,6 ,0} )
+AADD( astru, {"CDCLI  " ,"C" ,6 ,0} )
+AADD( astru, {"CLIENTE" ,"C" ,35,0} )
+AADD( astru, {"VALOR"   ,"N" ,18,2} )
+AADD( astru, {"RECEBER" ,"N" ,18,2} )
+cArqTrb1:=CriaTrab(aStru,.T.)
+DbUseArea(.T.,"DBFCDX",cArqTrb1,"QUERY1",.F.)
+IndRegua("QUERY1",cArqTrb1,"PEDIDO")
+
+dbSelectArea("LIB")
+ProcRegua(RecCount()) 
+Do While LIB->( !Eof() )
+   xStatus:="T"                                 
+   GRAVA:=.F.
+   XNUM:=LIB->C5_NUM
+   XCLI:=LIB->C5_CLIENTE
+   XNOM:=LIB->A1_NREDUZ
+   dbSelectArea("SC6")
+   While LIB->( !Eof() ) .AND. LIB->C5_NUM=XNUM
+      dbSelectArea("SC9")
+      dbSetOrder(1)
+      dbSeek(xFilial("SC9")+LIB->C5_NUM+LIB->C6_ITEM,.F.)
+   
+      If !Found()// Bloqueado em vendas
+         xStatus:="P"        
+      Else
+         While !EOF() .AND. LIB->C5_NUM=SC9->C9_PEDIDO .AND. LIB->C6_ITEM=SC9->C9_ITEM
+            BLCRED:=C9_BLCRED               
+            BLEST :=C9_BLEST           
+            XQUANT:=SC9->C9_QTDLIB
+            dbSkip()
+         Enddo
+         If BLCRED="10" .and. BLEST="10" // Já faturado
+            xStatus:="P"
+         ElseIf (BLCRED="01" .and. BLEST="02") .or. (BLCRED="01" .and. BLEST="  ") // Bloqueado no crédito
+            xStatus:="P"
+    	 ElseIf BLCRED="  " .and. BLEST="02" // Bloqueado no estoque
+            xStatus:="P"
+         ElseIf BLCRED="  " .and. BLEST="  "
+            GRAVA:=.T.                    
+         Endif
+      Endif
+      dbSelectArea("LIB")
+	  dbSkip()
+   Enddo
+   If GRAVA .and. xStatus="T"                
+      XREC:=0
+      dbSelectArea("SE1")
+      dbSetOrder(1)
+      dbSeek(xFilial("SE1")+"NCC"+XNUM,.F.)
+      While !EOF() .AND. SE1->E1_PREFIXO="NCC" .AND. SE1->E1_NUM=XNUM
+         XREC:=XREC+E1_VALOR
+         dbSkip()
+      Enddo
+      dbSeek(xFilial("SE1")+"DIN"+XNUM,.F.)
+      While !EOF() .AND. SE1->E1_PREFIXO="DIN" .AND. SE1->E1_NUM=XNUM
+         XREC:=XREC+E1_VALOR
+         dbSkip()
+      Enddo
+      dbSeek(xFilial("SE1")+"CHQ"+XNUM,.F.)
+      While !EOF() .AND. SE1->E1_PREFIXO="CHQ" .AND. SE1->E1_NUM=XNUM
+         XREC:=XREC+E1_VALOR
+         dbSkip()
+      Enddo
+      dbSeek(xFilial("SE1")+"CH1"+XNUM,.F.)
+      While !EOF() .AND. SE1->E1_PREFIXO="CH1" .AND. SE1->E1_NUM=XNUM
+         XREC:=XREC+E1_VALOR
+         dbSkip()
+      Enddo
+      dbSeek(xFilial("SE1")+"CH2"+XNUM,.F.)
+      While !EOF() .AND. SE1->E1_PREFIXO="CH2" .AND. SE1->E1_NUM=XNUM
+         XREC:=XREC+E1_VALOR
+         dbSkip()
+      Enddo
+      dbSeek(xFilial("SE1")+"CH3"+XNUM,.F.)
+      While !EOF() .AND. SE1->E1_PREFIXO="CH3" .AND. SE1->E1_NUM=SXNUM
+         XREC:=XREC+E1_VALOR
+         dbSkip()
+      Enddo
+      dbSeek(xFilial("SE1")+"CH4"+XNUM,.F.)
+      While !EOF() .AND. SE1->E1_PREFIXO="CH4" .AND. SE1->E1_NUM=XNUM
+         XREC:=XREC+E1_VALOR
+         dbSkip()
+      Enddo
+      dbSeek(xFilial("SE1")+"CH5"+XNUM,.F.)
+      While !EOF() .AND. SE1->E1_PREFIXO="CH5" .AND. SE1->E1_NUM=XNUM
+         XREC:=XREC+E1_VALOR
+         dbSkip()
+      Enddo
+      dbSeek(xFilial("SE1")+"CH6"+XNUM,.F.)
+      While !EOF() .AND. SE1->E1_PREFIXO="CH6" .AND. SE1->E1_NUM=XNUM
+         XREC:=XREC+E1_VALOR
+         dbSkip()
+      Enddo
+      dbSeek(xFilial("SE1")+"CH7"+XNUM,.F.)
+      While !EOF() .AND. SE1->E1_PREFIXO="CH7" .AND. SE1->E1_NUM=XNUM
+         XREC:=XREC+E1_VALOR
+         dbSkip()
+      Enddo
+      dbSeek(xFilial("SE1")+"CH8"+XNUM,.F.)
+      While !EOF() .AND. SE1->E1_PREFIXO="CH8" .AND. SE1->E1_NUM=XNUM
+         XREC:=XREC+E1_VALOR
+         dbSkip()
+      Enddo
+      dbSeek(xFilial("SE1")+"CH9"+XNUM,.F.)
+      While !EOF() .AND. SE1->E1_PREFIXO="CH9" .AND. SE1->E1_NUM=XNUM
+         XREC:=XREC+E1_VALOR
+         dbSkip()
+      Enddo
+      XVAL:=0
+      dbSelectArea("SC6")
+      dbSetOrder(1)
+      dbSeek(xFilial("SC6")+XNUM,.F.)
+      While !EOF() .AND. SC6->C6_NUM=XNUM
+         XVAL:=XVAL+SC6->C6_VALOR
+         dbSkip()
+      Enddo  
+      If XVAL-XREC>1
+         DbSelectArea("QUERY1")
+         Reclock("QUERY1",.T.)
+         QUERY1->PEDIDO := XNUM
+         QUERY1->CDCLI  := XCLI
+         QUERY1->CLIENTE:= XNOM
+         QUERY1->VALOR  := XVAL
+         QUERY1->RECEBER:= XVAL-XREC
+         MSUnlock()
+      Endif
+   Endif
+Enddo
+
+dbSelectArea("QUERY1")
+dbGoTop()
+
+aCampos := {}
+AADD(aCampos,{"PEDIDO","PEDIDO","@!"})
+AADD(aCampos,{"CDCLI","COD.CLIENTE","@!"})
+AADD(aCampos,{"CLIENTE","CLIENTE","@!"})
+AADD(aCampos,{"VALOR","VRL.PEDIDO","@E 999,999.99"})
+AADD(aCampos,{"RECEBER","A RECEBER","@E 999,999.99"})
+
+@ 200,1 TO 500,600 DIALOG oDlg7 TITLE "Pedidos a vista liberados p/expedição"
+@ 6,5 TO 110,300 BROWSE "QUERY1" FIELDS aCampos
+@ 130,250 BUTTON "_Fecha"  SIZE 40,15 ACTION Fecha()
+ACTIVATE DIALOG oDlg7 CENTER
+
+Return
+
+Static Function Fecha()
+DbSelectArea("LIB")
+dbCloseArea()
+If !Empty( cArqTrb1 )
+   dbSelectArea("QUERY1")
+   dbCloseArea()
+   FErase( cArqTrb1+".*")
+Endif
+Close(oDlg7)
+Return

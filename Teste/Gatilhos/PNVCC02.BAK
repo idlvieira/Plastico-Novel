@@ -1,0 +1,27 @@
+#include "rwmake.ch"
+
+USER FUNCTION PNVCC02()
+                                   
+
+//----------------------------------------------------------------------------
+//|Programa  | PNVCC02     | Autor | Eliene Cerqueira    |Criado| 25.Out.2004|  
+//----------------------------------------------------------------------------
+//|Descricao | Gatilho do campo UB_VRUNIT - calcula desconto para ME          |
+//----------------------------------------------------------------------------
+//|Uso       | SIGATMK                                                       |
+//----------------------------------------------------------------------------
+
+
+nvalor2:=acols[n][7] //UB_VLRITEM
+nQt:=acols[n][5]   //M->UB_QUANT
+nVunit:=round(acols[n][6],2) 
+DbSelectArea("SA1")
+   
+
+IF SA1->A1_ME=="S" .AND. SA1->A1_EST=="BA" .AND. SB1->B1_TS<>'529'
+  
+//   nvalor2 := (nVunit *  nQt)
+  
+ENDIF
+
+return(nValor2)

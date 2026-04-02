@@ -1,0 +1,19 @@
+#include "rwmake.ch"
+USER FUNCTION PNVCC08() 
+
+//----------------------------------------------------------------------------
+//|Programa  | PNVCC08     | Autor | wellington carvalho    |Criado| 11.set.2008|  
+//----------------------------------------------------------------------------
+//|Descricao | Gatilho de diversos campos para verificar se o pedido encontra-se liberado|
+//----------------------------------------------------------------------------
+//|Uso       | SIGATMK                                                       |
+//----------------------------------------------------------------------------
+
+mvlruv:=acols[n][9] // VLRUNIT
+DbSelectArea("SUA")
+If SUA->UA_STATUS="LIB"
+   msgBox("Pedido Liberado,Alteração, Não Permitida!!!")
+   mvlruv := 0.00
+endif
+
+return(mvlruv)

@@ -1,0 +1,357 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP6 IDE em 11/03/03
+
+User Function BLOQEST()        // incluido pelo assistente de conversao do AP6 IDE em 11/03/03
+
+/*/
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±³ Programa ³ REFRES    ³ Autor ³   Eliene Cerqueira   ³ Data ³ 07.03.05    ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Rotina para bloquear pedido liberado no estoque               ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Call Center                                                   ³±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+SetPrvt("WCONTINUA")
+flag = 1
+WCONTINUA:=.T.
+WHILE WCONTINUA
+   TLPROD()
+ENDDO
+REturn
+
+Static Function TLPROD()
+wProd:=Space(15)
+wQtdLib:=0   
+
+
+@ 0,0 TO 100,430 DIALOG oDlg1 TITLE "Bloqueio de Pedidos no Estoque"
+@ 3,5 TO 30,210
+// Montagem dos titulos dos campos
+@ 15,10 say  "Produto"
+
+// Montagem dos campos
+//@ 15,35 GET  wProd SIZE 50,20 PICTURE "999999999999999" VALID NaoVazio() .and. ExistCpo("SB1") .and. Mostra(wProd) F3 "SB1"
+@ 15,35 GET  wProd SIZE 50,20 PICTURE "999999999999999" VALID NaoVazio() .and. Mostra(wProd) F3 "SB1"
+
+// Botoes
+@  38,070 BMPBUTTON TYPE 1 ACTION nseqOk1()// Substituido pelo assistente de conversao do AP6 IDE em 20/04/04 ==>     @  60,65 BMPBUTTON TYPE 1 ACTION Execute(BotOk1)
+@  38,100 BMPBUTTON TYPE 2 ACTION nseqCan1()// Substituido pelo assistente de conversao do AP6 IDE em 20/04/04 ==>     @  60,95 BMPBUTTON TYPE 2 ACTION Execute(BotCan1)
+ACTIVATE DIALOG oDlg1 CENTER
+REturn
+ 
+
+Static Function Mostra()
+***************
+dbSelectArea("SB1")
+DbSeek(xFilial("SB1") + wProd, .T.)
+@ 15,90  SAY  SB1->B1_DESC
+
+REturn
+
+// Substituido pelo assistente de conversao do AP6 IDE em 20/04/04 ==> Function BotOk1
+Static Function nseqOk1()
+***************
+
+SetPrvt("WLOCAL,CPROG1,CPROG2,AROTINA")
+SetPrvt("CCADASTRO,")
+aStru:={}
+AADD( aStru, {"PEDIDO"  ,"C" ,6 ,0} )
+AADD( astru, {"ITEM"    ,"C" ,2 ,0} )
+AADD( astru, {"QUANT"   ,"N" ,18,2} ) 
+AADD( astru, {"EMISSAO" ,"D" ,8 ,0} ) 
+AADD( astru, {"ENTREGA" ,"D" ,8 ,0} )
+AADD( astru, {"CLIENTE" ,"C" ,6 ,0} )
+AADD( astru, {"DESCCLI" ,"C" ,20,0} )
+AADD( astru, {"MARCA"   ,"C" ,2 ,0} )
+AADD( astru, {"CREDITO" ,"D" ,8 ,0} )
+cArqTrb1:=CriaTrab(aStru,.T.)
+
+//DbUseArea(.T.,"DBFCDX",cArqTrb1,"TRB",.F.)
+
+if flag = 1
+   Use &cArqTrb1 alias TRB new
+   flag = 0
+
+endif
+
+dbSelectArea("SB2")
+DbSeek(xFilial("SB2") + wProd + "01", .T.)
+
+dbSelectArea("SC6")
+dbSetOrder(2) // produto+pedido+item
+dbGoTop()
+dbSeek(xFilial("SC6")+WPROD,.F.)	
+
+While !EOF() .AND. SC6->C6_PRODUTO=WPROD
+
+   dbSelectArea("SC5")
+   dbSetOrder(1) 
+   dbSeek(xFilial("SC5")+SC6->C6_NUM,.F.)	
+   If !Found()
+      dbSelectArea("SC6")
+   	  dbSkip()
+	  Loop
+   Endif
+   DbSelectArea("SA1") 
+   DbSetOrder(1) 
+   DbSeek( xFilial("SA1") + SC5->C5_CLIENTE + SC5->C5_LOJACLI, .T.)
+   While !EOF() .AND. SC6->C6_NUM=SC5->C5_NUM
+
+      IF SC6->C6_TES$"508/515/516/517/521/522/523/524/528/529/531/536/537/538/543/544/545/546/547/548/549/550/555/556/557"
+         dbSelectArea("SC6")
+	     dbSkip()
+    	 Loop
+      Endif
+      If SC6->C6_QTDVEN-SC6->C6_QTDENT = 0
+         dbSelectArea("SC6")
+    	 dbSkip()
+         Loop
+      Endif
+
+      XQUANT:=0
+      dbSelectArea("SC9")
+      dbSetOrder(1)
+      dbSeek(xFilial("SC9")+SC6->C6_NUM+SC6->C6_ITEM,.F.)
+   
+      If !Found()// Bloqueado em vendas
+         dbSelectArea("SC6")
+     	 dbSkip()
+         Loop
+      Else
+         While !EOF() .AND. SC6->C6_NUM=SC9->C9_PEDIDO .AND. SC6->C6_ITEM=SC9->C9_ITEM
+            BLCRED:=C9_BLCRED               
+            BLEST :=C9_BLEST           
+            DATLIB:=C9_DATALIB
+            If BLCRED="  " .and. BLEST="  "
+               XQUANT:=XQUANT+SC9->C9_QTDLIB
+            Endif
+        	dbSkip()
+         Enddo
+         If BLCRED="10" .and. BLEST="10" // Já faturado
+            dbSelectArea("SC6")
+     	    dbSkip()
+	        Loop
+	     ElseIf (BLCRED="01" .and. BLEST="02") .or. (BLCRED="01" .and. BLEST="  ") // Bloqueado no crédito
+            dbSelectArea("SC6")
+     	    dbSkip()
+	        Loop
+	     ElseIf BLCRED="  " .and. BLEST="02" // Bloqueado no estoque
+            dbSelectArea("SC6")
+     	    dbSkip()
+	        Loop
+	     ElseIf BLCRED="  " .and. BLEST="  "
+            DbSelectArea("TRB")
+            Reclock("TRB",.T.)
+            TRB->PEDIDO := SC6->C6_NUM
+            TRB->ITEM   := SC6->C6_ITEM
+            TRB->QUANT  := XQUANT
+            TRB->EMISSAO:= SC5->C5_EMISSAO
+            TRB->ENTREGA:= SC6->C6_ENTREG
+            TRB->CLIENTE:= SC5->C5_CLIENTE
+            TRB->DESCCLI:= SA1->A1_NREDUZ
+            TRB->MARCA  := "  "
+            If !Empty(SC5->C5_NOVULT)
+               TRB->CREDITO:= SC5->C5_NOVULT
+            Else
+               TRB->CREDITO:= DATLIB
+            Endif
+            MSUnlock()
+         Endif
+      Endif
+      dbSelectArea("SC6")
+	  dbSkip()
+   Enddo
+Enddo
+
+
+dbSelectArea("TRB")
+dbGoTop()
+
+aCampos := {}
+AADD(aCampos,{"MARCA","  ","@!"})
+AADD(aCampos,{"PEDIDO","PEDIDO","@!"})
+AADD(aCampos,{"ITEM","ITEM","@!"}) 
+AADD(aCampos,{"QUANT","QUANT.","@E 9,999.99"})
+AADD(aCampos,{"EMISSAO","EMISSAO",})
+AADD(aCampos,{"ENTREGA","ENTREGA",})
+AADD(aCampos,{"CREDITO","LIB.CREDITO",})
+AADD(aCampos,{"CLIENTE","CLIENTE","@!"})
+AADD(aCampos,{"DESCCLI","NOME","@!"})
+
+cMarca := GetMark()
+xMarca := cMarca
+
+@ 200,1 TO 500,765 DIALOG oDlg7 TITLE "Pedidos Liberados"
+@ 6,5 TO 130,380 BROWSE "TRB" MARK "MARCA" FIELDS aCampos Object _oMark
+@ 135,005 BUTTON "_Bloqueia Tudo" SIZE 40,15 ACTION Marcatudo()
+@ 135,160 BUTTON "_Conclui"  SIZE 40,15 ACTION Bloq()
+@ 135,340 BUTTON "_Fecha"  SIZE 40,15 ACTION Fecha()
+
+Desmarca()
+
+ACTIVATE DIALOG oDlg7 CENTER
+Close(oDlg1)
+Return
+
+Static Function DesMarca()
+
+cMarca:=" "
+
+dbSelectArea("TRB")
+DbGoTop()
+Do While !EOF()
+      
+   If  Marked("MARCA")     //Registro esta marcado
+       Reclock("TRB",.F.)
+       TRB->MARCA := ThisMark()
+       MsUnlock()
+   EndIf
+   DbSkip()
+End
+DbGoTop()
+_oMark:oBrowse:Refresh()
+
+Return                               
+
+// Substituido pelo assistente de conversao do AP6 IDE em 20/04/04 ==> Function BotCan1
+
+Static Function nseqCan1()
+***************
+WCONTINUA:=.F.  
+
+DbselectArea("TRB")
+DbCloseArea("TRB")
+flag = 1
+
+Close(oDlg1)
+Return
+
+/*Static Function Marca()        // incluido pelo assistente de conversao do AP6 IDE em 20/04/04
+
+dbSelectArea("TRB")
+DbGoTop()
+Do While !EOF()
+      
+   If  Marked("MARCA")     //Registro esta marcado
+       Reclock("TRB",.F.)
+       TRB->MARCA := ThisMark()
+       MsUnlock()
+   EndIf
+   DbSkip()
+End
+DbGoTop()
+_oMark:oBrowse:Refresh()   
+
+/*If TRB->MARCA = "S"
+   Reclock("TRB",.F.)
+   TRB->MARCA  := "N"
+   MSUnlock()
+   wQtdLib:=wQtdLib+TRB->QUANT
+Else
+   Reclock("TRB",.F.)
+   TRB->MARCA  := "S"
+   MSUnlock()
+   wQtdLib:=wQtdLib-TRB->QUANT
+Endif
+Return*/
+
+Static Function Bloq()        // incluido pelo assistente de conversao do AP6 IDE em 20/04/04
+
+wQtdLib:=0
+dbSelectArea("TRB")
+DbGoTop()
+Do While !EOF()
+      
+   If MARCA<>cMarca
+   	  dbSkip()
+	  Loop
+   Endif
+   wQtdLib :=wQtdLib+TRB->QUANT
+   DbSkip()
+End
+
+@ 0,0 TO 100,430 DIALOG oDlg2
+@ 3,5 TO 30,210
+@ 15,010 SAY "Saldo Liberado : "  + Transform(wQtdLib,"@E 999,999.99")
+@ 38,070 BMPBUTTON TYPE 1 ACTION Ok1()// Substituido pelo assistente de conversao do AP6 IDE em 20/04/04 ==>     @  60,65 BMPBUTTON TYPE 1 ACTION Execute(BotOk1)
+@ 38,100 BMPBUTTON TYPE 2 ACTION Can1()// Substituido pelo assistente de conversao do AP6 IDE em 20/04/04 ==>     @  60,95 BMPBUTTON TYPE 2 ACTION Execute(BotCan1)
+ACTIVATE DIALOG oDlg2 CENTER
+
+Close(oDlg7)
+Return
+
+Static Function Ok1()
+
+XRES:=0
+dbSelectArea("TRB")
+dbGoTop()
+While !EOF()
+
+   If MARCA<>cMarca
+      XRES:=XRES+TRB->QUANT
+   	  dbSkip()
+	  Loop
+   Endif
+
+   dbSelectArea("SC9")
+   dbSetOrder(1)
+   dbGoTop()
+   dbSeek(xFilial("SC9")+TRB->PEDIDO+TRB->ITEM,.F.)
+   If !Found()
+      dbSelectArea("TRB")
+   	  dbSkip()
+      Loop
+   Else
+      While !EOF() .AND. SC9->C9_PEDIDO=TRB->PEDIDO .AND. SC9->C9_ITEM=TRB->ITEM
+     	  dbSkip()
+      Enddo
+      dbSkip(-1)
+      Reclock("SC9",.F.)
+      C9_BLCRED  := "  "
+      C9_BLEST  := "02"
+      MSUnlock()
+      dbSelectArea("TRB")
+      dbSkip()
+   Endif
+Enddo
+
+dbSelectArea("SB2")
+Reclock("SB2",.F.)
+B2_RESERVA  := XRES
+B2_QACLASS := 0
+MSUnlock()
+DbselectArea("TRB")
+DbCloseArea("TRB")
+FErase( cArqTrb1+".*")
+Close(oDlg2)
+Return
+
+Static Function Can1()
+DbselectArea("TRB")
+DbCloseArea("TRB")
+FErase( cArqTrb1+".*")
+Close(oDlg2)
+Return
+                                  
+Static Function Fecha()
+
+XRES:=0
+dbSelectArea("TRB")
+dbGoTop()
+While !EOF()
+   If MARCA<>cMarca
+      XRES:=XRES+TRB->QUANT
+   Endif
+   dbSkip()
+Enddo
+
+dbSelectArea("SB2")
+Reclock("SB2",.F.)
+B2_RESERVA  := XRES
+B2_QACLASS := 0
+MSUnlock()
+
+DbCloseArea("TRB")
+FErase( cArqTrb1+".*")
+Close(oDlg7)
+Return

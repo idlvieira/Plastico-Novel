@@ -1,0 +1,1003 @@
+#include "rwmake.ch"        
+
+User Function NovFT03()       
+
+
+                                                  
+/*/
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±³ Programa ³ NovFT03  ³ Autor ³ Elisângela (Microsiga)³ Data ³ 23.07.04 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Rotina de Alteracao de Pedidos nao Faturados               ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Faturamento                                                ³±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/    
+
+SetPrvt("LIBEMP,CCADASTRO,AROTINA,CMARCA,CGET1,CGET2")            
+
+   cCombo := "Linha 02"
+   aItems := {"CIF","FOB"}
+   cGet1  := Space(6)
+   cGet2  := Space(6)
+   cGet3  := Space(50)          
+   cGet4  := Space(50)
+   cGet5  := Space(2)
+   cGet6  := Space(10)
+   cGet7  := 0
+   cGet8  := Space(10)   
+   cGet9  := 0       
+   cget10 := 0
+   cget11 := 0
+     
+   _cEstPad    := getmv("MV_ESTADO")  
+   cMenP:=Space(3)
+   cMen1:=cMen2:=cMen3:=cMen4:=cMen5:=cMen6:=cMen7:=cMen8:=cMen9:=cMenA:=cMenB:=cMenC:=cMenD:=cMenE:=cMenF:=Space(55)
+   cIt1 :=cIt2:=cIt3:=cIt4:=cIt5:=cIt6:=cIt7:=cIt8:=cIt9:=cItA:=cItB:=Space(2)
+   cTs1 :=cTs2:=cTs3 :=cTs4 :=cTs5 :=cTs6 :=cTs7 :=cTs8 :=cTs9 :=cTsA :=cTsB :=""
+   cPrd1:=cPrd2:=cPrd3:=cPrd4:=cPrd5:=cPrd6:=cPrd7:=cPrd8:=cPrd9:=cPrdA:=cPrdB:="" 
+   cTN1 :=cTN2 :=cTN3 :=cTN4 :=cTN5 :=cTN6 :=cTN7 :=cTN8 :=cTN9 :=cTNA :=cTNB :=Space(3)
+   cCF1 :=cCF2 :=cCF3 :=cCF4 :=cCF5 :=cCF6 :=cCF7 :=cCF8 :=cCF9 :=cCFA :=cCFB :=Space(5)
+   cDT1 :=cDT2 :=cDT3 :=cDT4 :=cDT5 :=cDT6 :=cDT7 :=cDT8 :=cDT9 :=cDTA :=cDTB :=CTOD("  / /  ")
+   
+   @ 00,00 TO 650,550 DIALOG oDlg1 TITLE "Rotina de Alteracao de Dados do Pedido"
+   @ 13,14 SAY "Numero do Pedido"
+   @ 13,80 GET cGet1 PICTURE "@!" VALID naovazio() .And. PedVal() 
+   @ 33,14 SAY "Nome Transportador"
+   @ 33,80 GET cGet3 PICTURE "@!" Size 127,30
+   @ 43,14 SAY "Transportador"
+   @ 43,80 GET cGet2 PICTURE "@!" VALID PTrans() F3 "SA4"
+   @ 53,14 SAY "Municipio Transportador"                   
+   @ 53,80 GET cGet4 PICTURE "@!" Size 127,30
+   @ 63,14 SAY "UF Transportador"
+   @ 63,80 GET cGet5 PICTURE "@!" F3 "12"
+   @ 63,120 SAY "Placa"
+   @ 63,141 GET cGet6 PICTURE "@!"                       
+   @ 73,14 SAY "Volume"
+   @ 73,80 GET cGet7 PICTURE "@E 999999" Size 35,30                       
+   @ 73,120 SAY "Especie"
+   @ 73,141 GET cGet8 PICTURE "@!"                       
+      
+   @ 73,182 SAY "Tp Frete"
+   @ 73,206 COMBOBOX cCombo ITEMS aItems SIZE 50,50                        
+  
+  
+   @ 85,182 SAY "Frete"
+   @ 85,206 GET cGet9 PICTURE "@E 9,999,999.99" Size 45,30 valid fat1()                       
+   @ 88,14  say "Peso Liquido:"
+   @ 88,55  get cGet10 picture "@E 9,999,999.99" Size 45,30
+   @ 96,14  say "Peso Bruto  :"                
+   @ 96,55  get cGet11 picture "@E 9,999,999.99" Size 45,30
+   @ 120,14 SAY "Mens Padrao"
+   @ 120,80 GET cMenP PICTURE "@!" VALID PMens() F3 "SM4"
+   @ 133,14 SAY "Mens NF  1"
+   @ 133,80 GET cMen1 PICTURE "@!" Size 170,50
+   @ 143,14 SAY "Mens NF  2"
+   @ 143,80 GET cMen2 PICTURE "@!" Size 170,50
+   @ 153,14 SAY "Mens NF  3"
+   @ 153,80 GET cMen3 PICTURE "@!" Size 170,50
+   @ 163,14 SAY "Mens NF  4"
+   @ 163,80 GET cMen4 PICTURE "@!" Size 170,50
+   @ 173,14 SAY "Mens NF  5"
+   @ 173,80 GET cMen5 PICTURE "@!" Size 170,50
+   @ 183,14 SAY "Mens NF  6"
+   @ 183,80 GET cMen6 PICTURE "@!" Size 170,50
+   @ 193,14 SAY "Mens NF  7"
+   @ 193,80 GET cMen7 PICTURE "@!" Size 170,50
+   @ 203,14 SAY "Mens NF  8"
+   @ 203,80 GET cMen8 PICTURE "@!" Size 170,50
+   @ 213,14 SAY "Mens NF  9"
+   @ 213,80 GET cMen9 PICTURE "@!" Size 170,50 
+   @ 223,14 SAY "Mens NF 10"
+   @ 223,80 GET cMenA PICTURE "@!" Size 170,50
+   @ 233,14 SAY "Mens NF 11"
+   @ 233,80 GET cMenB PICTURE "@!" Size 170,50
+   @ 243,14 SAY "Mens NF 12"
+   @ 243,80 GET cMenC PICTURE "@!" Size 170,50
+   @ 253,14 SAY "Mens NF 13"
+   @ 253,80 GET cMenD PICTURE "@!" Size 170,50
+   @ 263,14 SAY "Mens NF 14"
+   @ 263,80 GET cMenE PICTURE "@!" Size 170,50
+   @ 273,14 SAY "Mens NF 15"
+   @ 273,80 GET cMenF PICTURE "@!" Size 170,50
+
+   @ 20 ,220 BMPBUTTON TYPE 1 ACTION OkProc()
+   @ 40 ,220 BMPBUTTON TYPE 2 ACTION Close(oDlg1)
+
+   ACTIVATE DIALOG oDlg1 CENTERED
+Return
+
+Static Function PTrans()
+DbselectArea("SA4")
+DbsetOrder(1)
+Dbseek(xFilial()+cGet2)
+If Found()
+   cGet3 := SA4->A4_NOME
+   cGet4:= SA4->A4_MUN
+   cGet5:= SA4->A4_EST
+   cGet6:= SA4->A4_PLACA
+Else
+   Msgbox("Transportador nao Encontrado","Atencao","ALERT")
+   cGet2 := Space(6)
+Endif
+Return                           
+
+
+Static Function PMens()
+   dbSelectArea("SM4")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+cMenP)
+   If Found()   
+      cMen1 := SM4->M4_DESCR1      
+      cMen2 := SM4->M4_DESCR2
+      cMen3 := SM4->M4_DESCR3
+      cMen4 := SM4->M4_DESCR4
+      cMen5 := SM4->M4_DESCR5
+      cMen6 := SM4->M4_DESCR6
+      cMen7 := SM4->M4_DESCR7
+      cMen8 := SM4->M4_DESCR8
+      cMen9 := SM4->M4_DESCR9
+      cMenA := SM4->M4_DESCR10
+   Else
+      Msgbox("Codigo Inexistente","Atencao","ALERT")
+      cMenP := Space(3)
+   Endif   
+Return
+
+
+Static Function PedVal()
+   DbSelectArea("SC5")  
+   SC5->( DbSetOrder(1) )
+   SC5->( Dbseek(xFilial()+cGet1,.T.) )
+   
+   If SC5->( Found() )
+      If !Vazio(SC5->C5_NOTA)
+         Msgbox("O Pedido ja foi Faturado","Atencao","ALERT")        
+         Return
+      ElseIf (dDatabase-SC5->C5_EMISSAO)>60 .AND. SC5->C5_OK<>"SS" .AND. !Empty(SC5->C5_EMISSAO)
+         MsgBox("Pedido emitido a mais de 60 dias. Bloqueado para faturamento.")
+         Return
+      Else           
+       
+      // ATUALIZA VOLUME        
+      DbSelectArea("SC6")  
+      SC6->( DbSetOrder(1) )
+      SC6->( Dbseek(xFilial()+cGet1,.T.) )
+      xvol := 0.00        
+      SLD  := 0.00
+      DO WHILE SC6->C6_NUM = SC5->C5_NUM
+         dbSelectArea("SB1")
+	     dbSetOrder(1)     
+	     DBSEEK(XFILIAL()+SC6->C6_PRODUTO,.T.)
+	     dbSelectArea("SC9")
+	     DBSEEK(XFILIAL()+SC6->C6_NUM,.T.)                                      
+	     
+	     SC9LIB = 0.00
+	     DO WHILE SC9->C9_PEDIDO = SC6->C6_NUM .AND. SC9->C9_ITEM = SC6->C6_ITEM
+	        IF SC9->C9_BLEST ="  "
+	           SC9LIB = SC9LIB + C9_QTDLIB
+	        ENDIF
+	        skip
+	     ENDDO   
+	        
+	     dbSelectArea("SB1")
+ 	     If  trim(SB1->B1_CLASSE1) = "031" .or. trim(SB1->B1_CLASSE1) = "035" .or. trim(SB1->B1_CLASSE1) = "039"
+             // sld := (SC6->C6_QTDVEN - SC9LIB)
+            sld := (SC9LIB)
+            xVol:=xVol+((sld/SB1->B1_QE)*2)
+         Else                                         
+           //  sld := (SC6->C6_QTDVEN - SC9LIB)
+             sld := SC9LIB
+             xVol:=xVol+(sld/SB1->B1_QE)
+         Endif 
+         DbSelectArea("SC6") 
+         skip
+      enddo
+         DbSelectArea("SC5")
+         cGet2 := SC5->C5_TRANSP
+         cGet3 := SC5->C5_NTRANSP         
+         cGet4 := SC5->C5_MUNTRAN
+         cGet5 := SC5->C5_UFTRANS
+         cGet6 := SC5->C5_PLACA   
+      //   cGet7 := SC5->C5_VOLUME1
+         cGet7 := xVol
+         cGet8 := SC5->C5_ESPECI1 
+         cGet9 := SC5->C5_FRETEII 
+         cGet10 := SC5->C5_PESOL 
+         cGet11 := SC5->C5_PBRUTO                
+         cMenP := SC5->C5_MENPAD
+         cMen1 := SC5->C5_DESCR1
+         cMen2 := SC5->C5_DESCR2
+         cMen3 := SC5->C5_DESCR3               
+         cMen4 := SC5->C5_DESCR4
+         cMen5 := SC5->C5_DESCR5
+         cMen6 := SC5->C5_DESCR6
+         cMen7 := SC5->C5_DESCR7
+         cMen8 := SC5->C5_DESCR8
+         cMen9 := SC5->C5_DESCR9
+         cMenA := SC5->C5_DESCR10
+         cMenB := SC5->C5_DESCR11
+         cMenC := SC5->C5_DESCR12
+         cMenD := SC5->C5_DESCR13
+         cMenE := SC5->C5_DESCR14
+         cMenF := SC5->C5_DESCR15
+         
+         If SC5->C5_TPFRETE = "C"
+            cCombo  := "CIF"
+         Else
+            cCombo  := "FOB"       
+         Endif
+      Endif
+   Else
+      Msgbox("Pedido nao Existe","Atencao","ALERT")        
+      Return   
+   Endif
+
+Return     
+
+
+Static Function OkProc()
+   _Pgt := .F.
+
+   DbSelectArea("SC5")  
+   SC5->( DbSetOrder(1) )
+   SC5->( Dbseek(xFilial()+cGet1,.T.) )
+   
+   If SC5->( Found())
+      
+      If !Vazio(SC5->C5_NOTA)
+         Msgbox("O Pedido ja foi Faturado","Atencao","ALERT")        
+         Return
+      Endif 
+      
+   Endif
+   
+   If Msgbox("Deseja Atualizar os Itens do Pedido","Atencao","YESNO")
+
+      _Pgt := .T.
+
+      @ 30,30 TO 500,350 DIALOG oDlg2 TITLE "Rotina de Alteracao de Dados do Pedido (Itens)"
+
+      @ 10,14  SAY "Item 1    Tes            CFOP             ENTREGA"
+      @ 20,14  GET cIt1 PICTURE "@!" Valid naovazio() .And. Ped1()
+      @ 20,33  GET cTN1 PICTURE "@!" Valid ExistCpo("SF4") .And. TSTES1() F3 "SF4"
+      @ 20,60  GET cCF1 PICTURE "@!" 
+      @ 20,95  GET cDT1 PICTURE "@!" Size 35,30
+
+      @ 30,14  SAY "Item 2"
+      @ 40,14  GET cIt2 PICTURE "@!" Valid naovazio() .And. Ped2()
+      @ 40,33  GET cTN2 PICTURE "@!" Valid ExistCpo("SF4") .And. TSTES2() F3 "SF4"
+      @ 40,60  GET cCF2 PICTURE "@!" 
+      @ 40,95  GET cDT2 PICTURE "@!" Size 35,30
+
+      @ 50,14  SAY "Item 3"                                             
+      @ 60,14  GET cIt3 PICTURE "@!" Valid naovazio() .And. Ped3()
+      @ 60,33  GET cTN3 PICTURE "@!" Valid ExistCpo("SF4") .And. TSTES3() F3 "SF4"
+      @ 60,60  GET cCF3 PICTURE "@!" 
+      @ 60,95  GET cDT3 PICTURE "@!" Size 35,30
+
+      @ 70,14  SAY "Item 4"
+      @ 80,14  GET cIt4 PICTURE "@!" Valid naovazio() .And. Ped4()
+      @ 80,33  GET cTN4 PICTURE "@!" Valid ExistCpo("SF4") .And. TSTES4() F3 "SF4"
+      @ 80,60  GET cCF4 PICTURE "@!" 
+      @ 80,95  GET cDT4 PICTURE "@!" Size 35,30
+
+      @ 90,14   SAY "Item 5"                        
+      @ 100,14  GET cIt5 PICTURE "@!" Valid naovazio() .And. Ped5()
+      @ 100,33  GET cTN5 PICTURE "@!" Valid ExistCpo("SF4") .And. TSTES5() F3 "SF4"
+      @ 100,60  GET cCF5 PICTURE "@!" 
+      @ 100,95  GET cDT5 PICTURE "@!" Size 35,30
+
+      @ 110,14  SAY "Item 6"                       
+      @ 120,14  GET cIt6 PICTURE "@!" Valid naovazio() .And. Ped6()
+      @ 120,33  GET cTN6 PICTURE "@!" Valid ExistCpo("SF4") .And. TSTES6() F3 "SF4"
+      @ 120,60  GET cCF6 PICTURE "@!" 
+      @ 120,95  GET cDT6 PICTURE "@!" Size 35,30
+
+
+      @ 130,14  SAY "Item Pedido 7"
+      @ 140,14  GET cIt7 PICTURE "@!" Valid naovazio() .And. Ped7()
+      @ 140,33  GET cTN7 PICTURE "@!" Valid ExistCpo("SF4") .And. TSTES7() F3 "SF4"
+      @ 140,60  GET cCF7 PICTURE "@!" 
+      @ 140,95  GET cDT7 PICTURE "@!" Size 35,30
+
+      @ 150,14  SAY "Item Pedido 8"
+      @ 160,14  GET cIt8 PICTURE "@!" Valid naovazio() .And. Ped8()
+      @ 160,33  GET cTN8 PICTURE "@!" Valid ExistCpo("SF4") .And. TSTES8() F3 "SF4"
+      @ 160,60  GET cCF8 PICTURE "@!" 
+      @ 160,95  GET cDT8 PICTURE "@!" Size 35,30
+
+      @ 170,14  SAY "Item Pedido 9"
+      @ 180,14  GET cIt9 PICTURE "@!" Valid naovazio() .And. Ped9()
+      @ 180,33  GET cTN9 PICTURE "@!" Valid ExistCpo("SF4") .And. TSTES9() F3 "SF4"
+      @ 180,60  GET cCF9 PICTURE "@!" 
+      @ 180,95  GET cDT9 PICTURE "@!" Size 35,30
+
+      @ 190,14  SAY "Item Pedido 10"
+      @ 200,14  GET cItA PICTURE "@!" Valid naovazio() .And. PedA()
+      @ 200,33  GET cTNA PICTURE "@!" Valid ExistCpo("SF4") .And. TSTESA() F3 "SF4"
+      @ 200,60  GET cCFA PICTURE "@!" 
+      @ 200,95  GET cDTA PICTURE "@!" Size 35,30
+
+      @ 210,14  SAY "Item Pedido 11"       
+      @ 220,14  GET cItB PICTURE "@!" Valid naovazio() .And. PedB()
+      @ 220,33  GET cTNB PICTURE "@!" Valid ExistCpo("SF4") .And. TSTESB() F3 "SF4"
+      @ 220,60  GET cCFB PICTURE "@!" 
+      @ 220,95  GET cDTB PICTURE "@!" Size 35,30
+
+      @ 98,130 BMPBUTTON TYPE 1 ACTION Close(oDlg2)
+      ACTIVATE DIALOG oDlg2 CENTERED   
+   Endif
+      
+   If Msgbox("Deseja Gravar as Informacoes da Capa do Pedido","Atencao","YESNO")
+      DbSelectArea("SC5")  
+      SC5->( DbSetOrder(1) )
+      SC5->( Dbseek(xFilial()+cGet1,.T.) )
+      
+      If SC5->( Found() )
+         RecLock("SC5",.F.)
+            SC5->C5_TRANSP  := cGet2
+            SC5->C5_NTRANSP := cGet3        
+            SC5->C5_MUNTRAN := cGet4
+            SC5->C5_UFTRANS := cGet5
+            SC5->C5_PLACA   := cGet6 
+            SC5->C5_VOLUME1 := cGet7
+            SC5->C5_ESPECI1 := cGet8
+            SC5->C5_FRETEII := cGet9         
+            SC5->C5_DESCR1  := cMen1
+            SC5->C5_MENPAD  := cMenP
+            SC5->C5_DESCR2  := cMen2  
+            SC5->C5_DESCR3  := cMen3  
+            SC5->C5_DESCR4  := cMen4  
+            SC5->C5_DESCR5  := cMen5  
+            SC5->C5_DESCR6  := cMen6  
+            SC5->C5_DESCR7  := cMen7  
+            SC5->C5_DESCR8  := cMen8  
+            SC5->C5_DESCR9  := cMen9  
+            SC5->C5_DESCR10 := cMenA  
+            SC5->C5_DESCR11 := cMenB  
+            SC5->C5_DESCR12 := cMenC  
+            SC5->C5_DESCR13 := cMenD 
+            SC5->C5_DESCR14 := cMenE  
+            SC5->C5_DESCR15 := cMenF
+            SC5->C5_PESOL   := cGet10
+            SC5->C5_PBRUTO  := cGet11   
+            
+            If cCombo = "CIF"
+               SC5->C5_TPFRETE := "C"
+            Else
+               SC5->C5_TPFRETE := "F"            
+            Endif
+     
+         MsUnlock()   
+      Endif
+   
+   Endif
+   
+      If _Pgt = .T.
+      If Msgbox("Deseja Gravar as Informacoes dos Itens do Pedido","Atencao","YESNO")
+         dbSelectArea("SC6")  
+         dbSetOrder(1)
+         Dbseek(xFilial()+cGet1) 
+         While !Eof() .And. SC6->C6_NUM = cGet1
+            If !Vazio(cIt1) .And. SC6->C6_ITEM = cIt1
+               RecLock("SC6",.F.)
+                SC6->C6_TES := cTN1
+                SC6->C6_CF  := cCF1
+                SC6->C6_ENTREG := cDT1
+               MsUnlock()               
+            Endif                              
+            If !Vazio(cIt2) .And. SC6->C6_ITEM = cIt2
+               RecLock("SC6",.F.)
+                SC6->C6_TES := cTN2
+                SC6->C6_CF  := cCF2
+               MsUnlock()               
+            Endif                              
+            If !Vazio(cIt3) .And. SC6->C6_ITEM = cIt3
+               RecLock("SC6",.F.)
+                SC6->C6_TES := cTN3
+                SC6->C6_CF  := cCF3
+               MsUnlock()               
+            Endif                              
+            If !Vazio(cIt4) .And. SC6->C6_ITEM = cIt4
+               RecLock("SC6",.F.)
+                SC6->C6_TES := cTN4
+                SC6->C6_CF  := cCF4
+               MsUnlock()               
+            Endif                              
+            If !Vazio(cIt5) .And. SC6->C6_ITEM = cIt5
+               RecLock("SC6",.F.)
+                SC6->C6_TES := cTN5
+                SC6->C6_CF  := cCF5
+               MsUnlock()               
+            Endif                              
+            If !Vazio(cIt6) .And. SC6->C6_ITEM = cIt6
+               RecLock("SC6",.F.)
+                SC6->C6_TES := cTN6
+                SC6->C6_CF  := cCF6
+               MsUnlock()               
+            Endif                              
+            If !Vazio(cIt7) .And. SC6->C6_ITEM = cIt7
+               RecLock("SC6",.F.)
+                SC6->C6_TES := cTN7
+                SC6->C6_CF  := cCF7
+               MsUnlock()               
+            Endif                              
+            If !Vazio(cIt8) .And. SC6->C6_ITEM = cIt8
+               RecLock("SC6",.F.)
+                SC6->C6_TES := cTN8
+                SC6->C6_CF  := cCF8
+               MsUnlock()               
+            Endif                              
+            If !Vazio(cIt9) .And. SC6->C6_ITEM = cIt9
+               RecLock("SC6",.F.)
+                SC6->C6_TES := cTN9
+                SC6->C6_CF  := cCF9
+               MsUnlock()               
+            Endif                              
+            If !Vazio(cItA) .And. SC6->C6_ITEM = cItA
+               RecLock("SC6",.F.)
+                SC6->C6_TES := cTNA
+                SC6->C6_CF  := cCFA
+               MsUnlock()               
+            Endif                              
+            If !Vazio(cItB) .And. SC6->C6_ITEM = cItB
+               RecLock("SC6",.F.)
+                SC6->C6_TES := cTNB
+                SC6->C6_CF  := cCFB
+               MsUnlock()               
+            Endif                              
+            Dbskip(1)
+         End   
+      Endif
+   Endif
+   cGet1 := Space(6)
+   cGet2 := Space(6)
+   cGet3 := Space(50)
+   cGet4 := Space(50)
+   cGet5 := Space(2)
+   cGet6 := Space(10)   
+   cGet9 := 0   
+   cget10:= 0
+   cget11:= 0
+
+   cMenP:=Space(3)
+   cMen1:=cMen2:=cMen3:=cMen4:=cMen5:=cMen6:=cMen7:=cMen8:=cMen9:=cMenA:=cMenB:=cMenC:=cMenD:=cMenE:=cMenF:=Space(55)
+   cIt1 :=cIt2:=cIt3:=cIt4:=cIt5:=cIt6:=cIt7:=cIt8:=cIt9:=cItA:=cItB:=Space(2)
+   cTs1 :=cTs2:=cTs3 :=cTs4 :=cTs5 :=cTs6 :=cTs7 :=cTs8 :=cTs9 :=cTsA :=cTsB :=""
+   cPrd1:=cPrd2:=cPrd3:=cPrd4:=cPrd5:=cPrd6:=cPrd7:=cPrd8:=cPrd9:=cPrdA:=cPrdB:="" 
+   cTN1 :=cTN2 :=cTN3 :=cTN4 :=cTN5 :=cTN6 :=cTN7 :=cTN8 :=cTN9 :=cTNA :=cTNB :=Space(3)
+   cCF1 :=cCF2 :=cCF3 :=cCF4 :=cCF5 :=cCF6 :=cCF7 :=cCF8 :=cCF9 :=cCFA :=cCFB :=Space(5)     
+   cDT1 :=cDT2 :=cDT3 :=cDT4 :=cDT5 :=cDT6 :=cDT7 :=cDT8 :=cDT9 :=cDTA :=cDTB :=CTOD("  / /  ")
+Return      
+
+Static Function Ped1()
+   dbSelectArea("SC6")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+cGet1+cIt1)
+   If Found()
+      If SC6->C6_QTDVEN-SC6->C6_QTDENT<=0
+         Msgbox("Item já faturado","Atencao","ALERT")
+         cTN1 := Space(3)
+         cCF1 := Space(5)
+         cIt1 := Space(2)     
+         cDT1 := CTOD("  / /  ")
+         Return      
+      Else
+         Msgbox("Produto "+Alltrim(SC6->C6_PRODUTO) + " " +Alltrim(SC6->C6_DESCRI),"Tes "+ SC6->C6_TES + " - " + SC6->C6_CF,"ALERT")
+         cTN1 := SC6->C6_TES
+         cCF1 := SC6->C6_CF
+         cDT1 := SC6->C6_ENTREG
+      Endif
+   Else                                                     
+     Msgbox("Item nao Encontrado","Atencao","ALERT")
+     cTN1 := Space(3)
+     cCF1 := Space(5)
+     cIt1 := Space(2)     
+     cDT1 := CTOD("  / /  ")
+     Return
+   Endif
+Return 
+
+Static Function TSTES1()        
+
+   dbSelectArea("SA1")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+SC5->C5_CLIENTE) 
+
+   dbSelectArea("SF4")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+cTN1)
+   If Found()
+      If alltrim(SA1->A1_EST) == alltrim(_cEstPad)
+	     cCF1 := "5"+substr(SF4->F4_CF,2,3)
+      Else
+	     cCF1 := "6"+substr(SF4->F4_CF,2,3)
+      Endif
+   Else
+      cCF1 := Space(5)
+   Endif      
+Return 
+
+Static Function Ped2()
+   dbSelectArea("SC6")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+cGet1+cIt2)
+   If Found()
+      If SC6->C6_QTDVEN-SC6->C6_QTDENT<=0
+         Msgbox("Item já faturado","Atencao","ALERT")
+         cTN1 := Space(3)
+         cCF1 := Space(5)
+         cIt1 := Space(2)     
+         cDT1 := CTOD("  / /  ")
+         Return      
+      Else
+         Msgbox("Produto "+Alltrim(SC6->C6_PRODUTO) + " " +Alltrim(SC6->C6_DESCRI),"Tes "+ SC6->C6_TES + " - " + SC6->C6_CF,"ALERT")
+         cTN1 := SC6->C6_TES
+         cCF1 := SC6->C6_CF
+         cDT1 := SC6->C6_ENTREG
+      Endif
+   Else                                                     
+     Msgbox("Item nao Encontrado","Atencao","ALERT")
+     cTN2 := Space(3)
+     cCF2 := Space(5)
+     cIt2 := Space(2)     
+     cDT2 := CTOD("  / /  ")
+     Return
+   Endif
+Return 
+
+Static Function TSTES2()
+   dbSelectArea("SA1")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+SC5->C5_CLIENTE) 
+ 
+   dbSelectArea("SF4")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+cTN2)
+    
+   If Found()
+      If alltrim(SA1->A1_EST) == alltrim(_cEstPad)
+	     cCF2 := "5"+substr(SF4->F4_CF,2,3)
+      Else
+	     cCF2 := "6"+substr(SF4->F4_CF,2,3)
+      Endif
+   Else
+      cCF2 := Space(5)
+   Endif      
+Return 
+
+Static Function Ped3()
+   dbSelectArea("SC6")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+cGet1+cIt3)
+   If Found()
+      If SC6->C6_QTDVEN-SC6->C6_QTDENT<=0
+         Msgbox("Item já faturado","Atencao","ALERT")
+         cTN1 := Space(3)
+         cCF1 := Space(5)
+         cIt1 := Space(2)     
+         cDT1 := CTOD("  / /  ")
+         Return      
+      Else
+         Msgbox("Produto "+Alltrim(SC6->C6_PRODUTO) + " " +Alltrim(SC6->C6_DESCRI),"Tes "+ SC6->C6_TES + " - " + SC6->C6_CF,"ALERT")
+         cTN1 := SC6->C6_TES
+         cCF1 := SC6->C6_CF
+         cDT1 := SC6->C6_ENTREG
+      Endif
+   Else                                                     
+     Msgbox("Item nao Encontrado","Atencao","ALERT")
+     cTN3 := Space(3)
+     cCF3 := Space(5)
+     cIt3 := Space(2)     
+     cDT3 := CTOD("  / /  ")
+     Return
+   Endif
+Return 
+
+Static Function TSTES3()    
+   dbSelectArea("SA1")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+SC5->C5_CLIENTE) 
+
+   dbSelectArea("SF4")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+cTN3)
+   If Found()
+      If alltrim(SA1->A1_EST) == alltrim(_cEstPad)
+	     cCF3 := "5"+substr(SF4->F4_CF,2,3)
+      Else
+	     cCF3 := "6"+substr(SF4->F4_CF,2,3)
+      Endif
+   Else
+      cCF3 := Space(5)
+   Endif      
+Return 
+
+Static Function Ped4()
+   dbSelectArea("SC6")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+cGet1+cIt4)
+   If Found()
+      If SC6->C6_QTDVEN-SC6->C6_QTDENT<=0
+         Msgbox("Item já faturado","Atencao","ALERT")
+         cTN1 := Space(3)
+         cCF1 := Space(5)
+         cIt1 := Space(2)     
+         cDT1 := CTOD("  / /  ")
+         Return      
+      Else
+         Msgbox("Produto "+Alltrim(SC6->C6_PRODUTO) + " " +Alltrim(SC6->C6_DESCRI),"Tes "+ SC6->C6_TES + " - " + SC6->C6_CF,"ALERT")
+         cTN1 := SC6->C6_TES
+         cCF1 := SC6->C6_CF
+         cDT1 := SC6->C6_ENTREG
+      Endif
+   Else                                                     
+     Msgbox("Item nao Encontrado","Atencao","ALERT")
+     cTN4 := Space(3)
+     cCF4 := Space(5)
+     cIt4 := Space(2)     
+     cDT4 := CTOD("  / /  ")
+     Return
+   Endif
+Return 
+
+Static Function TSTES4()    
+   dbSelectArea("SA1")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+SC5->C5_CLIENTE) 
+
+
+   dbSelectArea("SF4")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+cTN4)
+   If Found()
+      If alltrim(SA1->A1_EST) == alltrim(_cEstPad)
+	     cCF4 := "5"+substr(SF4->F4_CF,2,3)
+      Else
+	     cCF4 := "6"+substr(SF4->F4_CF,2,3)
+      Endif
+   Else
+      cCF4 := Space(5)
+   Endif      
+Return 
+
+Static Function Ped5()
+   dbSelectArea("SC6")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+cGet1+cIt5)
+   If Found()
+      If SC6->C6_QTDVEN-SC6->C6_QTDENT<=0
+         Msgbox("Item já faturado","Atencao","ALERT")
+         cTN1 := Space(3)
+         cCF1 := Space(5)
+         cIt1 := Space(2)     
+         cDT1 := CTOD("  / /  ")
+         Return      
+      Else
+         Msgbox("Produto "+Alltrim(SC6->C6_PRODUTO) + " " +Alltrim(SC6->C6_DESCRI),"Tes "+ SC6->C6_TES + " - " + SC6->C6_CF,"ALERT")
+         cTN1 := SC6->C6_TES
+         cCF1 := SC6->C6_CF
+         cDT1 := SC6->C6_ENTREG
+      Endif
+   Else                                                     
+     Msgbox("Item nao Encontrado","Atencao","ALERT")
+     cTN5 := Space(3)
+     cCF5 := Space(5)
+     cIt5 := Space(2)     
+     cDT5 := CTOD("  / /  ")
+     Return
+   Endif
+Return 
+
+Static Function TSTES5()    
+   dbSelectArea("SA1")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+SC5->C5_CLIENTE) 
+
+   dbSelectArea("SF4")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+cTN5)
+   If Found()
+      If alltrim(SA1->A1_EST) == alltrim(_cEstPad)
+	     cCF5 := "5"+substr(SF4->F4_CF,2,3)
+      Else
+	     cCF5 := "6"+substr(SF4->F4_CF,2,3)
+      Endif
+   Else
+      cCF5 := Space(5)
+   Endif      
+Return 
+
+Static Function Ped6()
+   dbSelectArea("SC6")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+cGet1+cIt6)
+   If Found()
+      If SC6->C6_QTDVEN-SC6->C6_QTDENT<=0
+         Msgbox("Item já faturado","Atencao","ALERT")
+         cTN1 := Space(3)
+         cCF1 := Space(5)
+         cIt1 := Space(2)     
+         cDT1 := CTOD("  / /  ")
+         Return      
+      Else
+         Msgbox("Produto "+Alltrim(SC6->C6_PRODUTO) + " " +Alltrim(SC6->C6_DESCRI),"Tes "+ SC6->C6_TES + " - " + SC6->C6_CF,"ALERT")
+         cTN1 := SC6->C6_TES
+         cCF1 := SC6->C6_CF
+         cDT1 := SC6->C6_ENTREG
+      Endif
+   Else                                                     
+     Msgbox("Item nao Encontrado","Atencao","ALERT")
+     cTN6 := Space(3)
+     cCF6 := Space(5)
+     cIt6 := Space(2)     
+     cDT6 := CTOD("  / /  ")
+     Return
+   Endif
+Return 
+
+Static Function TSTES6()    
+   dbSelectArea("SA1")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+SC5->C5_CLIENTE) 
+
+   dbSelectArea("SF4")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+cTN6)
+   If Found()
+      If alltrim(SA1->A1_EST) == alltrim(_cEstPad)
+	     cCF6 := "5"+substr(SF4->F4_CF,2,3)
+      Else
+	     cCF6 := "6"+substr(SF4->F4_CF,2,3)
+      Endif
+   Else
+      cCF6 := Space(5)
+   Endif      
+Return 
+
+Static Function Ped7()
+   dbSelectArea("SC6")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+cGet1+cIt7)
+   If Found()
+      If SC6->C6_QTDVEN-SC6->C6_QTDENT<=0
+         Msgbox("Item já faturado","Atencao","ALERT")
+         cTN1 := Space(3)
+         cCF1 := Space(5)
+         cIt1 := Space(2)     
+         cDT1 := CTOD("  / /  ")
+         Return      
+      Else
+         Msgbox("Produto "+Alltrim(SC6->C6_PRODUTO) + " " +Alltrim(SC6->C6_DESCRI),"Tes "+ SC6->C6_TES + " - " + SC6->C6_CF,"ALERT")
+         cTN1 := SC6->C6_TES
+         cCF1 := SC6->C6_CF
+         cDT1 := SC6->C6_ENTREG
+      Endif
+   Else                                                     
+     Msgbox("Item nao Encontrado","Atencao","ALERT")
+     cTN7 := Space(3)
+     cCF7 := Space(5)
+     cIt7 := Space(2)     
+     cDT7 := CTOD("  / /  ")
+     Return
+   Endif
+Return 
+
+Static Function TSTES7()    
+   dbSelectArea("SA1")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+SC5->C5_CLIENTE) 
+
+   dbSelectArea("SF4")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+cTN7)
+   If Found()
+      If alltrim(SA1->A1_EST) == alltrim(_cEstPad)
+	     cCF7 := "5"+substr(SF4->F4_CF,2,3)
+      Else
+	     cCF7 := "6"+substr(SF4->F4_CF,2,3)
+      Endif
+   Else
+      cCF7 := Space(5)
+   Endif      
+Return 
+
+Static Function Ped8()
+   dbSelectArea("SC6")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+cGet1+cIt8)
+   If Found()
+      If SC6->C6_QTDVEN-SC6->C6_QTDENT<=0
+         Msgbox("Item já faturado","Atencao","ALERT")
+         cTN1 := Space(3)
+         cCF1 := Space(5)
+         cIt1 := Space(2)     
+         cDT1 := CTOD("  / /  ")
+         Return      
+      Else
+         Msgbox("Produto "+Alltrim(SC6->C6_PRODUTO) + " " +Alltrim(SC6->C6_DESCRI),"Tes "+ SC6->C6_TES + " - " + SC6->C6_CF,"ALERT")
+         cTN1 := SC6->C6_TES
+         cCF1 := SC6->C6_CF
+         cDT1 := SC6->C6_ENTREG
+      Endif
+   Else                                                     
+     Msgbox("Item nao Encontrado","Atencao","ALERT")
+     cTN8 := Space(3)
+     cCF8 := Space(5)
+     cIt8 := Space(2)     
+     cDT8 := CTOD("  / /  ")
+     Return
+   Endif
+Return 
+
+Static Function TSTES8()    
+   dbSelectArea("SA1")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+SC5->C5_CLIENTE) 
+
+   dbSelectArea("SF4")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+cTN8)
+   If Found()
+      If alltrim(SA1->A1_EST) == alltrim(_cEstPad)
+	     cCF8 := "5"+substr(SF4->F4_CF,2,3)
+      Else
+	     cCF8 := "6"+substr(SF4->F4_CF,2,3)
+      Endif
+   Else
+      cCF8 := Space(5)
+   Endif      
+Return 
+
+Static Function Ped9()
+   dbSelectArea("SC6")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+cGet1+cIt9)
+   If Found()
+      If SC6->C6_QTDVEN-SC6->C6_QTDENT<=0
+         Msgbox("Item já faturado","Atencao","ALERT")
+         cTN1 := Space(3)
+         cCF1 := Space(5)
+         cIt1 := Space(2)     
+         cDT1 := CTOD("  / /  ")
+         Return      
+      Else
+         Msgbox("Produto "+Alltrim(SC6->C6_PRODUTO) + " " +Alltrim(SC6->C6_DESCRI),"Tes "+ SC6->C6_TES + " - " + SC6->C6_CF,"ALERT")
+         cTN1 := SC6->C6_TES
+         cCF1 := SC6->C6_CF
+         cDT1 := SC6->C6_ENTREG
+      Endif
+   Else                                                     
+     Msgbox("Item nao Encontrado","Atencao","ALERT")
+     cTN9 := Space(3)
+     cCF9 := Space(5)
+     cIt9 := Space(2)     
+     cDT9 := CTOD("  / /  ")
+     Return
+   Endif
+Return 
+
+Static Function TSTES9()    
+   dbSelectArea("SA1")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+SC5->C5_CLIENTE) 
+
+   dbSelectArea("SF4")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+cTN9)
+   If Found()
+      If alltrim(SA1->A1_EST) == alltrim(_cEstPad)
+	     cCF9 := "5"+substr(SF4->F4_CF,2,3)
+      Else
+	     cCF9 := "6"+substr(SF4->F4_CF,2,3)
+      Endif
+   Else
+      cCF9 := Space(5)
+   Endif      
+Return 
+
+Static Function PedA()
+   dbSelectArea("SC6")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+cGet1+cItA)
+   If Found()
+      If SC6->C6_QTDVEN-SC6->C6_QTDENT<=0
+         Msgbox("Item já faturado","Atencao","ALERT")
+         cTN1 := Space(3)
+         cCF1 := Space(5)
+         cIt1 := Space(2)     
+         cDT1 := CTOD("  / /  ")
+         Return      
+      Else
+         Msgbox("Produto "+Alltrim(SC6->C6_PRODUTO) + " " +Alltrim(SC6->C6_DESCRI),"Tes "+ SC6->C6_TES + " - " + SC6->C6_CF,"ALERT")
+         cTN1 := SC6->C6_TES
+         cCF1 := SC6->C6_CF
+         cDT1 := SC6->C6_ENTREG
+      Endif
+   Else                                                     
+     Msgbox("Item nao Encontrado","Atencao","ALERT")
+     cTNA := Space(3)
+     cCFA := Space(5)
+     cItA := Space(2)     
+     cDTA := CTOD("  / /  ")
+     Return
+   Endif
+Return 
+
+Static Function TSTESA()    
+   dbSelectArea("SA1")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+SC5->C5_CLIENTE) 
+
+   dbSelectArea("SF4")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+cTNA)
+   If Found()
+      If alltrim(SA1->A1_EST) == alltrim(_cEstPad)
+	     cCFA := "5"+substr(SF4->F4_CF,2,3)
+      Else
+	     cCFA := "6"+substr(SF4->F4_CF,2,3)
+      Endif
+   Else
+      cCFA := Space(5)
+   Endif      
+Return 
+
+Static Function PedB()
+   dbSelectArea("SC6")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+cGet1+cItB)
+   If Found()
+      If SC6->C6_QTDVEN-SC6->C6_QTDENT<=0
+         Msgbox("Item já faturado","Atencao","ALERT")
+         cTN1 := Space(3)
+         cCF1 := Space(5)
+         cIt1 := Space(2)     
+         cDT1 := CTOD("  / /  ")
+         Return      
+      Else
+         Msgbox("Produto "+Alltrim(SC6->C6_PRODUTO) + " " +Alltrim(SC6->C6_DESCRI),"Tes "+ SC6->C6_TES + " - " + SC6->C6_CF,"ALERT")
+         cTN1 := SC6->C6_TES
+         cCF1 := SC6->C6_CF
+         cDT1 := SC6->C6_ENTREG
+      Endif
+   Else                                                     
+     Msgbox("Item nao Encontrado","Atencao","ALERT")
+     cTNB := Space(3)
+     cCFB := Space(5)
+     cItB := Space(2)     
+     cDTB := CTOD("  / /  ")
+     Return
+   Endif
+Return 
+
+Static Function TSTESB()    
+   dbSelectArea("SA1")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+SC5->C5_CLIENTE) 
+
+   dbSelectArea("SF4")  
+   dbSetOrder(1)
+   Dbseek(xFilial()+cTNB)
+   If Found()
+      If alltrim(SA1->A1_EST) == alltrim(_cEstPad)
+	     cCFB := "5"+substr(SF4->F4_CF,2,3)
+      Else
+	     cCFB := "6"+substr(SF4->F4_CF,2,3)
+      Endif
+   Else
+      cCFB := Space(5)
+   Endif      
+Return              
+
+Static Function fat1() 
+              
+ If cCombo  = "CIF" .and.  cget9 = 0
+    Msgbox("Informe o Valor do Frete CIF!!!!","Atencao","ALERT")
+    Return .F.
+ Else
+    Return .T.       
+ Endif
+      
+      

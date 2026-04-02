@@ -1,0 +1,325 @@
+Group NOVO GRUPO DE PROJETOS
+   Version=7.0
+   VSSDB=
+   HasProperties=1
+   Properties
+      BeforeApply=
+      AfterApply=
+      Icon=
+      ID=
+      Version=
+      PalmName=
+      OutPut=
+   End
+   ProjectsCount=1
+   Project NOVEL
+      FoldersCount=10
+      Folder Gatilhos
+         VSSPath=Nova Pasta3
+         FilesCount=16
+         File \MP8\RDMAKE\Gatilhos\NovEst04.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Gatilhos\Tmkitem.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Gatilhos\PNVCC01.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Gatilhos\PNVCC02.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Gatilhos\PNVCC03.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Gatilhos\PNVCC04.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Gatilhos\PNVCC05.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Gatilhos\Tmkcmsup.prw
+             Type=T
+         End
+         File \MP8\RDMAKE\Gatilhos\Tmkcom.prw
+             Type=T
+         End
+         File \MP8\RDMAKE\Gatilhos\PNVFT105.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Gatilhos\PNVFT103.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Gatilhos\PNVFT104.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Gatilhos\PNPT030.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Gatilhos\PNPT020.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Gatilhos\PNVFT102.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Gatilhos\PNVFT101.PRW
+             Type=T
+         End
+      End
+      Folder Estoque
+         VSSPath=Nova Pasta2
+         FilesCount=9
+         File \MP8\RDMAKE\Estoque\NovEst02.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Estoque\NovEst03.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Estoque\NovEst01.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Estoque\PEDPEND.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Estoque\PEDEXP.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Estoque\CONEST.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Estoque\NovEst04.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Estoque\BLOQEST.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Estoque\REFRES.PRW
+             Type=T
+         End
+      End
+      Folder Call
+         VSSPath=Nova Pasta3
+         FilesCount=6
+         File \MP8\RDMAKE\Call\Tmkvfim.prw
+             Type=T
+         End
+         File \MP8\RDMAKE\Call\NovTmk01.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Call\LIBPED.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Call\Tmkr03.prx
+             Type=T
+         End
+         File \MP8\RDMAKE\Call\Relvisit.prw
+             Type=T
+         End
+         File \MP8\RDMAKE\Call\Tmkcli.prw
+             Type=T
+         End
+      End
+      Folder Compras
+         VSSPath=Nova Pasta4
+         FilesCount=6
+         File \MP8\RDMAKE\Compras\RELDF.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Compras\MT100AGR.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Compras\MATR150.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Compras\MATR110.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Compras\ELIMRESC.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Compras\GCOMP.PRW
+             Type=T
+         End
+      End
+      Folder Faturamento
+         VSSPath=Nova Pasta5
+         FilesCount=36
+         File \MP8\RDMAKE\Faturamento\cotaven.prw
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\cotager.prw
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\COTCOMP.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\COPPREV.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\COPCOTA.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\ALTPRC.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\ALTCOM.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\M410ALOK.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\NOVFT03.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\LIBPARC.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\ESTLIB.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\BOLFAT.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\BOLQTD.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\GERAGRA.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\GERROMAN.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\CANROMAN.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\IMPROMAN.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\CONLIBAV.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\TEMP.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\Relpv.prw
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\Reltc.prw
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\dupli2.prw
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\RELPREV.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\ANAFAT.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\FATVEND.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\FATCLI.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\nfnovel.prw
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\Nfserv.prw
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\Etiqman.prw
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\Etiqaut.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\NFENT.prw
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\MTA450I.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\MTA410T.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\SF2460I_AP5.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\CONPESO.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Faturamento\ELIMRESV.prw
+             Type=T
+         End
+      End
+      Folder PCP
+         VSSPath=Nova Pasta6
+         FilesCount=5
+         File \MP8\RDMAKE\PCP\PEDPROD.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\PCP\NOVIMPOP.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\PCP\MOVPROD.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\PCP\MOVPRODA.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\PCP\MOVPRODS.PRW
+             Type=T
+         End
+      End
+      Folder Contabilidade
+         VSSPath=Nova Pasta7
+         FilesCount=3
+         File \MP8\RDMAKE\Contabilidade\RELFIS.prw
+             Type=T
+         End
+         File \MP8\RDMAKE\Contabilidade\ALTPARAM.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Contabilidade\RELDIFIPI.PRW
+             Type=T
+         End
+      End
+      Folder RH
+         VSSPath=Nova Pasta8
+         FilesCount=1
+         File \MP8\RDMAKE\RH\RECIBO.PRW
+             Type=T
+         End
+      End
+      Folder Financeiro
+         VSSPath=Nova Pasta9
+         FilesCount=4
+         File \MP8\RDMAKE\Financeiro\Trcfin08.prw
+             Type=T
+         End
+         File \MP8\RDMAKE\Financeiro\DUPVENC.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Financeiro\PrzMDVen.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Financeiro\Trcfin07.PRW
+             Type=T
+         End
+      End
+      Folder Pedido Web
+         VSSPath=Nova Pasta10
+         FilesCount=3
+         File \MP8\RDMAKE\Pedido Web\IMPPED.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Pedido Web\AtuBase.PRW
+             Type=T
+         End
+         File \MP8\RDMAKE\Pedido Web\InitSched.PRW
+             Type=T
+         End
+      End
+   End
+End

@@ -1,0 +1,100 @@
+#include 'tlpp-core.th'
+
+namespace PipeRun.Products
+
+#define SUCCESS         "200"
+
+/*/{Protheus.doc} User Function
+    integração de oportinidades
+    @type Function
+    @author Lucas Silva Vieira
+    @since 13/05/2024
+    @version 2210
+    @seek
+/*/
+User Function ProductsIntegration(aParams)
+	Local lJob      	:= .F.		as logical
+	Default aParams  	:= {}
+
+	If !Empty(aParams)
+		lJob := RpcSetEnv(aParams[1], aParams[2])
+	EndIf
+
+	cAlias := PipeRun.Products.GetProducts()
+	PipeRun.Products.PostProducts(cAlias)
+	(cAlias)->(dbCloseArea())
+
+	If !Empty(aParams)
+		RpcClearEnv()
+	EndIf
+Return
+
+static function PostProducts(cAlias)
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath      	   := "/v1/items/"           						as character
+	local oPost            := nil											as object
+	local cStatus    	   := ""                                            as character
+
+	BEGIN TRANSACTION
+		SB1->(dbSetOrder(01)) //B1_FILIAL+B1_COD
+		(cAlias)->(dbGoTop())
+		While (cAlias)->(!Eof())
+			oRest:setPath(cPath)
+			oPost := JsonObject():new()
+
+			oPost['name'            ] := Alltrim(Capital((cAlias)->B1_DESC))
+			oPost['type'    		] := 0
+			oPost['code'         	] := Alltrim((cAlias)->B1_COD)
+			oPost['status'     		] := .F.
+
+			oRest:setPostParams(oPost:toJson())
+			if (oRest:post(aHeader))
+				cStatus  := oRest:getHttpCode()
+				cBodyStr := oRest:getResult()
+				oResponse := JsonObject():new()
+				oResponse:fromJson(cBodyStr)
+				if (oResponse:hasProperty('data'))
+					if (oResponse['message']) == "Created"
+						if SB1->(dbSeek(FwXFilial("SB1")+(cAlias)->B1_COD))
+							if SB1->(RecLock("SB1", .F.))
+								SB1->B1_PIPERUN := cValToChar(oResponse['data']['id'])
+								SB1->B1_XINTEGR := "S"
+								SB1->(msUnlock())
+							endIf
+						endif
+					endif
+				endIf
+			else
+				cStatus  := oRest:getHttpCode()
+				cBodyStr := oRest:getResult()
+			endif
+			(cAlias)->(dbSkip())
+		EndDo
+	END TRANSACTION
+return
+
+static function GetProducts()
+	local cQuery 	:= ""		as character
+	local cAlias	:= ""   	as character
+	local cType 	:= "PA"		as character
+	local cBlock	:= "1"		as character
+	local cIntegr	:= "N"		as character
+	local oQuery 	:= nil 		as object
+
+	cQuery :=  "SELECT B1_COD, B1_DESC"
+	cQuery +=  " FROM " + RetSqlName("SB1")
+	cQuery +=  " WHERE B1_TIPO = ? "
+	cQuery +=  " AND B1_MSBLQL <> ? "
+	cQuery +=  " AND B1_XINTEGR = ? "
+	cQuery +=  " AND B1_PIPERUN = '' "
+	cQuery +=  " AND D_E_L_E_T_ = '' "
+
+	oQuery := FWPreparedStatement():New(cQuery)
+	oQuery:SetString(1,cType)
+	oQuery:SetString(2,cBlock)
+	oQuery:SetString(3,cIntegr)
+	cQuery := oQuery:GetFixQuery()
+	cAlias := MPSysOpenQuery(cQuery)
+
+Return cAlias

@@ -1,0 +1,49 @@
+#include "rwmake.ch"         
+
+User Function MYCALL1()
+
+SetPrvt("wtab,wprodt,wpreco")
+          
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Pega O PRECO DA TABELA DE PREÇOS                         ³
+//³                                                                     ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                 
+  
+wtab := M->UA_TABELA
+Micro := M->UA_DESC1 
+//wprodt := M->UB_PRODUTO
+wprodt :=acols[n][2]
+wpreco := 0.00
+
+DbSelectArea("DA1")
+DbSetOrder(1)
+DbSeek(xFilial()+wtab+wprodt) // Posiciona no titulo original do da1.
+If .not. EOF() 
+   wpreco := DA1->DA1_PRCVEN                
+   acols[n][23]:= DA1->DA1_PRCVEN 
+ 
+else    
+   Msgbox("ATENCAO, PRODUTO SEM PREÇO NA TABELA DE PREÇOS!! FAVOR ATUALIZAR TABELA!!!")
+   wpreco := 0.00   
+   acols[n][2] := "  "
+Endif                         
+
+DbSelectArea("SA1")
+
+IF SA1->A1_ME=="S" .AND. SA1->A1_EST=="BA"       //MICROEMPRESA BAHIA
+   acols[n][12] := "590"
+ENDIF    
+
+IF SA1->A1_EST=="EX"                             //EXPORTACAO
+   acols[n][12] := "510"
+ENDIF    
+       
+
+
+
+Return(wpreco)    
+
+                                   
+                           
+ 

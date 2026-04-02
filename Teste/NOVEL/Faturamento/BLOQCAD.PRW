@@ -1,0 +1,31 @@
+#include "rwmake.ch" 
+#INCLUDE "TOPCONN.CH"   
+
+USER FUNCTION BLOQCAD()
+
+
+//----------------------------------------------------------------------------
+//|Programa  | PNVFT103    | Autor | Wellington Carvalho    |Criado| 12.Marco.2013|  
+//----------------------------------------------------------------------------
+//|Descricao | Bloqueia Cadastro de Clientes com data Validade Vencida                                    |
+//----------------------------------------------------------------------------
+//|Uso       | SIGAFAT                                                       |
+//----------------------------------------------------------------------------
+ 
+ 
+ return          
+
+DbSelectArea("SA1")
+dbgotop()
+WHILE !EOF()
+  IF (SA1->A1_CADVAL <= dDatabase) .OR. Empty(SA1->A1_CADVAL) 
+     RecLock("SA1",.F.) 
+     SA1->A1_MSBLQL := "2"
+     MsUnLock()           
+  ENDIF
+  DBSKIP()
+ENDDO
+
+DbCloseArea("SA1")
+
+return

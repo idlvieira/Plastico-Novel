@@ -1,0 +1,396 @@
+#include 'tlpp-core.th'
+
+namespace PipeRun.Pipelines
+
+#define CRLF       Chr(13) + Chr(10)
+#define SUCCESS    "200"
+
+static 	nTamPiperun := FWtamSX3("ZTA_PIPERU")[01]
+static	nTamOrder	:= FWtamSX3("ZTA_ORDER")[01]
+static	nTamEtapa	:= FWtamSX3("ZTA_ETAPAS")[01]
+
+/*/{Protheus.doc} User Function
+    integração de oportinidades
+    @type Function
+    @author Lucas Silva Vieira
+    @since 13/05/2024
+    @version 2210
+/*/
+User Function PipelineIntegration(aParams)
+	Local lJob      	:= .F.		as logical
+	Local aReturn		:= {}		as array
+	Default aParams  	:= {}
+
+	If !Empty(aParams)
+		lJob := RpcSetEnv(aParams[1], aParams[2])
+	EndIf
+
+	cAlias := PipeRun.Pipelines.GetPipeline()
+	aReturn := PipeRun.Pipelines.PostPipeline(cAlias)
+	(cAlias)->(dbCloseArea())
+
+	If !Empty(aParams)
+		RpcClearEnv()
+	EndIf
+Return aReturn
+
+static function PostPipeline(cAlias)
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath      	   := "/v1/pipelines/"           					as character
+	local oPost            := nil											as object
+	local cStatus    	   := ""                                            as character
+	local lSend			   := .F.											as Logical
+	local aReturn		   := {}											as array
+	local cBodyStr		   := ""											as character
+
+	BEGIN TRANSACTION
+		ZTA->(dbSetOrder(01)) //ZTA_FILIAL+ZTA_CODIGO+ZTA_ITEM
+		(cAlias)->(dbGoTop())
+		While (cAlias)->(!Eof())
+			oRest:setPath(cPath)
+			oPost := JsonObject():new()
+
+			oPost['name'            ] := Alltrim((cAlias)->ZTA_FUNIL)
+			oPost['funnel_type'     ] := val((cAlias)->ZTA_TIPO)
+			oPost['user_id'         ] := "78375" //(cAlias)->ZTA_USER
+			oPost['description'     ] := Alltrim((cAlias)->ZTA_DESC)
+
+			oRest:setPostParams(oPost:toJson())
+			if (oRest:post(aHeader))
+				cStatus  := oRest:getHttpCode()
+				cBodyStr := oRest:getResult()
+				oResponse := JsonObject():new()
+				oResponse:fromJson(cBodyStr)
+				if (oResponse:hasProperty('data'))
+					if (oResponse['message']) == "Created"
+						if ZTA->(dbSeek(FwXFilial("ZTA")+(cAlias)->ZTA_CODIGO))
+							while ZTA->(!Eof()) .AND. ZTA->ZTA_FILIAL + ZTA_CODIGO == FwXFilial("ZTA")+(cAlias)->ZTA_CODIGO
+								if ZTA->(RecLock("ZTA", .F.))
+									ZTA->ZTA_PIPERU := cValtoChar(oResponse['data']['id'])
+									ZTA->(msUnlock())
+								endIf
+								ZTA->(dbSkip())
+							endDo
+						endif
+						Piperun.Pipelines.PostStages(cValtoChar(oResponse['data']['id']))
+					endif
+				endIf
+				lSend := .T.
+			else
+				cStatus  := oRest:getHttpCode()
+				cBodyStr := oRest:getResult()
+			endif
+			(cAlias)->(dbSkip())
+		EndDo
+		aReturn := {lSend, DecodeUTF8(cBodyStr,'cp1252')}
+	END TRANSACTION
+return aReturn
+
+static function PostStages(cNum)
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath      	   := "/v1/stages/"           						as character
+	local oPost            := nil											as object
+	local cStatus    	   := ""                                            as character
+	local nAdd			   := 0												as numeric
+
+	oRest:setPath(cPath)
+	oPost := JsonObject():new()
+
+	ZTA->(dbSetOrder(02)) //ZTA_FILIAL+ZTA_PIPERU+ZTA_ITEM
+	ZTA->(dbGoTop())
+	if ZTA->(dbSeek(FWxFilial('ZTA') + Padr(cNum,nTamPiperun)))
+		while ZTA->(!Eof()) .AND. ZTA->ZTA_FILIAL + ZTA->ZTA_PIPERU == FWxFilial('ZTA') + Padr(cNum,nTamPiperun)
+			nAdd ++
+			oPost['pipeline_id'     ] := cNum
+			oPost['name'     		] := ZTA->ZTA_DESCET
+			oPost['order'         	] := val(ZTA->ZTA_ORDER)
+			oPost['description'     ] := ZTA->ZTA_DESC1
+
+			oRest:setPostParams(oPost:toJson())
+			if (oRest:post(aHeader))
+				cStatus  := oRest:getHttpCode()
+				cBodyStr := oRest:getResult()
+				oResponse := JsonObject():new()
+				oResponse:fromJson(cBodyStr)
+				if (oResponse:hasProperty('data'))
+					if (oResponse['message']) == "Created"
+						ZTA->(dbSetOrder(01)) // ZTA_FILIAL + ZTA_CODIGO + ZTA_ITEM
+						if ZTA->(dbSeek(FwXFilial("ZTA")+ZTA->ZTA_CODIGO+strZero(nAdd,3)))
+							if ZTA->(RecLock("ZTA", .F.))
+								ZTA->ZTA_ETAPAS := cValtoChar(oResponse['data']['id'])
+								ZTA->(msUnlock())
+							endIf
+						endif
+					endif
+				endIf
+			else
+				cStatus  := oRest:getHttpCode()
+				cBodyStr := oRest:getResult()
+			endif
+			ZTA->(dbSkip())
+		endDo
+	endif
+return
+
+User Function GetAllPipeline()
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath      	   := "/v1/pipelines/"           					as character
+	local oReturn          := nil											as object
+	local cStatus    	   := ""                                            as character
+	local cParam           := "?show=100&page=1"                            as character
+	local cBodyStr         := ""                                            as character
+	local nIndex           := 0                                             as numeric
+	local cPiperun         := ""                                            as character
+	local cCod             := ""                                            as character
+	local cName			   := ""											as character
+	local cDescription     := ""											as character
+	local cFunnelType      := ""											as character
+	local cUserId          := ""											as character
+	local lSend			   := .F.											as logical
+
+	oRest:setPath(cPath+cParam)
+
+	if (oRest:get(aHeader))
+		cStatus  := oRest:getHttpCode()
+		cBodyStr := oRest:getResult()
+		oReturn  := JsonObject():new()
+		cError   := oReturn:fromJson(cBodyStr)
+
+		if cStatus == SUCCESS
+			dbSelectArea("ZTA")
+			if (oReturn:hasProperty('message'))
+				if oReturn['message'] == "OK" .AND. len(oReturn['data']) > 0
+					for nIndex := 01 to Len(oReturn['data'])
+						ZTA->(dbSetOrder(02)) // ZTA_FILIAL+ZTA_PIPERU
+						cPiperun 		:= cValtoChar(oReturn['data'][nIndex]["id"])
+						cName	 		:= DecodeUTF8(oReturn['data'][nIndex]["name"])
+						cDescription	:= iIf(!empty(oReturn['data'][nIndex]["description"]), DecodeUTF8(oReturn['data'][nIndex]["description"]), "")
+						cFunnelType		:= cValToChar(oReturn['data'][nIndex]["funnel_type"])
+						cUserId 		:= cValToChar(oReturn['data'][nIndex]["user_id"])
+						cCod     		:= GetSXENum("ZTA", "ZTA_CODIGO")
+						confirmSX8()
+						lSend := Piperun.Pipelines.GetAllStages(cPiperun, cCod, cName, cDescription, cFunnelType, cUserId)
+					next nIndex
+				endif
+			endif
+		else
+			FWAlertError("ERROR: "+cStatus)
+		endif
+	endif
+Return lSend
+
+static function GetAllStages(cPiperun, cCod, cName, cDescription, cFunnelType, cUserId)
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath      	   := "/v1/stages/"           					    as character
+	local oRequest          := nil											as object
+	local cStatus    	   := ""                                            as character
+	local cParam           := "?show=100&page=1&pipeline_id="               as character
+	local cBodyStr         := ""                                            as character
+	local nIndex           := 0                                             as numeric
+	local cStageId         := ""                                            as character
+	local cOrder           := ""                                            as character
+	local lCabec           := .F.                                           as logical
+	local lSend 		   := .F.											as logical
+
+	oRest:setPath(cPath+cParam+cPiperun)
+
+	if (oRest:get(aHeader))
+		cStatus  := oRest:getHttpCode()
+		cBodyStr := oRest:getResult()
+		oRequest  := JsonObject():new()
+		cError   := oRequest:fromJson(cBodyStr)
+
+		if cStatus == SUCCESS
+			dbSelectArea("ZTA")
+			if (oRequest:hasProperty('message'))
+				if oRequest['message'] == "OK" .AND. len(oRequest['data']) > 0
+					lCabec := .F.
+					for nIndex := 01 to Len(oRequest['data'])
+						ZTA->(dbSetOrder(05)) // ZTA_FILIAL + ZTA_PIPERU + ZTA_ORDER
+						cStageId := cValtoChar(oRequest['data'][nIndex]["id"])
+						cOrder   := strZero(oRequest['data'][nIndex]["order"], 02)
+
+						if !ZTA->(dbSeek(FWxFilial('ZTA') + Padr(cPiperun,nTamPiperun) + Padr(cOrder, nTamOrder)))
+							if ZTA->(RecLock("ZTA", .T.))
+								ZTA->ZTA_CODIGO := cCod
+								ZTA->ZTA_FUNIL  := cName
+								ZTA->ZTA_DESC   := cDescription
+								ZTA->ZTA_PIPERU := cPiperun
+								ZTA->ZTA_TIPO   := cFunnelType
+								ZTA->ZTA_USER   := cUserId
+								ZTA->ZTA_ITEM   := strZero(nIndex, 03)
+								ZTA->ZTA_ETAPAS := cStageId
+								ZTA->ZTA_ORDER  := padR(cOrder, nTamOrder)
+								ZTA->ZTA_CABEC  := iIf(!lCabec, '1', '')
+								ZTA->ZTA_DESCET := iIf(!Empty(oRequest['data'][nIndex]["name"]), DecodeUTF8(oRequest['data'][nIndex]["name"]), "")
+								ZTA->ZTA_DESC1  := iIf(!Empty(oRequest['data'][nIndex]["description"]), DecodeUTF8(oRequest['data'][nIndex]["description"]), "")
+								ZTA->(msUnlock())
+							endIf
+							lCabec := .T.
+						endif
+					next nIndex
+					lSend := .T.
+				endif
+			endif
+		else
+			FWAlertError("ERROR: "+cStatus)
+		endif
+	endif
+return lSend
+
+static function GetPipeline()
+	local cQuery 	:= ""		as character
+	local cAlias	:= ""   	as character
+	local oQuery 	:= nil 		as object
+
+	cQuery :=  "SELECT DISTINCT ZTA_FUNIL, ZTA_TIPO, ZTA_DESC, ZTA_CODIGO "
+	cQuery +=  " FROM " + RetSqlName("ZTA")
+	cQuery +=  " WHERE ZTA_PIPERU = ? "
+	cQuery +=  " AND D_E_L_E_T_ = '' "
+
+	oQuery := FWPreparedStatement():New(cQuery)
+	oQuery:SetString(1,'')
+	cQuery := oQuery:GetFixQuery()
+	cAlias := MPSysOpenQuery(cQuery)
+
+Return cAlias
+
+user function filtraFunil()
+	local lFiltra 		:= .F. as logical
+	local cVendedor   	:= M->UA_VEND
+	local cPiperun		:= allTrim(ZTA->ZTA_PIPERU)
+
+	SA3->(dbSetOrder(01))
+
+	if (SA3->(msSeek(FWxFilial('SA3') + cVendedor)))
+		lFiltra := allTrim(SA3->A3_XFUNIL) == cPiperun .OR.;
+			allTrim(SA3->A3_XFUNIL1) == cPiperun .OR.;
+			allTrim(SA3->A3_XFUNIL2) == cPiperun .OR.;
+			allTrim(SA3->A3_XFUNIL3) == cPiperun .OR.;
+			allTrim(SA3->A3_XFUNIL4) == cPiperun
+	endIf
+return lFiltra
+
+user function GetStages(cPiperun)
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath      	   := "/v1/stages/"           					    as character
+	local oRequest          := nil											as object
+	local cStatus    	   := ""                                            as character
+	local cParam           := "?pipeline_id="               				as character
+	local cBodyStr         := ""                                            as character
+	local nIndex           := 0                                             as numeric
+	local cStageId         := ""                                            as character
+	local cOrder           := ""                                            as character
+	local cCod 			   := ""											as character
+	local cFunil 		   := ""											as character
+	local cDescFunil 	   := ""											as character
+	local cUser 		   := ""											as character
+	local cTipo 		   := ""											as character
+	local lSend 		   := .F.											as logical
+
+	oRest:setPath(cPath+cParam+cPiperun)
+
+	if (oRest:get(aHeader))
+		cStatus  := oRest:getHttpCode()
+		cBodyStr := oRest:getResult()
+		oRequest  := JsonObject():new()
+		cError   := oRequest:fromJson(cBodyStr)
+
+		if cStatus == SUCCESS
+			dbSelectArea("ZTA")
+			if (oRequest:hasProperty('message'))
+				if oRequest['message'] == "OK" .AND. len(oRequest['data']) > 0
+					cCod 		:= ZTA->ZTA_CODIGO
+					cFunil 		:= ZTA->ZTA_FUNIL
+					cDescFunil 	:= ZTA->ZTA_DESC
+					cUser 		:= ZTA->ZTA_USER
+					cTipo 		:= ZTA->ZTA_TIPO
+					for nIndex := 01 to Len(oRequest['data'])
+						ZTA->(dbSetOrder(04)) // ZTA_FILIAL + ZTA_ETAPAS
+						cStageId := cValtoChar(oRequest['data'][nIndex]["id"])
+						cOrder   := strZero(oRequest['data'][nIndex]["order"], 02)
+						if !ZTA->(dbSeek(FWxFilial('ZTA') + Padr(cStageId,nTamEtapa)))
+							if ZTA->(RecLock("ZTA", .T.))
+								ZTA->ZTA_CODIGO := cCod
+								ZTA->ZTA_FUNIL  := cFunil
+								ZTA->ZTA_DESC   := cDescFunil
+								ZTA->ZTA_PIPERU := cPiperun
+								ZTA->ZTA_TIPO   := cTipo
+								ZTA->ZTA_USER   := cUser
+								ZTA->ZTA_ETAPAS := cStageId
+								ZTA->ZTA_ORDER  := cOrder
+								if cOrder == '00'
+									ZTA->ZTA_CABEC  := "1"
+								endif
+								ZTA->ZTA_DESCET := iIf(!Empty(oRequest['data'][nIndex]["name"]), DecodeUTF8(oRequest['data'][nIndex]["name"]), "")
+								ZTA->ZTA_DESC1  := iIf(!Empty(oRequest['data'][nIndex]["description"]), DecodeUTF8(oRequest['data'][nIndex]["description"]), "")
+								ZTA->(msUnlock())
+							endIf
+						endif
+					next nIndex
+					lSend := .T.
+				endif
+			endif
+		else
+			FWAlertError("ERROR: "+cStatus)
+		endif
+	endif
+return lSend
+
+
+user function PostStages(cPiperun)
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath      	   := "/v1/stages/"           						as character
+	local cParam           := "?pipeline_id="               				as character
+	local oPost            := nil											as object
+	local cStatus    	   := ""                                            as character
+	local lSend			   := .F.											as Logical
+	local aReturn		   := {}											as array
+	local cBodyStr		   := ""											as character
+	local cAlias 		   := ""											as character
+
+	if !empty(cPiperun)
+
+		cAlias := GetNewStage(cPiperun)
+
+		while (cAlias)->(!Eof)
+
+			oRest:setPath(cPath+cParam+cPiperun)
+			oPost := JsonObject():new()
+
+			oPost['pipeline_id'     ] := cPiperun
+			oPost['name'     		] := (cAlias)->ZTA_DESCET
+			oPost['description'     ] := (cAlias)->ZTA_DESC1
+			oPost['order'     		] := (cAlias)->ZTA_ORDER
+
+			oRest:setPostParams(oPost:toJson())
+			if (oRest:post(aHeader))
+				cStatus  := oRest:getHttpCode()
+				cBodyStr := oRest:getResult()
+				oResponse := JsonObject():new()
+				oResponse:fromJson(cBodyStr)
+				if (oResponse:hasProperty('data'))
+					if (oResponse['message']) == "Created"
+						cStatus  := oRest:getHttpCode()
+						cBodyStr := oRest:getResult()
+					endif
+				endIf
+				lSend := .T.
+			else
+				cStatus  := oRest:getHttpCode()
+				cBodyStr := oRest:getResult()
+			endif
+			(cAlias)->(dbSkip())
+		endDo
+	else
+		cBodyStr := "Não foi possivel localizar este funil."
+		fwAlertInfo(cBodyStr, 'Atenção')
+	endIf
+	aReturn := {lSend, DecodeUTF8(cBodyStr,'cp1252')}
+return aReturn

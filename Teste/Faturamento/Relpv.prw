@@ -1,0 +1,194 @@
+#INCLUDE "rwmake.ch"
+#INCLUDE "TOPCONN.CH"
+
+User Function relpv()
+
+/*/
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±³ Programa ³ RELPV     ³ Autor ³   Eliene Cerqueira   ³ Data ³ 18.05.04    ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Relatorio de Tempo de Expedicao                               ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Faturamento                                                   ³±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+
+cDesc1  := "Este programa tem como objetivo imprimir relatorio "
+cDesc2  := "de pedidos com o tempo de expedição."
+cDesc3  := "Tempo de Expedição"
+cPict   := ""
+titulo  := "Relatório de Tempo de Expedição"
+nLin    := 80
+Cabec1  := "Pedido  It  Cliente               Produto          Dt.Emis   Dt.Lib.  Dt.Lib.Cre  Dt.Entrega    O.P.    Dt.Prod.  Dt.Fat.   Dias"
+//          999999  99  XXXXXXXXXXXXXXXXXXXX  999999999999999  99/99/99  99/99/99  99/99/99    99/99/99   99/99/99  99/99/99  99/99/99  999
+Cabec2  := ""
+imprime := .T.
+Qtd     :=0
+Dias    :=0
+tamanho	:= "M"
+limite 	:= 120
+wnrel   := "RELPV"
+nTipo   := 15
+aReturn     := { "Zebrado", 1, "Administracao", 1, 1, 1, "", 1}
+nLastKey    := 0
+m_pag      	:= 01
+DATLIB      := "  /  /  "
+LIBCRED     := "N"
+cPerg       := "CONPV2"                  
+cString 	:= "SC6"
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Variaveis utilizadas para parametros                        ³
+//³ mv_par01              Data Inicial                          ³
+//³ mv_par02              Data Inicial                          ³
+//³ mv_par03              Quant. Dias                           ³
+//³ mv_par04              Ate                                   ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+pergunte(cPerg,.F.)
+wnrel := SetPrint("",wnrel,cPerg,@titulo,cDesc1,cDesc2,cDesc3,.T.,,.T.,Tamanho,,.T.)
+
+If nLastKey == 27
+	Return
+Endif
+
+SetDefault(aReturn,cString)
+
+If nLastKey == 27
+	Return
+Endif
+
+RptStatus({|lEnd| C700Imp(@lEnd,wnrel,cString,aReturn,tamanho,limite,;	
+						  titulo,cDesc1,cDesc2,cDesc3)},Titulo)
+DbSelectArea("FAT")
+dbCloseArea()
+Return 
+
+Static Function C700Imp(lEnd,WnRel,cString,aReturn,tamanho,limite,titulo,;
+						cDesc1,cDesc2,cDesc3)
+
+cQry := " SELECT SC6.C6_NUM, SC6.C6_ITEM, SA1.A1_NREDUZ, SC6.C6_PRODUTO, SC6.C6_DATFAT, SC6.C6_ENCOMED, SC6.C6_ENTREG,"
+cQry := cQry + " SC5.C5_NOVULT, SUA.UA_EMISSAO FROM SC5010 AS SC5, SC6010 AS SC6,"
+cQry := cQry + " SA1010 AS SA1, SUA010 AS SUA"
+cQry := cQry + " WHERE SC6.C6_DATFAT >= '"+DTOS(MV_PAR01)+"'"
+cQry := cQry + " AND SC6.C6_DATFAT <= '"+DTOS(MV_PAR02)+"'"
+cQry := cQry + " AND SC5.C5_NUM = SC6.C6_NUM"
+cQry := cQry + " AND SA1.A1_COD = SC5.C5_CLIENTE"
+cQry := cQry + " AND SA1.A1_LOJA = SC5.C5_LOJACLI"
+cQry := cQry + " AND SUA.UA_NUMSC5 = SC6.C6_NUM"
+cQry := cQry + " AND SC6.C6_TES NOT IN ('508', '515', '516', '517', '521', '522', '523', '524', '528', '529', '531', '536', '537', '543', '544', '545', '546', '547', '548', '549', '550', '555', '556', '557')"
+cQry := cQry + " AND SC6.D_E_L_E_T_<>'*'"
+cQry := cQry + " AND SC5.D_E_L_E_T_<>'*'"
+cQry := cQry + " AND SA1.D_E_L_E_T_<>'*'"
+cQry := cQry + " AND SUA.D_E_L_E_T_<>'*'"
+cQry := cQry + " ORDER BY SC6.C6_DATFAT, SC6.C6_NUM, SC6.C6_ITEM ASC"
+
+Tcquery cQry new alias "FAT"
+
+OK:=.F.
+dbSelectArea("FAT")
+SetRegua(RecCount())
+
+While !EOF()
+
+   IncRegua()
+   If lAbortPrint
+      @nLin,00 PSAY "*** CANCELADO PELO OPERADOR ***"
+      Exit
+   Endif
+
+   If nLin > 70
+      Cabec(Titulo,Cabec1,Cabec2,WnRel,Tamanho,nTipo)
+   	  nLin := 8
+   Endif   
+   LIBCRED:="N"
+   BLCRED:="99"
+   BLEST :="99"
+   dbSelectArea("SC9")
+   dbSetOrder(1)
+   dbSeek(xFilial("SC9")+FAT->C6_NUM+FAT->C6_ITEM,.F.)	
+   While !EOF() .AND. FAT->C6_NUM=SC9->C9_PEDIDO .AND. FAT->C6_ITEM=SC9->C9_ITEM
+      BLCRED:=C9_BLCRED               
+      BLEST :=C9_BLEST           
+      DATLIB:=C9_DATALIB
+      dbSkip()
+   Enddo
+   If BLCRED="10" .and. BLEST="10" // Já faturado
+      LIBCRED:="S"
+   ElseIf (BLCRED="01" .and. BLEST="02") .or. (BLCRED="01" .and. BLEST="  ") // Bloqueado no crédito
+      LIBCRED:="N"
+   ElseIf BLCRED="  " .and. BLEST="02" // Bloqueado no estoque
+      LIBCRED:="S"
+   ElseIf BLCRED="  " .and. BLEST="  "
+      LIBCRED:="S"
+   Endif
+
+   dbSelectArea("SC2")
+   dbSetOrder(6) 
+   dbSeek(xFilial("SC2")+FAT->C6_NUM+FAT->C6_ITEM,.F.)	
+
+   dbSelectArea("SD3")
+   dbSetOrder(1) 
+   dbSeek(xFilial("SD3")+SC2->C2_NUM+FAT->C6_PRODUTO,.F.)	
+                           	
+   If (Val(FAT->C6_DATFAT) - Val(FAT->C6_ENTREG))>=MV_PAR03 .AND. (Val(FAT->C6_DATFAT) - Val(FAT->C6_ENTREG))<=MV_PAR04
+      ImpDET()
+   Endif
+   dbSelectArea("FAT")
+   dbSkip()
+EndDo
+   
+If nLin > 65
+   Cabec(Titulo,Cabec1,Cabec2,WnRel,Tamanho,nTipo)
+   nLin := 8
+Endif   
+nLin := nLin + 1
+@nLin,90  PSAY "Total de Dias        :"
+@nLin,114 PSAY Dias     Picture "@E 999999"
+nLin := nLin + 1
+@nLin,90  PSAY "Quant.de Pedidos     :"
+@nLin,114 PSAY Qtd      Picture "@E 999999"
+nLin := nLin + 1
+@nLin,90  PSAY "Media de Atendimento :"
+@nLin,114 PSAY Dias/Qtd Picture "@E 999.99"
+@nLin+2,1 PSAY '.'
+
+SET DEVICE TO SCREEN
+
+If aReturn[5]==1
+	dbCommitAll()
+	SET PRINTER TO
+	OurSpool(wnrel)
+Endif
+
+MS_FLUSH()
+
+Return
+
+Static Function ImpDet()
+    @nLin,00       PSAY FAT->C6_NUM + "  " + FAT->C6_ITEM + "  " + FAT->A1_NREDUZ + "  " + FAT->C6_PRODUTO   
+   	@nLin,PCol()+2 PSAY SUBSTR(FAT->UA_EMISSAO,7,2)+"/"+SUBSTR(FAT->UA_EMISSAO,5,2)+"/"+SUBSTR(FAT->UA_EMISSAO,3,2)    
+   	@nLin,PCol()+2 PSAY DATLIB
+   	If !Empty(FAT->C5_NOVULT)
+       @nLin,PCol()+2 PSAY SUBSTR(FAT->C5_NOVULT,7,2)+"/"+SUBSTR(FAT->C5_NOVULT,5,2)+"/"+SUBSTR(FAT->C5_NOVULT,3,2)
+    ElseIF  LIBCRED="S"
+       @nLin,PCol()+2 PSAY DATLIB
+    Else
+       @nLin,PCol()+2 PSAY "  /  /  "
+    Endif
+   	@nLin,PCol()+4 PSAY SUBSTR(FAT->C6_ENTREG,7,2)+"/"+SUBSTR(FAT->C6_ENTREG,5,2)+"/"+SUBSTR(FAT->C6_ENTREG,3,2)
+    If FAT->C6_ENCOMED='N'
+       @nLin,PCol()+3 PSAY 'P/ESTOQ'
+   	   @nLin,PCol()+2 PSAY 'P/ESTOQ'
+    Else   
+   	   @nLin,PCol()+3 PSAY SC2->C2_EMISSAO
+   	   @nLin,PCol()+2 PSAY SD3->D3_EMISSAO
+   	Endif
+   	@nLin,PCol()+2 PSAY SUBSTR(FAT->C6_DATFAT,7,2)+"/"+SUBSTR(FAT->C6_DATFAT,5,2)+"/"+SUBSTR(FAT->C6_DATFAT,3,2)
+
+	Qtd:=Qtd+1
+	DiasP:=CTOD(SUBSTR(FAT->C6_DATFAT,7,2)+"/"+SUBSTR(FAT->C6_DATFAT,5,2)+"/"+SUBSTR(FAT->C6_DATFAT,1,4)) - CTOD(SUBSTR(FAT->C6_ENTREG,7,2)+"/"+SUBSTR(FAT->C6_ENTREG,5,2)+"/"+SUBSTR(FAT->C6_ENTREG,1,4))
+	Dias:=Dias+DiasP
+	@nLin,PCol()+2 PSAY DiasP Picture "@E 999"
+   	nLin := nLin + 1
+Return

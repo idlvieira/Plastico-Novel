@@ -1,0 +1,1047 @@
+#include 'tlpp-core.th'
+
+namespace PipeRun.Deals
+
+#define CRLF            Chr(13) + Chr(10)
+static  SUCCESS			:= "200"
+
+static __cTagQuente 	:= "133685"
+static __cTagFria		:= "133684"
+static __cTagMorna		:= "133686"
+
+static __cFilMtPerda	:= "620055"
+static __cNumPedido 	:= "346467"
+static __cNumOrca		:= "259155"
+
+//tamanho dos campos
+static __nTamItem 		:= FWTamSX3("UB_ITEM")[01]
+static __nTamProd 		:= FWTamSX3("UB_PRODUTO")[01]
+static __nTamNum 		:= FWTamSX3("UA_NUM")[01]
+
+//item
+static __cFildlocal      := "364578"
+static __cFildValue      := "__cFildValue"
+static __cFildProducts	 := "__cFildProducts"
+static __cFildQuantity   := "__cFildQuantity"
+
+//Item 1
+static __cFildValue1      := SuperGetMV("ES_VALUE1",  .F., "355820") //Preço unitário
+static __cFildProducts1	  := SuperGetMV("ES_IDPROD1", .F., "258230") //Produto
+static __cFildQuantity1   := SuperGetMV("ES_QUANT1",  .F., "355818") //Quantidade
+
+//item 2
+static __cFildValue2      := SuperGetMV("ES_VALUE2",  .F., "355827") //Preço unitário
+static __cFildProducts2	  := SuperGetMV("ES_IDPROD2", .F., "258231") //Produto
+static __cFildQuantity2	  := SuperGetMV("ES_QUANT2",  .F., "355821") //Quantidade
+
+//item 3
+static __cFildValue3      := SuperGetMV("ES_VALUE3",  .F., "355828") //Preço unitário
+static __cFildProducts3	  := SuperGetMV("ES_IDPROD3", .F., "258232") //Produto
+static __cFildQuantity3	  := SuperGetMV("ES_QUANT3",  .F., "355822") //Quantidade
+
+//item 4
+static __cFildValue4      := SuperGetMV("ES_VALUE4",  .F., "355829") //Preço unitário
+static __cFildProducts4	  := SuperGetMV("ES_IDPROD4", .F., "258233") //Produto
+static __cFildQuantity4	  := SuperGetMV("ES_QUANT4",  .F., "355823") //Quantidade
+
+//item 5
+static __cFildValue5      := SuperGetMV("ES_VALUE5",  .F., "355830") //Preço unitário
+static __cFildProducts5	  := SuperGetMV("ES_IDPROD5", .F., "258282") //Produto
+static __cFildQuantity5	  := SuperGetMV("ES_QUANT5",  .F., "355824") //Quantidade
+
+//item 6
+static __cFildValue6	  := SuperGetMV("ES_VALUE6",  .F., "355831") //Preço unitário
+static __cFildProducts6	  := SuperGetMV("ES_IDPROD6", .F., "258283") //Produto
+static __cFildQuantity6	  := SuperGetMV("ES_QUANT6",  .F., "355825") //Quantidade
+
+//item 7
+static __cFildValue7	  := SuperGetMV("ES_VALUE7",  .F., "355832") //Preço unitário
+static __cFildProducts7	  := SuperGetMV("ES_IDPROD7", .F., "258284") //Produto
+static __cFildQuantity7	  := SuperGetMV("ES_QUANT7",  .F., "355826") //Quantidade
+
+//item 8
+static __cFildValue8	  := SuperGetMV("ES_VALUE8",  .F., "414646") //Preço unitário
+static __cFildProducts8	  := SuperGetMV("ES_IDPROD8", .F., "414644") //Produto
+static __cFildQuantity8	  := SuperGetMV("ES_QUANT8",  .F., "414645") //Quantidade
+
+//item 9
+static __cFildValue9	  := SuperGetMV("ES_VALUE9",  .F., "639549") //Preço unitário
+static __cFildProducts9	  := SuperGetMV("ES_IDPROD9", .F., "639547") //Produto
+static __cFildQuantity9	  := SuperGetMV("ES_QUANT9",  .F., "639548") //Quantidade
+
+//item1
+static __cFildValue10	  	:= SuperGetMV("ES_VALUE10",  .F., "639552") //Preço unitário
+static __cFildProducts10	:= SuperGetMV("ES_IDPROD10", .F., "639550") //Produto
+static __cFildQuantity10	:= SuperGetMV("ES_QUANT10",  .F., "639551") //Quantidade
+
+//item 11
+static __cFildValue11	  	:= SuperGetMV("ES_VALUE11",  .F., "639555") //Preço unitário
+static __cFildProducts11	:= SuperGetMV("ES_IDPROD11", .F., "639553") //Produto
+static __cFildQuantity11	:= SuperGetMV("ES_QUANT11",  .F., "639554") //Quantidade
+
+//item 12
+static __cFildValue12	  	:= SuperGetMV("ES_VALUE12",  .F., "639558") //Preço unitário
+static __cFildProducts12	:= SuperGetMV("ES_IDPROD12", .F., "639556") //Produto
+static __cFildQuantity12	:= SuperGetMV("ES_QUANT12",  .F., "639557") //Quantidade
+
+//item 13
+static __cFildValue13	  	:= SuperGetMV("ES_VALUE13",  .F., "639561") //Preço unitário
+static __cFildProducts13	:= SuperGetMV("ES_IDPROD13", .F., "639559") //Produto
+static __cFildQuantity13	:= SuperGetMV("ES_QUANT13",  .F., "639560") //Quantidade
+
+//item 14
+static __cFildValue14	  	:= SuperGetMV("ES_VALUE14",  .F., "639564") //Preço unitário
+static __cFildProducts14	:= SuperGetMV("ES_IDPROD14", .F., "639562") //Produto
+static __cFildQuantity14	:= SuperGetMV("ES_QUANT14",  .F., "639563") //Quantidade
+
+//item 15
+static __cFildValue15	  	:= SuperGetMV("ES_VALUE15",  .F., "639568") //Preço unitário
+static __cFildProducts15	:= SuperGetMV("ES_IDPROD15", .F., "639565") //Produto
+static __cFildQuantity15	:= SuperGetMV("ES_QUANT15",  .F., "639567") //Quantidade
+
+//item 16
+static __cFildValue16	  	:= SuperGetMV("ES_VALUE16",  .F., "726627") //Preço unitário
+static __cFildProducts16	:= SuperGetMV("ES_IDPROD16", .F., "726606") //Produto
+static __cFildQuantity16	:= SuperGetMV("ES_QUANT16",  .F., "726617") //Quantidade
+
+//item 17
+static __cFildValue17  	    := SuperGetMV("ES_VALUE17",  .F., "726629") //Preço unitário
+static __cFildProducts17	:= SuperGetMV("ES_IDPROD17", .F., "726607") //Produto
+static __cFildQuantity17	:= SuperGetMV("ES_QUANT17",  .F., "726618") //Quantidade
+
+//item 18
+static __cFildValue18  	    := SuperGetMV("ES_VALUE18",  .F., "726630") //Preço unitário
+static __cFildProducts18	:= SuperGetMV("ES_IDPROD18", .F., "726609") //Produto
+static __cFildQuantity18	:= SuperGetMV("ES_QUANT18",  .F., "726619") //Quantidade
+
+//item 19
+static __cFildValue19  	    := SuperGetMV("ES_VALUE19",  .F., "726631") //Preço unitário
+static __cFildProducts19	:= SuperGetMV("ES_IDPROD19", .F., "726610") //Produto
+static __cFildQuantity19	:= SuperGetMV("ES_QUANT19",  .F., "726620") //Quantidade
+
+//item 20
+static __cFildValue20	  	:= SuperGetMV("ES_VALUE20",  .F., "726632") //Preço unitário
+static __cFildProducts20	:= SuperGetMV("ES_IDPROD20", .F., "726612") //Produto
+static __cFildQuantity20	:= SuperGetMV("ES_QUANT20",  .F., "726621") //Quantidade
+
+//item 21
+static __cFildValue21	  	:= SuperGetMV("ES_VALUE21",  .F., "726635") //Preço unitário
+static __cFildProducts21    := SuperGetMV("ES_IDPROD21", .F., "726614") //Produto
+static __cFildQuantity21	:= SuperGetMV("ES_QUANT21",  .F., "726624") //Quantidade
+
+//item 22
+static __cFildValue22	  	:= SuperGetMV("ES_VALUE22",  .F., "726636") //Preço unitário
+static __cFildProducts22	:= SuperGetMV("ES_IDPROD22", .F., "726615") //Produto
+static __cFildQuantity22	:= SuperGetMV("ES_QUANT22",  .F., "726625") //Quantidade
+
+//item 23
+static __cFildValue23	  	:= SuperGetMV("ES_VALUE23",  .F., "726637") //Preço unitário
+static __cFildProducts23	:= SuperGetMV("ES_IDPROD23", .F., "726616") //Produto
+static __cFildQuantity23	:= SuperGetMV("ES_QUANT23",  .F., "726626") //Quantidade
+
+/*/{Protheus.doc} User Function DeðalsIntegration
+    integração de oportinidades
+    @type Function
+    @author Lucas Silva Vieira | Agus Consultoria
+    @since 06/05/2024
+    @version 2210
+    @seek https://vendas.developers.pipe.run/reference/adicionar-oportunidade
+/*/
+User Function DealsIntegration()
+	PipeRun.Deals.PostDeals()
+Return
+
+/*/{Protheus.doc} User Function PostDeals
+    integração de oportinidades
+    @type Function
+    @author Lucas Silva Vieira
+    @since 06/05/2024
+    @version 2210
+    @seek https://vendas.developers.pipe.run/reference/adicionar-oportunidade
+/*/
+static  function PostDeals()
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath      	   := "/v1/deals"           					    as character
+	local jPost            := Nil                                           as json
+	local lSend			   := .F.											as logical
+	local nUser            := 0                                             as numeric
+	local nContact         := 0                                             as numeric
+	local nCompany         := 0                                             as numeric
+	local nPipeline   	   := 0 											as numeric
+	local nStage      	   := 0 											as numeric
+	local nTemp       	   := 0 											as numeric
+	local nOrigin     	   := 0 											as numeric
+	local nAmount     	   := 0 											as numeric
+	local nIndex           := 0											    as numeric
+	local cDTcreate   	   := "" 											as character
+	local cNum        	   := "" 											as character
+	local cName			   := ""										    as character
+	local cDtPrev		   := ""											as character
+	local nPosDesc		   := GDFieldPos("UB_DESCRI")						as numeric
+	local nPosProd		   := GDFieldPos("UB_PRODUTO")						as numeric
+	local nPosQuant		   := GDFieldPos("UB_QUANT")						as numeric
+	local nPostValNet	   := GDFieldPos("UB_ZVLNET")						as numeric
+	local nPosTES		   := GDFieldPos("UB_TES")							as numeric
+	local nAdd 			   := 0												as numeric
+	local nPercet 		   := 0												as numeric
+
+	BEGIN TRANSACTION
+
+		nUser       	:= val(Posicione("SA3", 1, FwXFilial("SA3")+M->UA_VEND, "A3_PIPERUN"))
+		nContact    	:= val(Posicione("SU5", 1, FwXFilial("SU5")+M->UA_CODCONT, "U5_PIPERUN"))
+		nPipeline 		:= val(M->UA_XFUNIL)
+		nStage			:= val(M->UA_XSTAGE)
+		nTemp 			:= val(M->UA_XTEMP)
+		nOrigin			:= val(M->UA_XORIGEM)
+		cNum 			:= alltrim(M->UA_NUM)
+		nAmount 		:= TotalAmount(aCols)
+		cDTcreate		:= M->UA_TIMESTA
+		nPercet 		:= val(M->UA_XPROBAB)
+		cDtPrev			:= M->UA_XDTFECH
+
+		if empty(cDtPrev)
+			cDtPrev	:= 	substr(cValTochar(lastDay(date())),7,4)+"-"+substr(cValTochar(lastDay(date())),4,2)+"-"+substr(cValTochar(lastDay(date())),1,2)
+		else
+			cDtPrev := substr(cValTochar(cDtPrev),7,4)+"-"+substr(cValTochar(cDtPrev),4,2)+"-"+substr(cValTochar(cDtPrev),1,2)
+		endif
+
+		if lprospect
+			nCompany    := val(Posicione('SUS', 1, FWxFilial('SUS')+M->(UA_CLIENTE + M->UA_LOJA), 'US_PIPERUN'))
+			cName		:= Posicione('SUS', 1, FWxFilial('SUS')+M->(UA_CLIENTE + M->UA_LOJA), 'US_NOME')
+		else
+			nCompany    := val(Posicione("SA1", 1, FwXFilial("SA1")+M->UA_CLIENTE + M->UA_LOJA, "A1_PIPERUN"))
+			cName		:= Posicione("SA1", 1, FwXFilial("SA1")+M->UA_CLIENTE + M->UA_LOJA, "A1_NOME")
+		endif
+
+		cTitle 			:= allTrim(cNum) +" - "+ allTrim(cName)+ " | " + alltrim(FwFilialName(cEmpAnt,cFilAnt,1))
+
+		jPost := JsonObject():new()
+
+		jPost["pipeline_id"			]   := nPipeline                //ID do funil da oportunidade.
+		jPost["stage_id"			]   := nStage                   //ID da etapa do funil da oportunidade.
+		jPost["title"				]   := cTitle            		//Título da oportunidade.
+		jPost["temperature"			]   := nTemp                    //Temperatura da oportunidade, sendo: 1: muito quente; 2: quente; 3: morna e 4: fria.
+		jPost["origin_id"			]   := nOrigin                  //ID da origem da oportunidade.
+		jPost["owner_id"			]   := nUser                    //ID do usuário responsável pela oportunidade.
+		jPost["person_id"			]   := nContact                 //ID da pessoa de contato da oportunidade.
+		jPost["company_id"			]   := nCompany                 //ID da empresa da oportunidade.
+		jPost["created_at"			]	:= cDTcreate    			//Data de criação da oportunidade.
+		jPost["status"				]   := 0                        //Status da oportunidade: 0: aberta, 1: ganha, 3: perdida.
+		jPost["value"				]   := nAmount                  //Valor de produtos e serviços (P&S) da oportunidade.
+		jPost['probability'       	] 	:= nPercet
+		jPost['probably_closed_at'	] 	:= cDtPrev
+
+		jPost["tags"] := {}
+		aAdd(jPost["tags"		], JsonObject():new())
+
+		if nTemp == 4
+			jPost["tags"			][01]["id"          ] := val(__cTagFria)
+		elseif nTemp == 3
+			jPost["tags"			][01]["id"          ] := val(__cTagMorna)
+		elseif nTemp == 1 .OR. nTemp == 2
+			jPost["tags"			][01]["id"          ] := val(__cTagQuente)
+		endif
+
+		jPost["custom_fields"   ]   := {}
+
+		aAdd(jPost["custom_fields"   ], JsonObject():new())
+		jPost["custom_fields"][01]["id"          ] := val(__cFildlocal)
+		jPost["custom_fields"][01]["value"       ] := alltrim(FwFilialName(cEmpAnt,cFilAnt,2))
+
+		aAdd(jPost["custom_fields"   ], JsonObject():new())
+		jPost["custom_fields"][02]["id"          ] := val(__cNumOrca)
+		jPost["custom_fields"][02]["value"       ] := alltrim(cNum)
+
+		dbSelectArea("SF4")
+		SF4->(dbSetOrder(01)) //F4_FILIAL+F4_CODIGO
+		for nIndex := 01 to len(aCols)
+			lSend := Posicione("SF4",1,FwXFilial("SF4") + alltrim(aCols[nIndex][nPosTES]),"F4_PIPERUN")
+			if lSend
+				aAdd(jPost["custom_fields"   ], JsonObject():new())
+				nAdd := len(jPost["custom_fields"   ])
+
+				//produto
+				cField1 := __cFildProducts + cValToChar(nIndex)
+				jPost["custom_fields"][nAdd]["id"          ] := val(&(cField1))
+				jPost["custom_fields"][nAdd]["value"       ] := alltrim(aCols[nIndex][nPosProd]) + " - " + alltrim(aCols[nIndex][nPosDesc])
+
+				aAdd(jPost["custom_fields"                 ], JsonObject():new())
+				nAdd := len(jPost["custom_fields"          ])
+
+				//quantidade
+				cField2 := __cFildQuantity + cValToChar(nIndex)
+				jPost["custom_fields"][nAdd]["id"          ] := val(&(cField2))
+				jPost["custom_fields"][nAdd]["value"       ] := cValToChar(aCols[nIndex][nPosQuant])
+
+				aAdd(jPost["custom_fields"   			  ], JsonObject():new())
+				nAdd := len(jPost["custom_fields"         ])
+
+				//valor unitario
+				cField3 := __cFildValue + cValToChar(nIndex)
+				jPost["custom_fields"][nAdd]["id"          ] := val(&(cField3))
+				jPost["custom_fields"][nAdd]["value"       ] := cValToChar(aCols[nIndex][nPostValNet])
+
+				if len(aCols) < nIndex
+					aAdd(jPost["custom_fields"   			   ], JsonObject():new())
+					nAdd := len(jPost["custom_fields"          ])
+					nAdd++
+				endif
+			endif
+		next nIndex
+
+		oRest:setPath(cPath)
+
+		if lSend
+			if nUser <=0
+				FwAlertInfo("Cliente / Prospect não vinculo ao Piperun!")
+			elseif nContact <= 0
+				FwAlertInfo("Contato não vinulado ao Piperun!")
+			elseif nPipeline <= 0 .or. nStage <=0
+				FwAlertInfo("Funil ou Etapa não vinculada ao Piperun!")
+			endIf
+			if nUser > 0 .and. nContact  > 0 .and. nPipeline > 0 .and. nStage > 0
+				oRest:setPostParams(jPost:toJson())
+			endif
+		endIf
+
+		if (oRest:post(aHeader))
+			cStatus  := oRest:getHttpCode()
+			cBodyStr := oRest:getResult()
+			oResponse := JsonObject():new()
+			oResponse:fromJson(cBodyStr)
+			if (oResponse:hasProperty('data'))
+				SUA->(dbSetOrder(01)) //UA_FILIAL + UA_NUM
+				if SUA->(dbSeek(SUA->UA_FILIAL + SUA->UA_NUM))
+					if RecLock("SUA", .F.)
+						SUA->UA_XINTREG := "S"
+						SUA->UA_PIPERUN := cValToChar(oResponse['data']['id'])
+						SUA->UA_XSTATUS := "0"
+						SUA->UA_XJSON := jPost:toJson()
+						SUA->UA_XLOGINT := "Log de integração: " + CRLF + ;
+							"Ação executada: Inclusão " + CRLF + ;
+							"Retorno: Sucesso na inclusão " + CRLF + ;
+							"Data : " + Dtoc(Date()) + CRLF +;
+							"Hora: " + time() + CRLF + ;
+							"Status: " + cStatus + CRLF + ;
+							"Retorno: " + cBodyStr + CRLF
+						SUA->(msUnlock())
+					endif
+				endif
+			endif
+		else
+			cStatus  := oRest:getHttpCode()
+			cBodyStr := oRest:getResult()
+			SUA->(dbSetOrder(01)) //UA_FILIAL + UA_NUM
+			if SUA->(dbSeek(SUA->UA_FILIAL + SUA->UA_NUM))
+				if RecLock("SUA", .F.)
+					SUA->UA_XINTREG := "N"
+					SUA->UA_PIPERUN := ""
+					SUA->UA_XJSON := jPost:toJson()
+					SUA->UA_XLOGINT := "Log de integração: " + CRLF + ;
+						"Ação executada: Inclusão " + CRLF + ;
+						"Retorno: Erro na inclusão: " + CRLF + ;
+						"Data : " + Dtoc(Date()) + CRLF +;
+						"Hora: " + time() + CRLF + ;
+						"Status: " + cStatus + CRLF + ;
+						"Retorno: " + cBodyStr + CRLF
+					SUA->(msUnlock())
+				endif
+			endif
+		endif
+
+	END TRANSACTION
+
+return
+
+static function TotalAmount(aDados)
+	local nAmount 	:= 0 							as numeric
+	local nIndex  	:= 0 							as numeric
+	local nPosVal 	:= GDFieldPos("UB_ZVLNET ")		as numeric
+	local nPosQuant := GDFieldPos("UB_QUANT")		as numeric
+	local nPosTES	:= GDFieldPos("UB_TES")			as numeric
+	local lSend		:= .F.							as logical
+
+	for nIndex := 01 to len(aDados)
+		lSend := Posicione("SF4",1,FwXFilial("SF4") + alltrim(aDados[nIndex][nPosTES]),"F4_PIPERUN")
+		if lSend
+			if aDados[nIndex][nPosVal] > 0 .and. aDados[nIndex][nPosQuant] > 0
+				nAmount += (aDados[nIndex][nPosQuant] * aDados[nIndex][nPosVal])
+			endIf
+		endif
+	next nIndex
+return nAmount
+
+user function UpdateStages(cPiperun, cStage, cPipelineId, cNum, cDate, cProbability) as logical
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath      	   := "/v1/deals/"           						as character
+	local oResponse        := nil											as object
+	local cStatus    	   := ""                                            as character
+	local jPut             := JsonObject():new()                            as json
+	local nStatus		   := 0												as numeric
+	local lStatus		   := .F.											as logical
+
+	if (!empty(cPiperun))
+		oRest:setPath(cPath + Alltrim(cPiperun))
+
+		jPut['pipeline_id'		 ]  := val(cPipelineId)
+		jPut['stage_id'			 ] 	:= val(cStage)
+		jPut['probability'       ] 	:= val(cProbability)
+		jPut['probably_closed_at'] 	:= cDate
+
+		if (oRest:put(aHeader, jPut:toJson()))
+			cStatus  := oRest:getHttpCode()
+			cBodyStr := oRest:getResult()
+			oResponse := JsonObject():new()
+			oResponse:fromJson(cBodyStr)
+			lStatus := .T.
+			SUA->(dbSetOrder(01)) //UA_FILIAL + UA_NUM
+			if RecLock("SUA", .F.)
+				SUA->UA_XINTREG := "S"
+				SUA->UA_XSTAGE  := cStage
+				SUA->UA_XJSON := jPut:toJson()
+				SUA->UA_XSTATUS := cValToChar(nStatus)
+				SUA->UA_XPROBAB	:= cProbability
+				SUA->UA_XDTFECH := stod(substr(cValTochar(cDate),9,2)+"/"+substr(cValTochar(cDate),6,2)+"/"+substr(cValTochar(cDate),1,4))
+				SUA->UA_XLOGINT := "Log de integração: " + CRLF + ;
+					"Ação executada: Movimentação de Card " + CRLF + ;
+					"Retorno: Sucesso na atualização: " + CRLF + ;
+					"Data : " + Dtoc(Date()) + CRLF +;
+					"Hora: " + time() + CRLF + ;
+					"Status: " + cStatus + CRLF + ;
+					"Retorno: " + cBodyStr + CRLF
+				SUA->(msUnlock())
+			endif
+		else
+			cStatus  := oRest:getHttpCode()
+			cBodyStr := oRest:getResult()
+			lStatus := .F.
+			SUA->(dbSetOrder(01)) //UA_FILIAL + UA_NUM
+			if RecLock("SUA", .F.)
+				SUA->UA_XINTREG := "S"
+				SUA->UA_XSTAGE  := cStage
+				SUA->UA_XJSON := jPut:toJson()
+				SUA->UA_XSTATUS := cValToChar(nStatus)
+				SUA->UA_XLOGINT := "Log de integração: " + CRLF + ;
+					"Ação executada: Movimentação de Card " + CRLF + ;
+					"Retorno: Erro na atualização: " + CRLF + ;
+					"Data : " + Dtoc(Date()) + CRLF +;
+					"Hora: " + time() + CRLF + ;
+					"Status: " + cStatus + CRLF + ;
+					"Retorno: " + cBodyStr + CRLF
+				SUA->(msUnlock())
+			endif
+			FwAlertInfo(cBodyStr, "Não Foi possivel atualizar o status verifique a regra do funil.")
+		endIf
+	endif
+return lStatus
+
+user function DealsWins(cPipeRun, nStatus) as logical
+	local oRest             := PipeRun.utils.u_getRestObject()              as object
+	local aHeader           := PipeRun.utils.u_getBaseHeader()              as array
+	local cPath      	    := "/v1/deals/"           						as character
+	local oResponse         := nil											as object
+	local cStatus    	    := ""                                           as character
+	local jPut              := JsonObject():new()                           as json
+	local lSuccess 			:= .T. 											as logical
+	local cDate 			:= dtos(Date())									as character
+	local nValid			:= 344900										as numeric
+
+
+	if (!empty(cPiperun))
+		oRest:setPath(cPath + Alltrim(cPiperun))
+
+		jPut["custom_fields"   ]   := {}
+
+		aAdd(jPut["custom_fields"   ], JsonObject():new())
+		jPut["custom_fields"][01]["id"          ] := nValid
+		jPut["custom_fields"][01]["value"       ] := "Sim"
+
+		if (oRest:put(aHeader, jPut:toJson()))
+			cStatus  := oRest:getHttpCode()
+			cBodyStr := oRest:getResult()
+			oResponse := JsonObject():new()
+			oResponse:fromJson(cBodyStr)
+			lSuccess := .T.
+		else
+			cStatus  := oRest:getHttpCode()
+			cBodyStr := oRest:getResult()
+			lSuccess := .F.
+		endIf
+
+		if lSuccess
+
+			jPut['status']		:= nStatus
+			jPut['closed_at']	:= substr(cDate,1,4)+"-"+substr(cDate,5,2)+"-"+substr(cDate,7,2)
+
+			if (oRest:put(aHeader, jPut:toJson()))
+				cStatus  := oRest:getHttpCode()
+				cBodyStr := oRest:getResult()
+				oResponse := JsonObject():new()
+				oResponse:fromJson(cBodyStr)
+				lSuccess := .T.
+			else
+				cStatus  := oRest:getHttpCode()
+				cBodyStr := oRest:getResult()
+				FwAlertInfo(cBodyStr,"Não foi possivel dar ganho na oportunidade, verifique a regra do funil!")
+				lSuccess := .F.
+			endIf
+		else
+			FwAlertInfo("Não foi possivel dar ganho na oportunidade, verifique a regra do funil!")
+		endif
+	endif
+return lSuccess
+
+user function DealsRequested(cPipeRun, cNumPed, cPipeline, cStage) as logical
+	local oRest             := PipeRun.utils.u_getRestObject()              as object
+	local aHeader           := PipeRun.utils.u_getBaseHeader()              as array
+	local cPath      	    := "/v1/deals/"           						as character
+	local oResponse         := nil											as object
+	local cStatus    	    := ""                                           as character
+	local jPut              := JsonObject():new()                           as json
+	local nAdd				:= 01											as numeric
+	local nOrder 			:= 0											as numeric
+
+	if (!empty(cPiperun))
+		oRest:setPath(cPath + Alltrim(cPiperun))
+
+		nOrder := stageOrder(cPipeline)
+
+		jPut['stage_id'] 						:= nOrder //ID da etapa do funil da oportunidade.
+		jPut['started_in_stage_id']				:= val(cStage) //ID da etapa onde a oportunidade foi gerada.
+
+		jPut["custom_fields"]   				:= {}
+		aAdd(jPut["custom_fields"], JsonObject():new())
+
+		jPut["custom_fields"][nAdd]["id"] 		:= val(__cNumPedido)
+		jPut["custom_fields"][nAdd]["value" ] 	:= cNumPed
+
+		if (oRest:put(aHeader, jPut:toJson()))
+			cStatus  := oRest:getHttpCode()
+			cBodyStr := oRest:getResult()
+			oResponse := JsonObject():new()
+			oResponse:fromJson(cBodyStr)
+
+			SUA->(dbSetOrder(13)) //UA_FILIAL + UA_PIPERUN
+			if SUA->(dbSeek(FWxFilial("SUA")+cPipeRun))
+				if SUA->(RecLock("SUA", .F.))
+					SUA->UA_XSTAGE := cValToChar(nOrder)
+					SUA->(MsUnLock())
+				endif
+			endif
+
+		else
+			cStatus  := oRest:getHttpCode()
+			cBodyStr := oRest:getResult()
+		endIf
+	endif
+return
+
+user function DealsLoss(cPipeRun, cMotivo, cJustic)
+	local oRest             := PipeRun.utils.u_getRestObject()              as object
+	local aHeader           := PipeRun.utils.u_getBaseHeader()              as array
+	local cPath      	    := "/v1/deals/"           						as character
+	local oResponse         := nil											as object
+	local cStatus    	    := ""                                           as character
+	local jPut              := JsonObject():new()                           as json
+	local cDate 			:= dtos(Date())									as character
+	local nAdd				:= 1											as numeric
+
+	if (!empty(cPiperun))
+		oRest:setPath(cPath + Alltrim(cPiperun))
+
+		jPut['status']			:= 3
+		jPut['lost_reason_id']	:= val(cMotivo)
+		jPut['closed_at']		:= substr(cDate,1,4)+"-"+substr(cDate,5,2)+"-"+substr(cDate,7,2)
+
+		jPut["custom_fields"]   := {}
+		aAdd(jPut["custom_fields"], JsonObject():new())
+
+		jPut["custom_fields"][nAdd]["id"] := val(__cFilMtPerda)
+		jPut["custom_fields"][nAdd]["value" ] := alltrim(cJustic)
+
+
+		if (oRest:put(aHeader, jPut:toJson()))
+			cStatus  := oRest:getHttpCode()
+			cBodyStr := oRest:getResult()
+			oResponse := JsonObject():new()
+			oResponse:fromJson(cBodyStr)
+		else
+			cStatus  := oRest:getHttpCode()
+			cBodyStr := oRest:getResult()
+		endIf
+	endif
+return
+
+user function DealsPut(cPiperun)
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath      	   := "/v1/deals/"           						as character
+	local oResponse        := nil											as object
+	local cStatus    	   := ""                                            as character
+	local jPut             := JsonObject():new()                            as json
+	local nIndex 		   := 0 											as numeric
+	local nAdd			   := 0												as numeric
+	local lSend			   := .F.											as logical
+	local nStage		   := val(M->UA_XSTAGE)								as numeric
+	local nTemp 		   := val(M->UA_XTEMP)								as numeric
+	local nStatus		   := val(M->UA_XSTATUS)							as numeric
+	local nPipeline		   := val(M->UA_XFUNIL)								as numeric
+	local nPosTES		   := GDFieldPos("UB_TES")							as numeric
+	local nPosProd		   := GDFieldPos("UB_PRODUTO")						as numeric
+	local nPosQuant		   := GDFieldPos("UB_QUANT")						as numeric
+	local nPostValNet	   := GDFieldPos("UB_ZVLNET ")						as numeric	///UB_ZVLNET
+	local nAmount 		   := TotalAmount(aCols)							as numeric
+	local nCompany		   := 0												as numeric
+	local nPosDesc		   := GDFieldPos("UB_DESCRI")						as numeric
+	local cNum			   := ""											as character
+	local nPercet 		   := val(M->UA_XPROBAB)							as numeric
+	local cDtPrev		   := M->UA_XDTFECH 								as character
+
+	if empty(cDtPrev)
+		cDtPrev	:= 	substr(cValTochar(lastDay(date())),7,4)+"-"+substr(cValTochar(lastDay(date())),4,2)+"-"+substr(cValTochar(lastDay(date())),1,2)
+	else
+		cDtPrev := substr(cValTochar(cDtPrev),7,4)+"-"+substr(cValTochar(cDtPrev),4,2)+"-"+substr(cValTochar(cDtPrev),1,2)
+	endif
+
+
+	if lprospect
+		nCompany    := val(Posicione('SUS', 1, FWxFilial('SUS')+M->(UA_CLIENTE + M->UA_LOJA), 'US_PIPERUN'))
+		cName		:= Posicione('SUS', 1, FWxFilial('SUS')+M->(UA_CLIENTE + M->UA_LOJA), 'US_NOME')
+	else
+		nCompany    := val(Posicione("SA1", 1, FwXFilial("SA1")+M->UA_CLIENTE + M->UA_LOJA, "A1_PIPERUN"))
+		cName		:= Posicione("SA1", 1, FwXFilial("SA1")+M->UA_CLIENTE + M->UA_LOJA, "A1_NOME")
+	endif
+
+	if (!empty(cPiperun))
+		oRest:setPath(cPath + Alltrim(cPiperun))
+
+		cNum 			:= alltrim(M->UA_NUM)
+		jPut["stage_id"				]   := nStage                   //ID da etapa do funil da oportunidade.
+		jPut["temperature"			]   := nTemp                    //Temperatura da oportunidade, sendo: 1: muito quente; 2: quente; 3: morna e 4: fria.
+		jPut["status"				]   := nStatus                  //Status da oportunidade: 0: aberta, 1: ganha, 3: perdida.
+		jPut["value"				]   := nAmount                  //Valor de produtos e serviços (P&S) da oportunidade.
+		jPut["pipeline_id"			]	:= nPipeline
+		jPut['probability'       	] 	:= nPercet
+		jPut['probably_closed_at'	] 	:= cDtPrev
+		jPut['company_id'			]   := nCompany
+
+		jPut["tags"] := {}
+		aAdd(jPut["tags"		], JsonObject():new())
+
+		if nTemp == 4
+			jPut["tags"			][01]["id"          ] := val(__cTagFria)
+		elseif nTemp == 3
+			jPut["tags"			][01]["id"          ] := val(__cTagMorna)
+		elseif nTemp == 1 .OR. nTemp == 2
+			jPut["tags"			][01]["id"          ] := val(__cTagQuente)
+		endif
+
+		jPut["custom_fields"   ]   := {}
+
+		aAdd(jPut["custom_fields"   ], JsonObject():new())
+		jPut["custom_fields"][01]["id"          ] := val(__cFildlocal)
+		jPut["custom_fields"][01]["value"       ] := alltrim(FwFilialName(cEmpAnt,cFilAnt,2))
+
+		aAdd(jPut["custom_fields"   ], JsonObject():new())
+		jPut["custom_fields"][02]["id"          ] := val(__cNumOrca)
+		jPut["custom_fields"][02]["value"       ] := cNum
+
+		dbSelectArea("SF4")
+		SF4->(dbSetOrder(01)) //F4_FILIAL+F4_CODIGO
+		for nIndex := 01 to len(aCols)
+			lSend := Posicione("SF4",1,FwXFilial("SF4") + alltrim(aCols[nIndex][nPosTES]),"F4_PIPERUN")
+
+			if lSend
+				aAdd(jPut["custom_fields"   ], JsonObject():new())
+				nAdd := len(jPut["custom_fields"   ])
+
+				//produto
+				cField1 := __cFildProducts + cValToChar(nIndex)
+				jPut["custom_fields"][nAdd]["id"          		] := val(&(cField1))
+				jPut["custom_fields"][nAdd]["value"       	   	] := alltrim(aCols[nIndex][nPosProd]) + " - " + alltrim(aCols[nIndex][nPosDesc])
+
+				aAdd(jPut["custom_fields"                 		], JsonObject():new())
+				nAdd := len(jPut["custom_fields"          		])
+
+				//quantidade
+				cField2 := __cFildQuantity + cValToChar(nIndex)
+				jPut["custom_fields"][nAdd]["id"          		] := val(&(cField2))
+				jPut["custom_fields"][nAdd]["value"       		] := cValToChar(aCols[nIndex][nPosQuant])
+
+				aAdd(jPut["custom_fields"   			  		], JsonObject():new())
+				nAdd := len(jPut["custom_fields"         		])
+
+				//valor unitario
+				cField3 := __cFildValue + cValToChar(nIndex)
+				jPut["custom_fields"][nAdd]["id"          		] := val(&(cField3))
+				jPut["custom_fields"][nAdd]["value"       		] := cValToChar(aCols[nIndex][nPostValNet])
+
+				/*if nIndex < len(aCols)
+					aAdd(jPut["custom_fields"   			    ], JsonObject():new())
+					nAdd := len(jPut["custom_fields"            ])
+					nAdd++
+				endif*/
+			endif
+			//gravar se tiver itens novos
+		next nIndex
+
+		if (oRest:put(aHeader, jPut:toJson()))
+			cStatus  := oRest:getHttpCode()
+			cBodyStr := oRest:getResult()
+			oResponse := JsonObject():new()
+			oResponse:fromJson(cBodyStr)
+			SUA->(dbSetOrder(01)) //UA_FILIAL + UA_NUM
+			if SUA->(dbSeek(FwXFilial("SUA") +SUA->UA_NUM))
+				if RecLock("SUA", .F.)
+					SUA->UA_XINTREG := "S"
+					SUA->UA_XJSON := jPut:toJson()
+					SUA->UA_XLOGINT := "Log de integração: " + CRLF + ;
+						"Ação executada: Alteração " + CRLF + ;
+						"Retorno: Sucesso na atualização " + CRLF + ;
+						"Data : " + Dtoc(Date()) + CRLF +;
+						"Hora: " + time() + CRLF + ;
+						"Status: " + cStatus + CRLF + ;
+						"Retorno: " + cBodyStr + CRLF
+					SUA->(msUnlock())
+				endif
+			endif
+		else
+			cStatus  := oRest:getHttpCode()
+			cBodyStr := oRest:getResult()
+			oResponse := JsonObject():new()
+			oResponse:fromJson(cBodyStr)
+			SUA->(dbSetOrder(01)) //UA_FILIAL + UA_NUM
+			if SUA->(dbSeek(FwXFilial("SUA") +SUA->UA_NUM))
+				if RecLock("SUA", .F.)
+					SUA->UA_XJSON := jPut:toJson()
+					SUA->UA_XLOGINT := "Log de integração: " + CRLF + ;
+						"Ação executada: Alteração: " + CRLF + ;
+						"Retorno: Erro na atualização: " + CRLF + ;
+						"Data : " + Dtoc(Date()) + CRLF +;
+						"Hora: " + time() + CRLF + ;
+						"Status: " + cStatus + CRLF + ;
+						"Retorno: " + cBodyStr + CRLF
+					SUA->(msUnlock())
+				endif
+			endif
+		endIf
+	endif
+return
+
+user function DealsDelete()
+	FwAlertInfo("DealsDelete")
+return
+
+user function lostReason() as array
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath      	   := "/v1/lostReasons"           					as character
+	local oReturn          := nil											as object
+	local cStatus    	   := ""                                            as character
+	local aLost			   := {} 											as array
+	local nIndex 		   := 0												as numeric
+
+	oRest:setPath(cPath)
+
+	if (oRest:get(aHeader))
+
+		cStatus  := oRest:getHttpCode()
+		cBodyStr := oRest:getResult()
+		oReturn := JsonObject():new()
+		cError := oReturn:fromJson(cBodyStr)
+
+		if cStatus == SUCCESS
+			if len(oReturn['data']) > 0
+				for nIndex := 1 to len(oReturn['data'])
+					if oReturn['data'][nIndex]['status'] == .T.
+						aAdd(aLost,allTrim(cValTochar(oReturn['data'][nIndex]['id']) +" - "+DecodeUTF8(oReturn['data'][nIndex]['name'],'CP1252')))
+					endif
+				next nIndex
+			else
+				FwAlertInfo("Não da motivos de perda cadastrados!")
+			endif
+		else
+			FWAlertError("ERROR: "+cStatus)
+		endif
+	else
+		FWAlertError("ERROR: Não possivel estabelecer a conexão!" + CRLF + "Verifique os parâmetros de conexão.")
+	endif
+
+return aLost
+
+user function SendPost(cNumOrc)
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath      	   := "/v1/deals"           					    as character
+	local cDesc			   := ""											as character
+	local jPost            := Nil                                           as json
+	local lSend			   := .F.											as logical
+	local nUser            := 0                                             as numeric
+	local nContact         := 0                                             as numeric
+	local nCompany         := 0                                             as numeric
+	local nPipeline   	   := 0 											as numeric
+	local nStage      	   := 0 											as numeric
+	local nTemp       	   := 0 											as numeric
+	local nOrigin     	   := 0 											as numeric
+	local nAmount     	   := 0 											as numeric
+	local aItems		   := {}											as array
+	local nIndex           := 0											    as numeric
+	local cDTcreate   	   := "" 											as character
+	local cNum        	   := "" 											as character
+	local cName			   := ""										    as character
+	local cAlias 		   := ""											as character
+	local nPercet 		   := 0												as numeric
+	local cDtPrev		   := "" 											as character
+	local lSuccess	       := .F.											as logical
+	local cDesTES		   := ""											as character
+
+	if empty(cDtPrev)
+		cDtPrev	:= 	substr(cValTochar(lastDay(date())),7,4)+"-"+substr(cValTochar(lastDay(date())),4,2)+"-"+substr(cValTochar(lastDay(date())),1,2)
+	else
+		cDtPrev := substr(cValTochar(cDtPrev),7,4)+"-"+substr(cValTochar(cDtPrev),4,2)+"-"+substr(cValTochar(cDtPrev),1,2)
+	endif
+
+
+
+	BEGIN TRANSACTION
+
+		cAlias := GetDeals(cNumOrc)
+		While (cAlias)->(!Eof())
+
+			(cAlias)->(dbGoTop())
+
+			nUser       	:= val(Posicione("SA3", 1, FwXFilial("SA3")+(cAlias)->UA_VEND, "A3_PIPERUN"))
+			nContact    	:= val(Posicione("SU5", 1, FwXFilial("SU5")+(cAlias)->UA_CODCONT, "U5_PIPERUN"))
+			nPipeline 		:= val((cAlias)->UA_XFUNIL)
+			nStage			:= val((cAlias)->UA_XSTAGE)
+			nTemp 			:= val((cAlias)->UA_XTEMP)
+			nOrigin			:= val((cAlias)->UA_XORIGEM)
+			cNum 			:= alltrim((cAlias)->UA_NUM)
+			//nAmount 		:= TotalAmount(aCols)
+			cDTcreate		:= (cAlias)->UA_TIMESTA
+			lprospect		:= iif((cAlias)->UA_PROSPEC == "F", .F., .T.)
+			nPercet		    := val((cAlias)->UA_XPROBAB)
+
+			if lprospect
+				nCompany    := val(Posicione('SUS', 1, FWxFilial('SUS')+(cAlias)->(UA_CLIENTE + (cAlias)->UA_LOJA), 'US_PIPERUN'))
+				cName		:= Posicione('SUS', 1, FWxFilial('SUS')+(cAlias)->(UA_CLIENTE + (cAlias)->UA_LOJA), 'US_NOME')
+			else
+				nCompany    := val(Posicione("SA1", 1, FwXFilial("SA1")+(cAlias)->UA_CLIENTE + (cAlias)->UA_LOJA, "A1_PIPERUN"))
+				cName		:= Posicione("SA1", 1, FwXFilial("SA1")+(cAlias)->UA_CLIENTE + (cAlias)->UA_LOJA, "A1_NOME")
+			endif
+
+			if empty(cDTcreate)
+				cDTcreate := left(fwtimestamp(6),10)
+			endif
+
+			cTitle 			:= allTrim(cNum) +  " - " + allTrim(cName) +" | " + alltrim(FwFilialName(cEmpAnt,cFilAnt,1))
+
+			jPost := JsonObject():new()
+
+			jPost["pipeline_id"			]   := nPipeline                //ID do funil da oportunidade.
+			jPost["stage_id"			]   := nStage                   //ID da etapa do funil da oportunidade.
+			jPost["title"				]   := cTitle            		//Título da oportunidade.
+			jPost["temperature"			]   := nTemp                    //Temperatura da oportunidade, sendo: 1: muito quente; 2: quente; 3: morna e 4: fria.
+			jPost["origin_id"			]   := nOrigin                  //ID da origem da oportunidade.
+			jPost["owner_id"			]   := nUser                    //ID do usuário responsável pela oportunidade.
+			jPost["person_id"			]   := nContact                 //ID da pessoa de contato da oportunidade.
+			jPost["company_id"			]   := nCompany                 //ID da empresa da oportunidade.
+			jPost["created_at"			]	:= cDTcreate    			//Data de criação da oportunidade.
+			jPost["status"				]   := 0                        //Status da oportunidade: 0: aberta, 1: ganha, 3: perdida.
+			jPost['probability'       	] 	:= nPercet
+			jPost['probably_closed_at'	] 	:= cDtPrev
+
+			jPost["tags"] := {}
+			aAdd(jPost["tags"		], JsonObject():new())
+
+			if nTemp == 4
+				jPost["tags"			][01]["id"          ] := val(__cTagFria)
+			elseif nTemp == 3
+				jPost["tags"			][01]["id"          ] := val(__cTagMorna)
+			elseif nTemp == 1 .OR. nTemp == 2
+				jPost["tags"			][01]["id"          ] := val(__cTagQuente)
+			endif
+
+			jPost["custom_fields"   ]   := {}
+
+			aAdd(jPost["custom_fields"           ], JsonObject():new())
+			jPost["custom_fields"][01]["id"          ] := val(__cFildlocal)
+			jPost["custom_fields"][01]["value"       ] := alltrim(FwFilialName(cEmpAnt,cFilAnt,2))
+
+			aAdd(jPost["custom_fields"   ], JsonObject():new())
+			jPost["custom_fields"][02]["id"          ] := val(__cNumOrca)
+			jPost["custom_fields"][02]["value"       ] := alltrim(cNum)
+
+			dbSelectArea("SUB")
+			SUB->(dbSetOrder(1)) //UB_FILIAL + UB_NUM + UB_ITEM + UB_PRODUTO
+			if SUB->(dbSeek(FwXFilial("SUB")+padR(cNumOrc,__nTamNum)))
+				while !SUB->(EOF()) .AND. FwXFilial("SUB") + cNumOrc = FwXFilial("SUB") + SUB->UB_NUM
+					cDesc := Posicione("SB1", 1, FwXFilial("SB1")+padR(SUB->UB_PRODUTO, __nTamProd), "B1_DESC")
+					aAdd(aItems,{SUB->UB_ITEM, SUB->UB_PRODUTO, cDesc, SUB->UB_QUANT, SUB->UB_ZVLNET, SUB->UB_TES})
+					nAmount +=  (SUB->UB_QUANT * SUB->UB_ZVLNET)
+					SUB->(dbSkip())
+				endDo
+			endif
+
+			if len(aItems) > 0
+				dbSelectArea("SF4")
+				SF4->(dbSetOrder(01)) //F4_FILIAL+F4_CODIGO
+				for nIndex := 01 to len(aItems)
+					lSend := Posicione("SF4",1,FwXFilial("SF4") + alltrim(aItems[nIndex][6]),"F4_PIPERUN")
+					if lSend
+						aAdd(jPost["custom_fields"   ], JsonObject():new())
+						nAdd := len(jPost["custom_fields"   ])
+
+						//produto
+						cField1 := __cFildProducts + cValToChar(nIndex)
+						jPost["custom_fields"][nAdd]["id"          ] := val(&(cField1))
+						jPost["custom_fields"][nAdd]["value"       ] := alltrim(aItems[nIndex][2]) + " - " + alltrim(aItems[nIndex][3])
+
+						aAdd(jPost["custom_fields"                 ], JsonObject():new())
+						nAdd := len(jPost["custom_fields"          ])
+
+						//quantidade
+						cField2 := __cFildQuantity + cValToChar(nIndex)
+						jPost["custom_fields"][nAdd]["id"          ] := val(&(cField2))
+						jPost["custom_fields"][nAdd]["value"       ] := cValToChar(aItems[nIndex][4])
+
+						aAdd(jPost["custom_fields"   			  ], JsonObject():new())
+						nAdd := len(jPost["custom_fields"         ])
+
+						//valor unitario
+						cField3 := __cFildValue + cValToChar(nIndex)
+						jPost["custom_fields"][nAdd]["id"          ] := val(&(cField3))
+						jPost["custom_fields"][nAdd]["value"       ] :=  cValToChar(aItems[nIndex][5])
+						/*if nIndex < len(aItems)
+							aAdd(jPost["custom_fields"   			   ], JsonObject():new())
+							nAdd := len(jPost["custom_fields"          ])
+							nAdd++
+						endif*/
+					else
+						cDesTES := Capital(Posicione("SF4",1,FwXFilial("SF4") + alltrim(aItems[nIndex][6]),"F4_FINALID"))
+						FwAlertInfo("O item " + alltrim(aItems[nIndex][2]) + " - " + alltrim(aItems[nIndex][3]) + CRLF + ;
+							", não sera enviado pois esta configurado com a TES: " + alltrim(aItems[nIndex][6]) + " - " +cDesTES, "Atenção!")
+					endif
+				next nIndex
+			endif
+
+			jPost["value"			]   := nAmount                  //Valor de produtos e serviços (P&S) da oportunidade.
+
+			oRest:setPath(cPath)
+
+			if lSend
+				if nUser <=0
+					FwAlertInfo("Cliente / Prospect não vinculo ao Piperun!")
+				elseif nContact <= 0
+					FwAlertInfo("Contato não vinulado ao Piperun!")
+				elseif nPipeline <= 0 .or. nStage <=0
+					FwAlertInfo("Funil ou Etapa não vinculada ao Piperun!")
+				endIf
+
+				if nUser > 0 .and. nContact  > 0 .and. nPipeline > 0 .and. nStage > 0
+					oRest:setPostParams(jPost:toJson())
+					lSuccess := .T.
+				endif
+			else
+				lSuccess := .F.
+			endIf
+
+			if lSuccess
+				if (oRest:post(aHeader))
+					cStatus  := oRest:getHttpCode()
+					cBodyStr := oRest:getResult()
+					oResponse := JsonObject():new()
+					oResponse:fromJson(cBodyStr)
+					if (oResponse:hasProperty('data'))
+						SUA->(dbSetOrder(01)) //UA_FILIAL + UA_NUM
+						if SUA->(dbSeek(SUA->UA_FILIAL + SUA->UA_NUM))
+							if RecLock("SUA", .F.)
+								SUA->UA_XINTREG := "S"
+								SUA->UA_PIPERUN := cValToChar(oResponse['data']['id'])
+								SUA->UA_XSTATUS := "0"
+								SUA->UA_XJSON := jPost:toJson()
+								SUA->UA_XLOGINT := "Log de integração: " + CRLF + ;
+									"Acão : Enviar orçamento" + CRLF + ;
+									"Retorno: Sucesso na inclusão: " + CRLF + ;
+									"Data : " + Dtoc(Date()) + CRLF +;
+									"Hora: " + time() + CRLF + ;
+									"Status: " + cStatus + CRLF + ;
+									"Retorno: " + cBodyStr + CRLF
+								SUA->(msUnlock())
+							endif
+							lSuccess := .T.
+						endif
+					endif
+				else
+					cStatus  := oRest:getHttpCode()
+					cBodyStr := oRest:getResult()
+					SUA->(dbSetOrder(01)) //UA_FILIAL + UA_NUM
+					if SUA->(dbSeek(SUA->UA_FILIAL + SUA->UA_NUM))
+						if RecLock("SUA", .F.)
+							SUA->UA_XINTREG := "N"
+							SUA->UA_PIPERUN := ""
+							SUA->UA_XJSON := jPost:toJson()
+							SUA->UA_XLOGINT := "Log de integração: " + CRLF + ;
+								"Acão : Enviar orçamento" + CRLF + ;
+								"Retorno: Erro na inclusão: " + CRLF + ;
+								"Data : " + Dtoc(Date()) + CRLF +;
+								"Hora: " + time() + CRLF + ;
+								"Status: " + cStatus + CRLF + ;
+								"Retorno: " + cBodyStr + CRLF
+							SUA->(msUnlock())
+						endif
+					endif
+					FWAlertError(cBodyStr, "Não foi possivel realizar a integração!")
+				endif
+			endif
+			(cAlias)->(dbSkip())
+		endDo
+		(cAlias)->(dbCloseArea())
+	END TRANSACTION
+
+return lSuccess
+
+static function GetDeals(cNumOrc) as character
+	local cQuery 	:= ""		as character
+	local cAlias	:= ""   	as character
+	local oQuery 	:= nil 		as object
+
+	cQuery :=  "SELECT  * "
+	cQuery +=  "FROM " + RetSqlName("SUA") + " SUA "
+	cQuery +=  "WHERE UA_NUM = ? "
+	cQuery +=  "AND UA_FILIAL = ? "
+	cQuery +=  "AND UA_PIPERUN = ? "
+	cQuery +=  "AND D_E_L_E_T_ = '' "
+
+	oQuery := FWPreparedStatement():New(cQuery)
+	oQuery:SetString(1,cNumOrc)
+	oQuery:SetString(2, cFilAnt)
+	oQuery:SetString(3, '')
+	cQuery := oQuery:GetFixQuery()
+	cAlias := MPSysOpenQuery(cQuery)
+
+return cAlias
+
+static function stageOrder(cPipeline) as numeric
+	local nOrder 	:= 0 		as numeric
+	local cQuery 	:= ""		as character
+	local cAlias	:= ""   	as character
+	local oQuery 	:= nil 		as object
+
+	cQuery :=  " SELECT TOP 1 "
+	cQuery +=  " ZTA_ETAPAS "
+	cQuery +=  " FROM " + RetSqlName("ZTA")
+	cQuery +=  " WHERE ZTA_PIPERU = ? "
+	cQuery +=  " AND D_E_L_E_T_ = '' "
+	cQuery +=  " ORDER BY ZTA_ORDER DESC "
+
+	oQuery := FWPreparedStatement():New(cQuery)
+	oQuery:SetString(1,cPipeline)
+	cQuery := oQuery:GetFixQuery()
+	cAlias := MPSysOpenQuery(cQuery)
+
+	nOrder := val((cAlias)->ZTA_ETAPAS)
+
+return nOrder

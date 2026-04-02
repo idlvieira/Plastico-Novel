@@ -1,0 +1,141 @@
+#Include 'Protheus.ch'
+
+/*
+�����������������������������������������������������������������������������
+�����������������������������������������������������������������������������
+�������������������������������������������������������������������������ͻ��
+���Classe    �MT120APV  �Autor  �Claudio Iabuki      � Data �  13/09/10   ���
+�������������������������������������������������������������������������͹��
+���Desc.     � VALIDA O GRUPO DE APROVADOR PARA NAO DEIXAR EM BRANCO      ���
+�������������������������������������������������������������������������͹��
+���Uso       � MP 10 Ms-Sql Server                                        ���
+�������������������������������������������������������������������������ͼ��
+�����������������������������������������������������������������������������
+�����������������������������������������������������������������������������
+*/
+
+USER FUNCTION MT120APV()
+
+	Local nI   := 0
+	Local nPosCC  := 0
+	Local cCCusto  := ''
+	Local cRet  := ''
+	Local cGrpCompr := ''
+	Local  ExpC1   :=  NIL
+	Local  ExpC2   :=  NIL
+	Local aArea  := GetArea()
+	Local aAreaSC7 := SC7->(GetArea())
+	Local  cFuncao  := AllTrim(FunName())
+	Local cAliasCTT := ''
+	Local cAliasSC7 := ''
+	Local cNumPedi := ''
+	Local  lCotacao  := IsInCallStack("MaAvalCOT") .or. IsInCallStack("MAAVALCOT") .or. IsInCallStack("MATA160")
+	Local  nPosDel  := 0
+
+	If  lCotacao
+
+		cCCusto  :=  SC7->C7_CC
+		cAliasCTT :=  GetNextAlias()
+
+		BeginSQL Alias cAliasCTT
+
+		SELECT
+		CTT.CTT_ZZAPRO AS APROV
+		FROM
+		%Table:CTT% CTT
+		WHERE
+		CTT.CTT_FILIAL = %xFilial:CTT% AND
+		CTT.%notdel% AND
+		CTT.CTT_CUSTO IN (%Exp:cCCusto%)
+		GROUP BY
+		CTT.CTT_ZZAPRO
+
+		EndSQL
+
+		if (cAliasCTT)->(!Eof()) .and. (cAliasCTT)->(!Bof())
+			if Upper(Alltrim(cRet)) <> Upper(Alltrim((cAliasCTT)->APROV))
+				cRet := (cAliasCTT)->APROV
+			endif
+		endif
+
+		(cAliasCTT)->(dbCloseArea())
+
+		If Empty(cRet)
+			//Alert('N�o h� amarra��o do Centro de Custo com Grupo de Aprovadores, Utilizado Grupo Padrao '+GETMV('MV_MYGRPPD')+'.')
+			Alert('N�o h� amarra��o do Centro de Custo com Grupo de Aprovadores, Utilizado Grupo Padrao '+Posicione("ZZZ",1,xFilial("ZZZ")+"COM000001"+"001","ZZZ_RETORN")+'.')
+			RETURN(Posicione("ZZZ",1,xFilial("ZZZ")+"COM000001"+"001","ZZZ_RETORN"))   
+		EndIf
+		Alert('Grupo de Aprovadores alterado para: '+cRet)
+
+
+	ElseIf  cFuncao $ 'MATA121|TMSA0014|FINA0004|MATA130|MATA150|MATA160'
+		cAliasCTT := GetNextAlias()
+
+		// Relaciona os Centros de Custo utilizados no Pedido de Compra
+		nPosDel := Len(aHeader)+1
+		nPosCC := aScan(aHeader,{|x| AllTrim(x[2])=='C7_CC'})
+		For nI:=1 to Len(aCols)
+			If !(aCols[nI][nPosCC] $ cCCusto) .and. !aCols[nI][nPosDel]
+				cCCusto += If(Empty(cCCusto),'',',') +"'"+AllTrim(aCols[nI][nPosCC])+"'"
+			EndIf
+		Next nI
+		cCCusto := '%'+cCCusto+'%'
+
+		&& Busca Grupo de Aprova��o de acordo com os Centro de Custo relacionados         
+		BeginSQL Alias cAliasCTT
+		SELECT
+		CTT.CTT_ZZAPRO AS APROV
+		FROM
+		%Table:CTT% CTT
+		WHERE
+		CTT.CTT_FILIAL = %xFilial:CTT% AND
+		CTT.%notdel% AND
+		CTT.CTT_CUSTO IN (%Exp:cCCusto%)
+		GROUP BY
+		CTT.CTT_ZZAPRO
+		EndSQL
+
+		cRet := (cAliasCTT)->APROV
+
+		(cAliasCTT)->(dbCloseArea())
+
+		If Empty(cRet)
+			Alert('N�o h� amarra��o do Centro de Custo com Grupo de Aprovadores. Utilizado Grupo Padrao '+Posicione("ZZZ",1,xFilial("ZZZ")+"COM000001"+"001","ZZZ_RETORN")+'.')
+			RETURN(Posicione("ZZZ",1,xFilial("ZZZ")+"COM000001"+"001","ZZZ_RETORN"))   
+		EndIf
+		Alert('Grupo de Aprovadores alterado para: '+cRet)
+		// For�a o sistema a alterar o grupo de aprovadores quando mudar
+		cNumPedi := SC7->C7_NUM
+		cAliasSC7 := GetNextAlias()
+		BeginSQL Alias cAliasSC7
+		SELECT
+		R_E_C_N_O_ AS RECSC7
+		FROM
+		%TABLE:SC7% SC7
+		WHERE
+		SC7.%NOTDEL% AND
+		C7_NUM = %Exp:cNumPedi% AND
+		C7_FILIAL = %Exp:cFilAnt%
+		EndSQL
+
+		While !(cAliasSC7)->(EOF())
+			SC7->(dbGoTo((cAliasSC7)->RECSC7))
+			Reclock('SC7',.F.)
+			SC7->C7_APROV := Space(6)
+			MsUnLock()
+			(cAliasSC7)->(dbSkip())
+		EndDo
+		(cAliasSC7)->(dbCloseArea())
+
+	Else //estes par�metros n�o s�o fornecidos na rotina de pedido de compra.
+		if Type("PARAMIXB") == "A"
+			ExpC1  :=  PARAMIXB[1]
+			ExpC2  :=  PARAMIXB[2]
+		endif
+	endif
+
+	RestArea(aArea)
+	RestArea(aAreaSC7)
+
+msgstop( cret )
+Return ( cRet )

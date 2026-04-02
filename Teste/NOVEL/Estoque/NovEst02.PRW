@@ -1,0 +1,11 @@
+#include "rwmake.ch"
+
+// Programa que chama o cadastro de Classificacao 1 (SZ2)
+// Data: 24/09/01
+// Analista Microsiga: Flavia Sa
+
+User Function NovEst02()
+
+Axcadastro("SZ2","Cadastro de Classificacao 1",".T.",".T.")
+
+Return

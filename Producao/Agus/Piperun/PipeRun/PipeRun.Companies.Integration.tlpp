@@ -1,0 +1,521 @@
+#include 'tlpp-core.th'
+
+namespace PipeRun.Companies
+
+#define CRLF            Chr(13) + Chr(10)
+#define SUCCESS			"200"
+
+/*/{Protheus.doc} User Function ReturnRequest
+    integração de pessoas com o PipeRun
+    @type Function
+    @author Lucas Silva Vieira | Agus Consultoria
+    @since 05/01/2024
+    @version 2210
+/*/
+User Function CompaniesIntegration(aParams)
+	Local lJob      	:= .F.		as logical
+	Default aParams  	:= {}
+
+	If !Empty(aParams)
+		lJob := RpcSetEnv(aParams[1], aParams[2])
+	EndIf
+
+	cAlias := PipeRun.Companies.GetCompanies()
+	PipeRun.Companies.PostCompanies(cAlias)
+	(cAlias)->(dbCloseArea())
+
+	If !Empty(aParams)
+		RpcClearEnv()
+	EndIf
+Return
+
+/*/{Protheus.doc} User Function PostCompanies
+    Envia cadastro da empresa para PipeRun
+    @type Function
+    @author Lucas Silva Vieira
+    @since 05/01/2024
+    @version 2210
+	@see https://vendas.developers.pipe.run/reference/adicionar-empresa
+/*/
+static function PostCompanies(cAlias)
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath      	   := "/v1/companies"           					as character
+	local cVend 		   := ""           									as character
+	local cSegment		   := ""           									as character
+	local cPais			   := ""           									as character
+	local oPost            := Nil                                           as object
+	local oResponse        := nil											as object
+	local cStatus    	   := ""                                            as character
+	local nSegment		   := 0												as numeric		
+	local aContactEmails   := {}											as array
+	local aContactPhones   := {}											as array
+
+	BEGIN TRANSACTION
+		SA1->(dbSetOrder(01)) // A1_FILIAL + A1_COD + A1_LOJA
+		(cAlias)->(DbGotop())
+		While (cAlias)->(!Eof())
+
+			oRest:setPath(cPath)
+
+			if SA1->(dbSeek((cAlias)->A1_FILIAL + (cAlias)->A1_COD + (cAlias)->A1_LOJA))
+				if !empty(SA1->A1_XLOGINT)
+					if RecLock("SA1", .F.)
+						SA1->A1_XLOGINT := ""
+						SA1->(msUnlock())
+					endif
+				endif
+			endif
+
+			cVend 	 := Capital(Posicione("SA3",1,FWxfilial("SA3")+Alltrim(((cAlias)->A1_VEND)),"A3_PIPERUN"))
+			cSegment := Alltrim((cAlias)->A1_ZZSEG)
+			nSegment := PipeRun.Utils.u_GetCodSegment(Alltrim(cSegment))
+			cPais    := Capital(Posicione("SYA",1,FWxfilial("SYA")+((cAlias)->A1_PAIS), "YA_DESCR"))
+			aAdd(aContactPhones, Alltrim((cAlias)->A1_DDD) + Alltrim((cAlias)->A1_TEL))
+			aContactEmails  := strTokArr2((cAlias)->A1_EMAIL, ';')
+
+			oPost := JsonObject():new()
+			oPost['name']       			:= Alltrim(Capital(FwNoAccent((cAlias)->A1_NOME)))
+			oPost['city_id']       			:= val(posicione('CC2', 1, FwxFilial('CC2') + Alltrim((cAlias)->A1_EST) + Alltrim((cAlias)->A1_COD_MUN), 'CC2_IDCITY'))
+			oPost['email_nf']       		:= Alltrim(Capital(FwNoAccent((cAlias)->A1_EMAIL)))
+			oPost['address_postal_code']	:= Alltrim((cAlias)->A1_CEP)
+			oPost['manager_id']     		:= Val(cVend)
+			oPost['manager_field_sales_id'] := Val(cVend)
+			
+			if nSegment > 0
+				oPost['segment_id']       		:= nSegment
+			endif
+
+			oPost['cnpj']       			:= (cAlias)->A1_CGC
+			oPost['address']       			:= left(Capital(FwNoAccent((cAlias)->A1_END)),aT(',',(cAlias)->A1_END))
+			oPost['address_number']       	:= substr(Alltrim(FwNoAccent((cAlias)->A1_END)),aT(',',(cAlias)->A1_END)+1)
+			oPost['address_complement']     := AllTrim(FwNoAccent((cAlias)->A1_COMPENT))
+			oPost['company_name']       	:= AllTrim(FwNoAccent((cAlias)->A1_NREDUZ))
+			oPost['ie']       				:= AllTrim((cAlias)->A1_INSCR)
+			oPost['district']       		:= Alltrim(Capital(FwNoAccent((cAlias)->A1_BAIRRO)))
+			oPost['country']       			:= AllTrim(FwNoAccent(cPais))
+			oPost['customer_at']       		:= substr((cAlias)->A1_DTCAD,0,4)+"-"+substr((cAlias)->A1_DTCAD,5,2)+"-"+substr((cAlias)->A1_DTCAD,7,2)
+			oPost['company_type']       	:= 1 //1: Cliente, 2: Fornecedor, 3: Franquia, 4: Transportadora, 5: Canais.
+			oPost['company_situation']      := Val((cAlias)->A1_XTEMP) //1: lead, 2: lead suspect, 3: lead qualificado de marketing (MQL), 4: lead qualificado de vendas (SQL), 5: lead aceito por vendas (SAL), 6: lead prospects (OPs), 7: cliente ativo, 8: cliente inativo, 9: cliente perdido.
+			oPost['is_client']       		:= .T.
+			oPost['hash']       			:= MD5((cAlias)->A1_CGC,2)
+			oPost['external_code']       	:= (cAlias)->A1_COD +" - "+ (cAlias)->A1_LOJA
+			oPost['status']       			:= .T.
+			oPost['company_status']       	:= .T.
+
+			/*oPost['foundation_at']       	:= substr((cAlias)->A1_DTNASC,0,4)+"-"+substr((cAlias)->A1_DTNASC,5,2)+"-"+substr((cAlias)->A1_DTNASC,7,2)
+			oPost['nps_score']       		:= 0
+			oPost['social_capital']       	:= 0
+			oPost['is_brand']       		:= .F.
+			oPost['is_supplier']       		:= .F.
+			oPost['is_carrier']       		:= .F.
+			oPost['is_franchise']       	:= .F.
+			oPost['is_channel']       		:= .F.
+			oPost['is_distributor']       	:= .F.
+			oPost['is_manufacturer']       	:= .F.
+			oPost['is_partner']       		:= .F.
+			oPost['foreign_contact']       	:= .F.
+			oPost['observation']			:= 'Integrado via Protheus. ' + CRLF +DTOC(date()) + CRLF + ;
+				"Cod ERP: " +(cAlias)->(A1_COD) +"-"+(cAlias)->(A1_LOJA)*/
+
+			if (len(aContactEmails) > 0)
+				oPost['contactEmails'] := {}
+				aEval(aContactEmails, {|x| aAdd(oPost['contactEmails'], AllTrim(x))})
+			endIf
+
+			if (len(aContactPhones) > 0)
+				oPost['contactPhones'] := {}
+				aEval(aContactPhones, {|x| aAdd(oPost['contactPhones'], AllTrim(x))})
+			endIf
+
+			oRest:setPostParams(oPost:toJson())
+
+			if (oRest:post(aHeader))
+				cStatus  := oRest:getHttpCode()
+				cBodyStr := oRest:getResult()
+				oResponse := JsonObject():new()
+				oResponse:fromJson(cBodyStr)
+
+				if (oResponse:hasProperty('data'))
+					if SA1->(dbSeek((cAlias)->A1_FILIAL + (cAlias)->A1_COD + (cAlias)->A1_LOJA))
+						if RecLock("SA1", .F.)
+							SA1->A1_XINTEGR := "S"
+							SA1->A1_PIPERUN := cValToChar(oResponse['data']['id'])
+							SA1->A1_XLOGINT := "Log de integração: " + CRLF + ;
+								Dtoc(Date()) + time() + CRLF + ;
+								"Data : " + Dtoc(Date()) + CRLF +;
+								"Hora: " + time() + CRLF + ;
+								"Status: " + cStatus + CRLF + ;
+								"Retorno: " + cBodyStr + CRLF
+							SA1->(msUnlock())
+						endif
+					endif
+				endIf
+			else
+				cStatus  := oRest:getHttpCode()
+				cBodyStr := oRest:getResult()
+				if SA1->(dbSeek((cAlias)->A1_FILIAL + (cAlias)->A1_COD + (cAlias)->A1_LOJA))
+					if RecLock("SA1", .F.)
+						SA1->A1_XLOGINT := "Log de integração: " + CRLF + ;
+							"Data : " + Dtoc(Date()) + CRLF +;
+							"Hora: " + time() + CRLF + ;
+							"Status: " + cStatus + CRLF + ;
+							"Retorno: " + cBodyStr + CRLF
+						SA1->(msUnlock())
+					endif
+				endif
+			endif
+
+			(cAlias)->(dbSkip())
+		EndDo
+	END TRANSACTION
+return
+
+/*/{Protheus.doc} User Function PutCompanies
+    Atualiza cadastro da empresa para PipeRun
+    @type Function
+    @author Lucas Silva Vieira
+    @since 05/001/2024
+    @version 2210
+	@param cID, character, id da integração PipeRun
+	@see https://vendas.developers.pipe.run/reference/atualizar-empresa
+/*/
+user function PutCompanies(cID, aCampos)
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath      	   := "/v1/companies/"           					as character
+	local oResponse        := nil											as object
+	local cStatus    	   := ""                                            as character
+	local jPut             := JsonObject():new()                            as json
+	local nIndex           := 0                                             as numeric
+
+	if (!empty(cID) .AND. len(aCampos) > 0)
+		// definindo path
+		oRest:setPath(cPath + Alltrim(cID))
+
+		for nIndex := 01 to len(aCampos)
+			jField := aCampos[nIndex]
+
+			cProperty := getPropertyByField(jField['field'])
+
+			if (!empty(cProperty))
+				if (valType(jField['new_value']) == 'C')
+					jPut[cProperty] := Alltrim(jField['new_value'])
+				else
+					jPut[cProperty] := jField['new_value']
+				endIf
+			endIf
+		next nIndex
+
+		if (oRest:put(aHeader, jPut:toJson()))
+			cStatus  := oRest:getHttpCode()
+			cBodyStr := oRest:getResult()
+			oResponse := JsonObject():new()
+			oResponse:fromJson(cBodyStr)
+		else
+			cStatus  := oRest:getHttpCode()
+			cBodyStr := oRest:getResult()
+		endIf
+	endIf
+Return
+
+
+/*/{Protheus.doc} User Function DeleteCompanies
+    Atualiza cadastro da empresa para PipeRun
+    @type Function
+    @author Lucas Silva Vieira
+    @since 05/001/2024
+    @version 2210
+	@param cID, character, id da integração PipeRun
+	@see https://vendas.developers.pipe.run/reference/deletar-empresa
+/*/
+user function DeleteCompanies(cID)
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath      	   := "/v1/companies/"           					as character
+	local oResponse        := nil											as object
+	local cStatus    	   := ""                                            as character
+
+	oRest:setPath(cPath + cID)
+
+	if (oRest:delete(aHeader))
+		cStatus  := oRest:getHttpCode()
+		cBodyStr := oRest:getResult()
+		oResponse := JsonObject():new()
+		oResponse:fromJson(cBodyStr)
+	else
+		cStatus  := oRest:getHttpCode()
+		cBodyStr := oRest:getResult()
+	endif
+
+Return
+
+/*/{Protheus.doc} User Function GetCompanies
+    Pesquisa cadastros para enviar para plataforma PipeRun
+    @type Function
+    @author Lucas Silva Vieira
+    @since 05/01/2024
+    @version 2210
+
+    @return cAlias, character, empresa
+/*/
+static function GetCompanies() as character
+	local cQuery 	 := ""   	as character
+	local cAlias	 := ""   	as character
+	local cStatus	 := "N"  	as character
+	local cBlock	 := "1"  	as character
+	local oQuery	 := nil  	as object
+
+	cQuery := " SELECT "
+	cQuery += " R_E_C_N_O_ AS SA1_RECNO, * "
+	cQuery += " FROM " + RetSqlName("SA1")
+	cQuery += " WHERE A1_MSBLQL <> ?"
+	cQuery += " AND A1_XINTEGR =  ?"
+	cQuery += " AND A1_DTCAD >= ? "
+	cQuery += " AND D_E_L_E_T_ = ' '"
+
+	oQuery := FWPreparedStatement():New(cQuery)
+	oQuery:SetString(1,cBlock)
+	oQuery:SetString(2,cStatus)
+	oQuery:SetDate(3,date()-90)
+	cQuery := oQuery:GetFixQuery()
+	cAlias := MPSysOpenQuery(cQuery)
+
+Return cAlias
+
+static function getPropertyByField(cField as character) as character
+	local cProperty := '' as character
+
+	cField := Alltrim(cField)
+
+	Do Case
+	Case cField == "A1_NOME"
+		cProperty :='name'
+	Case cField == "A1_EST"
+		cProperty := 'city_id'
+	Case cField == "A1_EMAIL"
+		cProperty := 'email_nf'
+	Case cField == "A1_CEP"
+		cProperty := 'address_postal_code'
+	Case cField == "A1_VEND"
+		cProperty := 'manager_field_sales_id'
+	Case cField == "A1_CNAE"
+		cProperty := 'cnae_id'
+	Case cField == "A1_CGC"
+		cProperty := 'cnpj'
+	Case cField == "A1_END"
+		cProperty := 'address'
+	Case cField == "A1_END"
+		cProperty := 'address_number'
+	Case cField == "A1_COMPENT"
+		cProperty := 'address_complement'
+	Case cField == "A1_NREDUZ"
+		cProperty := 'company_name'
+	Case cField == "A1_INSCR"
+		cProperty := 'ie'
+	Case cField ==  "A1_BAIRRO"
+		cProperty := 'district'
+	Case cField == "A1_SITEMP"
+		cProperty := 'company_situation'
+	Case cField == "A1_COD"
+		cProperty := 'external_code'
+	Case cField == "A1_MSBLQL"
+		cProperty := 'company_status'
+	Case cField == "A1_VEND"
+		cProperty := "manager_field_sales_id"
+	EndCase
+
+return cProperty
+
+
+/*/{Protheus.doc} User Function SendCompanies
+    Envia cadastro da empresa para PipeRun
+    @type Function
+    @author Lucas Silva Vieira
+    @since 05/01/2024
+    @version 2210
+	@see https://vendas.developers.pipe.run/reference/adicionar-empresa
+/*/
+user function SendCompanies(cCod,cloja)
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath      	   := "/v1/companies"           					as character
+	local cVend 		   := ""           									as character
+	local cSegment		   := ""           									as character
+	local cPais			   := ""           									as character
+	local oPost            := Nil                                           as object
+	local oResponse        := nil											as object
+	local cStatus    	   := ""                                            as character
+	local aContactEmails   := {}											as array
+	local aContactPhones   := {}											as array
+	local nSegment 	       := 0												as numeric 	
+
+	BEGIN TRANSACTION
+
+		SA1->(dbSetOrder(1))//A1_FILIAL + A1_COD + A1_LOJA
+
+		if SA1->(dbSeek(FWxFilial("SA1")+cCod+cLoja))
+
+		oRest:setPath(cPath)
+		cVend 	 := Capital(Posicione("SA3",1,FWxfilial("SA3")+Alltrim((SA1->A1_VEND)),"A3_PIPERUN"))
+		cSegment := Alltrim(SA1->A1_ZZSEG)
+		nSegment := PipeRun.Utils.u_GetCodSegment(Alltrim(cSegment))
+		cPais    := Capital(Posicione("SYA",1,FWxfilial("SYA")+(SA1->A1_PAIS), "YA_DESCR"))
+		aAdd(aContactPhones, Alltrim(SA1->A1_DDD) + Alltrim(SA1->A1_TEL))
+		aContactEmails  := strTokArr2(SA1->A1_EMAIL, ';')
+
+		CC2->(dbSetOrder(1)) //CC2_FILIAL+CC2_EST+CC2_CODMUN 
+
+		oPost := JsonObject():new()
+		oPost['name']       			:= Alltrim(Capital(FwNoAccent(SA1->A1_NOME)))
+		oPost['city_id']       			:= val(posicione('CC2', 1, FwxFilial('CC2') + Alltrim(SA1->A1_EST) + Alltrim(SA1->A1_COD_MUN), 'CC2_IDCITY'))
+		oPost['email_nf']       		:= Alltrim(Capital(FwNoAccent(SA1->A1_EMAIL)))
+		oPost['address_postal_code']	:= Alltrim(SA1->A1_CEP)
+		oPost['manager_id']     		:= Val(cVend)
+		oPost['manager_field_sales_id'] := Val(cVend)
+
+		if nSegment > 0
+			oPost['segment_id']       		:= nSegment
+		endif
+
+		oPost['cnpj']       			:= SA1->A1_CGC
+		oPost['address']       			:= left(Capital(FwNoAccent(SA1->A1_END)),aT(',',SA1->A1_END))
+		oPost['address_number']       	:= substr(Alltrim(FwNoAccent(SA1->A1_END)),aT(',',SA1->A1_END)+1)
+		oPost['address_complement']     := AllTrim(FwNoAccent(SA1->A1_COMPENT))
+		oPost['company_name']       	:= AllTrim(FwNoAccent(SA1->A1_NREDUZ))
+		oPost['ie']       				:= AllTrim(SA1->A1_INSCR)
+		oPost['district']       		:= Alltrim(Capital(FwNoAccent(SA1->A1_BAIRRO)))
+		oPost['country']       			:= AllTrim(FwNoAccent(cPais))
+		oPost['customer_at']       		:= substr(DtOS(Date()),0,4)+"-"+substr(DtOS(Date()),5,2)+"-"+substr(DtOS(Date()),7,2)
+		oPost['company_type']       	:= 1 //1: Cliente, 2: Fornecedor, 3: Franquia, 4: Transportadora, 5: Canais.
+		oPost['company_situation']      := Val(SA1->A1_XTEMP) //1: lead, 2: lead suspect, 3: lead qualificado de marketing (MQL), 4: lead qualificado de vendas (SQL), 5: lead aceito por vendas (SAL), 6: lead prospects (OPs), 7: cliente ativo, 8: cliente inativo, 9: cliente perdido.
+		oPost['is_client']       		:= .T.
+		oPost['hash']       			:= MD5(SA1->A1_CGC,2)
+		oPost['external_code']       	:= SA1->A1_COD +" - "+ SA1->A1_LOJA
+		oPost['status']       			:= .T.
+		oPost['company_status']       	:= .T.
+
+		if (len(aContactEmails) > 0)
+			oPost['contactEmails'] := {}
+			aEval(aContactEmails, {|x| aAdd(oPost['contactEmails'], AllTrim(x))})
+		endIf
+
+			if (len(aContactPhones) > 0)
+				oPost['contactPhones'] := {}
+				aEval(aContactPhones, {|x| aAdd(oPost['contactPhones'], AllTrim(x))})
+			endIf
+
+			oRest:setPostParams(oPost:toJson())
+
+			if (oRest:post(aHeader))
+				cStatus  := oRest:getHttpCode()
+				cBodyStr := oRest:getResult()
+				oResponse := JsonObject():new()
+				oResponse:fromJson(cBodyStr)
+
+				if (oResponse:hasProperty('data'))
+					if SA1->(dbSeek(FWxFilial("SA1") + SA1->A1_COD + SA1->A1_LOJA))
+						if RecLock("SA1", .F.)
+							SA1->A1_XINTEGR := "S"
+							SA1->A1_PIPERUN := cValToChar(oResponse['data']['id'])
+							SA1->A1_XLOGINT := "Log de integração: " + CRLF + ;
+								Dtoc(Date()) + time() + CRLF + ;
+								"Data : " + Dtoc(Date()) + CRLF +;
+								"Hora: " + time() + CRLF + ;
+								"Status: " + cStatus + CRLF + ;
+								"Retorno: " + cBodyStr + CRLF
+							SA1->(msUnlock())
+						endif
+					endif
+				endIf
+			else
+				cStatus  := oRest:getHttpCode()
+				cBodyStr := oRest:getResult()
+				if SA1->(dbSeek(FWxFilial("SA1") + SA1->A1_COD + SA1->A1_LOJA))
+					if RecLock("SA1", .F.)
+						SA1->A1_XLOGINT := "Log de integração: " + CRLF + ;
+							"Data : " + Dtoc(Date()) + CRLF +;
+							"Hora: " + time() + CRLF + ;
+							"Status: " + cStatus + CRLF + ;
+							"Retorno: " + cBodyStr + CRLF
+						SA1->(msUnlock())
+					endif
+				endif
+			endif
+		endif
+	END TRANSACTION
+return
+
+user function GetAllCompanies()
+	local oRest            := PipeRun.utils.u_getRestObject()               as object
+	local aHeader          := PipeRun.utils.u_getBaseHeader()               as array
+	local cPath      	   := "/v1/companies"           						as character
+	local cParameters	   := "?show=50&page="                              as character
+	local oReturn          := Nil                                           as object
+	local cStatus    	   := ""                                            as character
+	local cBodyStr         := ""                                            as character
+	local cCGC         	   := ""                                            as character
+	local cLog 	     	   := ""                                            as character
+	local nIndex    	   := 0												as numeric
+	local nPageNumber      := 1                				 				as numeric
+	local lProxPagina      := .T.			                                as logical
+	local lContinua        := .T.			                                as logical
+
+	While lProxPagina
+		oRest:setPath(cPath+cParameters+cValToChar(nPageNumber))
+		if (oRest:get(aHeader))
+			cStatus  := oRest:getHttpCode()
+			cBodyStr := oRest:getResult()
+			oReturn := JsonObject():new()
+			cError := oReturn:fromJson(cBodyStr)
+
+			if empty(oReturn['meta']['links']['next'])
+				lProxPagina := .F.
+				lContinua := .F.
+			else
+				nPageNumber++
+			Endif
+
+			if lContinua
+				if cStatus == SUCCESS
+					if (oReturn:hasProperty('message'))
+						if oReturn['message'] == "OK" .AND. len(oReturn['data']) > 0
+							for nIndex := 01 to Len(oReturn['data'])
+								SA1->(dbSetOrder(14)) //A1_FILIAL+A1_PIPERUN
+								if !SA1->(dbSeek(FwXFilial("SA1")+cValToChar(oReturn['data'][nIndex]['id'])))
+									if !empty(oReturn['data'][nIndex]['cnpj'])
+										cCGC :=  replace(replace(replace(oReturn['data'][nIndex]['cnpj'], ".", ""),"/", ""), "-", "")
+										if !empty(cCGC)
+											SA1->(dbSetOrder(03)) //A1_FILIAL+A1_CGC
+											if SA1->(dbSeek(FwXFilial("SA1")+cCGC))
+												if RecLock("SA1", .F.)
+													SA1->A1_PIPERUN := cValToChar(oReturn['data'][nIndex]['id'])
+													SA1->A1_XLOGINT := "Log de integração: " + CRLF + ;
+														Dtoc(Date()) + time() + CRLF + ;
+														"Data : " + Dtoc(Date()) + CRLF +;
+														"Hora: " + time() + CRLF + ;
+														"Status: " + cStatus + CRLF + ;
+														"Retorno: " + cValToChar(oReturn['data'][nIndex]) + CRLF
+													SA1->A1_XINTEGR := "S"
+													SA1->(MSUnlock())
+												endIf
+											else
+												cLog += "Empresa: "+oReturn['data'][nIndex]['name'] +"-  CNPJ: "+oReturn['data'][nIndex]['cnpj'] + CRLF
+											endIf
+										endif
+									endif
+								endIf
+							next nIndex
+						endif
+					endif
+				else
+					FWAlertError("ERROR: "+cStatus)
+					lToken := .F.
+				endif
+			endif
+		endif
+	endDo
+	if !empty(cLog)
+		ShowLog("Não foi possivel vincular os registros: " + CRLF + cLog)
+	endif
+return

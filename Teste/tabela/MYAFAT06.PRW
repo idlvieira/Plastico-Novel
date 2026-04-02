@@ -1,0 +1,679 @@
+#Include "topconn.ch"
+#Include "rwmake.ch"
+#include "tbiconn.ch"
+#INCLUDE "AP5MAIL.CH"   
+/*
+#Include "protheus.ch"
+*/
+        
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑฺฤฤฤฤฤฤฤฤฤฤยฤฤฤฤฤฤฤฤฤฤยฤฤฤฤฤฤฤยฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤยฤฤฤฤฤฤยฤฤฤฤฤฤฤฤฤฤฤฟฑฑ
+ฑฑณFun…o    ณ MYAFAT06 ณ Autor ณMichel P. Diniz        ณ Data ณ 22/03/2007ณฑฑ
+ฑฑรฤฤฤฤฤฤฤฤฤฤลฤฤฤฤฤฤฤฤฤฤมฤฤฤฤฤฤฤมฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤมฤฤฤฤฤฤมฤฤฤฤฤฤฤฤฤฤฤดฑฑ
+ฑฑณDescricao ณ Importacao Tabela de Precos em formato CSV		     	   ณฑฑ
+ฑฑรฤฤฤฤฤฤฤฤฤฤลฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤดฑฑ
+ฑฑณ Uso      ณ MP8                                                         ณฑฑ
+ฑฑรฤฤฤฤฤฤฤฤฤฤมฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤดฑฑ
+ฑฑณ ATUALIZACOES SOFRIDAS DESDE A CONSTRUCAO INICIAL.                      ณฑฑ
+ฑฑรฤฤฤฤฤฤฤฤฤฤฤฤฤฤยฤฤฤฤฤฤฤฤยฤฤฤฤฤฤยฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤดฑฑ
+ฑฑณ PROGRAMADOR  ณ DATA   ณ BOPS ณ  MOTIVO DA ALTERACAO					   ณฑฑ
+ฑฑณ              ณ        ณ      ณ                                         ณฑฑ
+ฑฑรฤฤฤฤฤฤฤฤฤฤฤฤฤฤลฤฤฤฤฤฤฤฤลฤฤฤฤฤฤลฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤณฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+User Function MYAFAT06()
+
+Private lEnd		:=.f.
+Private nPosAtu 	:= 0
+Private nEof		:= 0
+Private cHoraI		:= time()
+Private nHoraI		:= seconds()
+Private cHoraF		:= space(08)
+Private cTempo		:= space(08)
+Private aErro		:= {}                                  
+Private	nLastKey	:= 0            
+Private cPerg  		:= "TABPRC"
+Private _cFile 		:= Space(40)
+Private _nTot		:= 0
+Private aLog		:= {}  
+
+IF !TRIM(Upper(cUserName))$TRIM(GETMV("MV_MYTAB")) 
+    Alert("Voce nao esta autorizado(a) a importar Tabela de Preco!!!")
+    Return
+Endif
+
+cPerg := PADR(cPerg,10)
+
+If !Pergunte(cPerg,.T.)
+	ValidPerg()
+	If !Pergunte(cPerg, .T.)
+		Return
+	EndIf
+EndIf                                                      
+
+If Empty(MV_PAR02) //Empty(_cFile)
+	MsgInfo("Arquivo para importacao nao Informado. Processo abortado!!")
+	Return
+Endif
+
+/*
+@ 000,000 TO 200,500 DIALOG oDlg1 TITLE "Atualizacao Tabela de Precos - " + Alltrim(SM0->M0_NOME) + " "+ Alltrim(SM0->M0_FILIAL)
+@ 010,005 Say OemtoAnsi("Esta rotina tem o objetivo de importar arquivo CSV contendo informacoes referente a ")
+@ 020,005 Say OemtoAnsi("Tabela de Precos, gerando apenas inclusao dos inesistentes.")
+@ 050,005 Say "Hora Inicio : "
+@ 050,050 Say "Hora Fim    : "
+@ 057,005 get cHoraI when .f.
+@ 057,050 get cHoraF when .f. object _oHoraF
+@ 070,005 say "Tempo do Processo(Minutos)"
+@ 077,005 get cTempo when .f. object _oTempo
+@ 060,150 BMPBUTTON TYPE 01 ACTION Processa({|lEnd| Importa()},"Processando..",.t.)
+@ 075,150 BMPBUTTON TYPE 02 ACTION Close(oDlg1)
+
+ACTIVATE DIALOG oDlg1 CENTERED
+*/
+
+Processa({||Importa(),,"Importando registros. Aguarde..."})
+
+Return
+                                                   
+
+Static Function Importa()
+
+
+Local _cBuffer		:= ""
+Local cArqTmp
+Local aLinha 		:= {}
+Local aTexto		:= {}            
+Local _aArrayA		:= {} 				
+Local cQuery		:= ""				
+Local _aErro		:= {}				
+Local _aErro2		:= {}
+Local _cTexto		:= ""			
+Local cEnvServ     	:= GetEnvServer()
+Local cIniFile     	:= GetADV97()
+Local nConnProtheus	:= 0
+Local nConn		  	:= 0
+Local nTmp         	:= 0
+Local aArea 		:= GetArea()
+Local cChave    	:= ""
+Local lRet			:= .t.
+Local _lok			:= .t.
+Local n1			:= 0
+Local _cItem		:= '0001'
+Local _cDelimit		:= ""   
+Local nDelimit		:= 0            
+Local nLinArq		:= 0
+
+//Abertura de Arquivos Utilizados 
+dbSelectArea("DA0")   
+DA0->(dbSetOrder(1)) 
+dbSelectArea("DA1")   
+DA1->(dbSetOrder(1)) 
+dbSelectArea("SB1")   
+SB1->(dbSetOrder(1))       
+
+// Selecao de Delimitadores
+If MV_PAR04 == 1 
+	_cDelimit := ';'
+ElseIf MV_PAR04 == 1 
+	_cDelimit := ','
+Else
+	_cDelimit := '|'
+Endif	
+	
+
+Begin Transaction
+FT_FUSE(MV_PAR02)//FT_FUSE(_cFile)
+FT_FGOTOP()
+_cBuffer := FT_FREADLN()
+//ProcRegua(_nTot)                    
+While !FT_FEOF()
+    IncProc("Aguarde...")
+	aLinha 	:= {}      
+	nDelimit := 0      
+	nLinArq ++
+	// Executa leitura da linha em _cBuffer e identifica os campos pelo delimitador ";"
+	If Len(_cBuffer) >0
+		
+		_cTexto	:= ""
+		
+		For nX 	:= 1 to Len(_cBuffer)
+			If nDelimit <= 2
+				If Substr(_cBuffer,nX,1) == _cDelimit //== ";"
+					aAdd(aLinha, _cTexto )
+					_cTexto := ""
+					nDelimit ++							// CONTA OS DELIMITADORES
+				Else
+					_cTexto += Substr(_cBuffer,nX,1)
+				Endif
+			Else
+				aAdd(aLog,{"Existem mais de dois delimitadores (colunas) na linha (registro) atual. ",nLinArq})
+				nX := Len(_cBuffer)
+				_cTexto := ""
+			EndIf
+		 Next nX     
+		 
+		If !Empty(_cTexto)
+			aAdd(aLinha, _cTexto ) 
+		Endif    
+		
+
+		If nDelimit < 2
+			aAdd(aLog,{"Existem menos de dois delimitadores na linha atual. ",nLinArq})
+			
+		
+			If Len(aLinha) = 0
+				aAdd(aLinha,"ERRO")
+				aAdd(aLinha,"ERRO")
+				aAdd(aLinha,"ERRO")
+			EndIf
+			If Len(aLinha) = 1     
+				aAdd(aLinha,"ERRO")
+				aAdd(aLinha,"ERRO")
+			EndIf
+			If Len(aLinha) = 2
+				aAdd(aLinha,"ERRO")
+			EndIf
+		
+			
+		EndIf
+
+		
+	Endif
+
+    // aLinha[1] -> Codigo Produto
+    // aLinha[2] -> Preco Venda [sem separador de milhar, e 'virgula' como separador decimal.]
+    // aLinha[3] -> Tipo Operac.
+    
+    n1:= Ascan(_aArrayA, {|X| Substr(X[1],1,15) == Substr(aLinha[1],1,15) })
+    
+    If n1 == 0
+    	If Len(aLinha)>=3
+
+	    	aLinha[2]	:=	StrTran(aLinha[2], ".", "")		//	Remocao do separador de milhar
+	    	aLinha[2]	:=	StrTran(aLinha[2], ",", ".")	//	Trocar 'virgula' por 'ponto' como separador decimal.
+	    	aAdd( _aArrayA, { Substr(aLinha[1],1,15), aLinha[2],aLinha[3] } )
+	    Else
+	    //	MsgAlert("Linha com informacoes do produto ["+AllTrim(Substr(aLinha[1],1,15))+"] e INVALIDA.")
+	    	If Len(aLinha) < 2
+				aAdd(aLog,{"Nao hแ o n๚mero de colunas necessแrias para a cria็ใo do registro ",nLinArq})	    
+			EndIf
+	    EndIf
+    Else
+    	aAdd( _aErro, { Substr(aLinha[1],1,15) ,aLinha[2],aLinha[3] } )
+    	aAdd(aLog,{"Produto duplicado no arquivo CSV",nLinArq})	    
+    Endif
+
+	FT_FSKIP()
+	_cBuffer := FT_FREADLN()
+End
+FT_FUSE()
+End Transaction  
+
+If Len(_aArrayA) > 0      
+	ProcRegua(Len(_aArrayA))
+	For n2 := 1 to Len(_aArrayA)
+	    IncProc("Aguarde...")
+		dbSelectArea("DA0")
+		dbsetorder(1) 
+		dbgotop() 
+		
+//	 	MsgAlert("filial=>"+xFilial("DA0")+"<="+MV_PAR01)
+		
+		If dbSeek(xFilial("DA0")+MV_PAR01,.F.)
+			dbSelectArea("DA1")
+//			DbOrderNickName("IND_TABMY")	//	PRODUTO + TIPO OPERACAO
+			DbOrderNickName("ZZDA16")		//	Cod. Tabela+Cod.Produto+Tipo Operac.
+			
+			
+//			MsgAlert("entrou")
+			
+			If DA1->( !dbSeek(xFilial("DA1")+MV_PAR01+Substr(PadR(_aArraya[n2,01],15),1,15)+_aArraya[n2,03],.f. ))
+				cQuery := "SELECT MAX(DA1_ITEM) ITEMDA1 FROM " + RETSQLNAME("DA1") + " WHERE "
+				cQuery += "DA1_CODTAB = '" + MV_PAR01 +  "'  AND D_E_L_E_T_ = ' ' "
+				tCquery cQuery New Alias "TDA1"
+								
+				_cItem := Soma1(TDA1->ITEMDA1)
+				
+				TDA1->(dbCloseArea())
+				If SB1->(dbSeek(xFilial("SB1")+Substr(_aArraya[n2,01],1,15),.f.))
+					RecLock("DA1",.t.)
+						DA1->DA1_CODTAB		:= MV_PAR01
+						DA1->DA1_ITEM		:= _cItem
+						DA1->DA1_CODPRO		:= Substr(_aArraya[n2,01],1,15)
+						DA1->DA1_PRCVEN		:= Val(_aArraya[n2,02])
+						DA1->DA1_DATVIG		:= dDataBase // CTOD("31/12/50")
+						DA1->DA1_QTDLOT		:= 999999.99
+						DA1->DA1_MOEDA		:= 1
+						DA1->DA1_TPOPER		:= _aArraya[n2,03] //'4'
+						DA1->DA1_ATIVO		:= '1'
+						DA1->DA1_ESTADO		:= MV_PAR03					
+					  //DA1->DA1_MYUSER		:= CUSERNAME
+					MsUnlock("DA1")
+				Else
+					aAdd( _aErro2, { Substr(_aArraya[n2,01],1,15) ,_aArraya[n2,02],_aArraya[n2,03] } )
+					aAdd(aLog,{"Produto nao encontrado", Substr(_aArraya[n2,01],1,15) })	    				
+				Endif
+			Else
+				aAdd( _aErro, { Substr(_aArraya[n2,01],1,15) ,_aArraya[n2,02],_aArraya[n2,03] } )
+				aAdd(aLog,{"Produto jแ cadastrado na tabela de pre็os", Substr(_aArraya[n2,01],1,15) })	    				
+			Endif
+        Else
+        	If MsgYesNo("Tabela " + Alltrim(MV_PAR01) + " nao cadastrada. Realiza sua inclusao ?")
+        	
+        		_cCodTab 	:= MV_PAR01 // Space(03)
+        		_cDescri	:= Space(30)
+        		_dDatde		:= dDataBase
+        		_cHorade	:= '00:00'
+        		_dDatate	:= Ctod('  /  /  ')
+        		_cHorate	:= '23:59'
+        		_cCond		:= Space(03)
+        		
+        		@ 010,080 To 300,700 Dialog oDlgX Title OemToAnsi("Manutencao Tabela de Precos - Inclusao ")
+                
+                //oDlg2:lEscClose := .f.
+                
+		   		@ 020,010 SAY OemToAnsi("Cod. Tabela")
+		   		@ 020,150 SAY OemToAnsi("Descricao")
+		   		
+		   		@ 040,010 Say OemToAnsi("Data Inicial")
+		   		@ 040,150 Say OemToAnsi("Hora Inicial")
+		   		
+		   		@ 060,010 Say OemToAnsi("Data Final")
+		   		@ 060,150 Say OemToAnsi("Hora Final")
+		   		
+		   		@ 080,010 Say OemToAnsi("Cond.Pagto")
+		
+		   		@ 020,080 Get _cCodTab 	Picture "@!!!"						 				SIZE 040,10
+		   		@ 020,180 Get _cDescri 	Picture "@!" 		Valid !Empty(_cDescri) 			SIZE 120,10
+
+		   		@ 040,080 Get _dDatde										   				SIZE 040,10
+		   		@ 040,180 Get _cHorade	Picture "@R 99:99"					   				SIZE 040,10
+
+		   		@ 060,080 Get _dDatate						Valid _dDatate >= _dDatde		SIZE 040,10
+		   		@ 060,180 Get _cHorate	Picture "@R 99:99"									SIZE 040,10
+		   		
+		   		@ 080,080 Get _cCond 					F3 "SE4"							SIZE 040,10
+
+		  		@ 120,120 BmpButton Type 1 Action ( Close(oDlgx), oDlgx:End() ) 
+		  		Activate Dialog oDlgx CENTERED
+        		
+       // 		dbSelectArea("DA0")
+				If SB1->(dbSeek(xFilial("SB1")+Substr(_aArraya[n2,01],1,15),.f.))
+	        	dbSelectArea("DA0")
+	        	dbsetorder(1)
+	        		RecLock("DA0",.T.)
+	        			DA0->DA0_CODTAB		:= _CCODTAB
+	        			DA0->DA0_DESCRI		:= _CDESCRI
+	        			DA0->DA0_DATDE		:= _DDATDE
+	        			DA0->DA0_HORADE		:= _CHORADE
+	        			DA0->DA0_DATATE		:= _DDATATE
+	        			DA0->DA0_HORATE		:= _CHORATE
+	        			DA0->DA0_CONDPG		:= _cCond
+	        			DA0->DA0_TPHORA		:= '1'
+	        			DA0->DA0_ATIVO		:= '1'
+	        			
+	        		MsUnlock("DA0")
+	        		
+	        		dbSelectArea("DA1")
+	        		RecLock("DA1",.T.)
+						DA1->DA1_CODTAB		:= MV_PAR01
+						DA1->DA1_ITEM		:= '0001'
+						DA1->DA1_CODPRO		:= Substr(_aArraya[n2,01],1,15)
+						DA1->DA1_PRCVEN		:= Val(_aArraya[n2,02])
+						DA1->DA1_DATVIG		:= dDataBase // CTOD("31/12/50")
+						DA1->DA1_QTDLOT		:= 999999.99
+						DA1->DA1_MOEDA		:= 1
+						DA1->DA1_TPOPER		:= _aArraya[n2,03] //'4'
+						DA1->DA1_ATIVO		:= '1'
+						DA1->DA1_ESTADO		:= MV_PAR03
+					  //	DA1->DA1_MYUSER		:= CUSERNAME
+					MsUnlock("DA1")	
+				Else                                                                   
+	        	//	MsgInfo("Produto" + Substr(_aArraya[n2,01],1,15) + " nao cadastrado. Processo Interrompido!!")	
+	        		aAdd(aLog,{"Produto nao encontrado", Substr(_aArraya[n2,01],1,15) })	    				
+	        	//	Exit				
+				Endif	
+        	Else
+        		MsgInfo("Processo de gravacao interrompido pelo usuario. Verifique!!")	
+        		Exit
+        	Endif	                                      '
+        Endif
+                                                                                                                        
+    Next n2
+    
+Endif
+/*
+cHoraF	:= time()
+cTempo	:= Str((Seconds()-nHoraI)/60,8,0)
+_oHoraF	:refresh()
+_oTempo	:refresh()
+*/
+
+If Len(_aErro) > 0
+	// Produtos em Duplicidade
+	Processa({|| SCALOG(_aErro),"Aguarde, Gerando LOG com Produtos em Duplicidade..." })
+Endif
+
+If Len(_aErro2) > 0
+	// Produtos nao Cadastrados
+	Processa({|| SCALOG2(_aErro2),"Aguarde, Gerando LOG com Produtos nao Cadastrados..." })
+Endif
+/*
+If Len(aLog) > 0  
+	Processa({|| U_LogImport(aLog),"Aguarde, gerando relat๓rio de erros na importa็ใo..." })
+EndIf
+*/
+
+Return(.t.)
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFuno    ณVALIDPERG บ Autor ณ  Michel P. Diniz   บ Data ณ  22/03/2007 บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDescrio ณ Verifica a existencia das perguntas criando-as caso seja   บฑฑ
+ฑฑบ          ณ necessario (caso nao existam).                             บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Programa principal                                         บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+Static Function ValidPerg()
+Local _sAlias := Alias()
+Local aRegs := {}
+Local i,j
+
+dbSelectArea("SX1")
+dbSetOrder(1)
+cPerg := PADR(cPerg,10)
+
+// Grupo/Ordem/Pergunta/Variavel/Tipo/Tamanho/Decimal/Presel/GSC/Valid/Var01/Def01/Cnt01/Var02/Def02/Cnt02/Var03/Def03/Cnt03/Var04/Def04/Cnt04/Var05/Def05/Cnt05
+aAdd(aRegs,{cPerg,"01","Tabela de Precos 		","","","mv_ch1","C",03,0,0,"G","","mv_par01","","","","","","","","","","","","","","","","","","","","","","","","","DA0","","","",""})
+aAdd(aRegs,{cPerg,"02","Arquivo para Importacao ","","","mv_ch2","C",40,0,0,"G","U_BUSCAARQ()","mv_par02","","","","","","","","","","","","","","","","","","","","","","","","","","","","",""})
+aAdd(aRegs,{cPerg,"03","Estado 					","","","mv_ch3","C",02,0,0,"G","","mv_par03","","","","","","","","","","","","","","","","","","","","","","","","","12","","","",""})
+aAdd(aRegs,{cPerg,"04","Delimitador do Arquivo	","","","mv_ch4","N",01,0,0,"C","","mv_par04",";",";",";","","",",",",",",","","","|","|","|","","","","","","","","","","","","12","","","",""})
+For i:=1 to Len(aRegs)
+	If !dbSeek(cPerg+aRegs[i,2])
+		RecLock("SX1",.T.)
+		For j:=1 to FCount()
+			If j <= Len(aRegs[i])
+				FieldPut(j,aRegs[i,j])
+			Endif
+		Next
+		MsUnlock()
+	Endif
+Next
+
+dbSelectArea(_sAlias)
+
+Return Nil                  
+
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFuno    ณBUSCAARQ  บ Autor ณ  Michel P. Diniz   บ Data ณ  22/03/2007 บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDescrio ณ Funcao disparada na ValidPerg para permitir selecao de arq.บฑฑ
+ฑฑบ          ณ para importacao	no formato CSV                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Programa principal                                         บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+User Function BUSCAARQ()
+Local MvPar   		:=	""
+Local MvParDef		:=	""
+Local cTitulo		:=	"Selecione o caminho do arquivo desejado"
+
+Private _cType 		:= ""
+
+_cType := "*.CSV | *.CSV"
+_cFile := cGetFile(_cType, OemToAnsi("Selecione o arquivo (*.CSV)"))
+
+If Empty(_cFile)
+	Return
+EndIf
+
+nHdl := fopen(_cFile,0)
+_nTot:= fSeek(nHdl,0,2)
+fClose(nHdl)
+MV_PAR02 := ALLTRIM(_cFile)
+Return()
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณSCALOG    บ Autor ณ Michel P. Diniz    บ Data ณ  23/03/07   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDescricao ณGeracao de arquivo .TXT									  บฑฑ
+ฑฑบ          ณ													          บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ MP8	                                                      บฑฑ
+ฑฑรฤฤฤฤฤฤฤฤฤฤมฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤดฑฑ 
+ฑฑณ           ATUALIZACOES SOFRIDAS DESDE A CONSTRU€AO INICIAL            ณฑฑ 
+ฑฑรฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤยฤฤฤฤฤฤฤฤยฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤดฑฑ 
+ฑฑณ Programador    ณ  Data  ณ Motivo da Alteracao                         ณฑฑ 
+ฑฑรฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤลฤฤฤฤฤฤฤฤลฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤดฑฑ 
+ฑฑณ				   ณ        ณ  									          ณฑฑ
+ฑฑภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤมฤฤฤฤฤฤฤฤมฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤูฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+
+Static Function SCALOG(_aProc)
+Local cNomeArq	:= "PRODUTOS_DUPLICIDADE"
+Local _nTamV1	:= 0
+nHanErr			:= 0        
+
+If Len(_aProc) >0 
+	cTexto	:= ""
+	IncProc("Gerando Arquivo Texto : " + cNomeArq + ".TXT")
+
+	cTexto := "Relacao de Produtos em Duplicidade - Importacao Tabela de Precos " + Dtoc(dDataBase)
+	
+	GeraTexto( cTexto , cNomeArq )
+	
+	cTexto := ""
+	GeraTexto( cTexto , cNomeArq )		
+
+	cTexto := "PRODUTO        DESCRICAO "
+	GeraTexto( cTexto , cNomeArq )	
+
+	cTexto := ""
+	GeraTexto( cTexto , cNomeArq )	
+
+	For nc:= 1 to Len(_aProc)
+		_nTamV1	:= 15 - Len(_aProc[nc,1])
+		cTexto 	:= _aProc[nc,1] //+ Space(_nTamV1) + Alltrim(_aProc[nc,3])
+	
+		GeraTexto( cTexto , cNomeArq )
+		
+	Next nc
+
+Endif
+
+If 	nHanErr > 0
+	fClose(nHanErr)
+Endif
+
+Return
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณGeraTexto บ Autor ณ Michel P. Diniz    บ Data ณ  23/03/07   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDescricao ณGeracao de arquivo .TXT 									  บฑฑ
+ฑฑบ          ณ													          บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ MP8	                                                      บฑฑ
+ฑฑรฤฤฤฤฤฤฤฤฤฤมฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤดฑฑ 
+ฑฑณ           ATUALIZACOES SOFRIDAS DESDE A CONSTRU€AO INICIAL            ณฑฑ 
+ฑฑรฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤยฤฤฤฤฤฤฤฤยฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤดฑฑ 
+ฑฑณ Programador    ณ  Data  ณ Motivo da Alteracao                         ณฑฑ 
+ฑฑรฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤลฤฤฤฤฤฤฤฤลฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤดฑฑ 
+ฑฑณ				   ณ        ณ  									          ณฑฑ
+ฑฑภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤมฤฤฤฤฤฤฤฤมฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤูฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+
+Static Function GeraTexto(cTxt,cNum)
+Local cDirFil 	:= 	"\SPOOL\" + cNum + ".TXT"
+
+if 	nHanErr	==	0
+	nHanErr	:=	fCreate(cDirFil)
+	if 	nHanErr	<=	0
+		Alert("Nao foi possivel gerar o arquivo " + cDirFil + " ! Verifique....")
+	endif
+endif
+
+if 	nHanErr	>	0
+	fWrite( nHanErr , cTxt + Chr(13) + Chr(10) , Len(cTxt) + 2 )
+endif
+
+Return
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณSCALOG    บ Autor ณ Michel P. Diniz    บ Data ณ  23/03/07   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDescricao ณGeracao de arquivo .TXT									  บฑฑ
+ฑฑบ          ณ													          บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ MP8	                                                      บฑฑ
+ฑฑรฤฤฤฤฤฤฤฤฤฤมฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤดฑฑ 
+ฑฑณ           ATUALIZACOES SOFRIDAS DESDE A CONSTRU€AO INICIAL            ณฑฑ 
+ฑฑรฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤยฤฤฤฤฤฤฤฤยฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤดฑฑ 
+ฑฑณ Programador    ณ  Data  ณ Motivo da Alteracao                         ณฑฑ 
+ฑฑรฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤลฤฤฤฤฤฤฤฤลฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤดฑฑ 
+ฑฑณ				   ณ        ณ  									          ณฑฑ
+ฑฑภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤมฤฤฤฤฤฤฤฤมฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤูฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+
+Static Function SCALOG2(_aProc)
+Local cNomeArq	:= "PRODUTOS_NAO_CADASTRADOS"
+Local _nTamV1	:= 0
+nHanErr			:= 0        
+
+If Len(_aProc) >0 
+	cTexto	:= ""
+	IncProc("Gerando Arquivo Texto : " + cNomeArq + ".TXT")
+
+	cTexto := "Relacao de Produtos nao Cadastrados - Importacao Tabela de Precos " + Dtoc(dDataBase)
+	
+	GeraTexto( cTexto , cNomeArq )
+	
+	cTexto := ""
+	GeraTexto( cTexto , cNomeArq )		
+
+	cTexto := "PRODUTO        DESCRICAO "
+	GeraTexto( cTexto , cNomeArq )	
+
+	cTexto := ""
+	GeraTexto( cTexto , cNomeArq )	
+
+	For nc:= 1 to Len(_aProc)
+		_nTamV1	:= 15 - Len(_aProc[nc,1])
+		cTexto 	:= _aProc[nc,1] //+ Space(_nTamV1) + Alltrim(_aProc[nc,3])
+	
+		GeraTexto( cTexto , cNomeArq )
+		
+	Next nc
+
+Endif
+
+If 	nHanErr > 0
+	fClose(nHanErr)
+Endif
+
+Return
+
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณLOGIMPORT บAutor  ณQSdoBrasil          บ Data ณ  15/05/09   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณImprime log de importacao da tabela de precos.              บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณEspecifico Myers                                            บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+/*
+User Function LogImport(aPar01)
+Local aLog := aPar01
+
+Private oPrn		:= NIL
+Private oFont0		:= NIL
+Private oFont1		:= NIL
+Private oFont2		:= NIL
+Private oFont3		:= NIL
+Private oFont4		:= NIL
+Private cTitulo 	:= "LOG DE IMPORTACAO"
+
+Private nME			:= 0050		   		// ESQUERDA
+Private nMD			:= 2320        		// DIREITA
+Private nLin		:= 0050            	// LINHA
+
+Private nPag		:= 0
+
+DEFINE FONT oFont0 NAME "Courier New" SIZE 0,7 OF oPrn
+DEFINE FONT oFont1 NAME "Courier New" SIZE 0,9 OF oPrn
+DEFINE FONT oFont2 NAME "Courier New" SIZE 0,10 OF oPrn
+DEFINE FONT oFont3 NAME "Courier New" SIZE 0,14 OF oPrn   
+
+oPrn := TMSPrinter():New(cTitulo)
+oPrn:SetPortrait()
+
+oPrn:SayBitmap(0030,nMe,"MYERS.BMP",0250,0060)  			// LOGOTIPO NO SYSTEM
+
+oPrn:Say(0030,0800,cTitulo 		,oFont3)
+nLin +=	0100
+oPrn:Line(nLin,nME,nLin,nMD)  								// LINHA VERTICAL SUPERIOR    
+nLin +=	0020
+
+For n:= 1 to Len(aLog)
+	
+	If nLin > 2900
+		oPrn:EndPage()
+		SetPrc(0,0)
+		nLin := 0050
+		
+		oPrn:SayBitmap(0030,nMe,"MYERS.BMP",0150,0060)  			// LOGOTIPO NO SYSTEM
+
+		oPrn:Say(0030,0800,cTitulo 		,oFont3)
+		nLin +=	0100
+		oPrn:Line(nLin,nME,nLin,nMD)  								// LINHA VERTICAL SUPERIOR    
+		nLin +=	0020
+		
+	EndIf
+	
+	oPrn:Say(nLin,nMe		,aLog[n][1],oFont1)
+	oPrn:Say(nLin,nMe+1800	,"Linha: "+StrZero(aLog[n][2],6),oFont1)
+	nLin += 0050
+	
+Next n
+	
+oPrn:Preview()   
+
+Return 
+*/

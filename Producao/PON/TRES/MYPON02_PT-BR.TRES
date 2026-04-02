@@ -1,0 +1,49 @@
+00001#STR0001#ALL#Espelho do Ponto
+00002#STR0002#ALL#Será impresso de acordo com os parametros solicitados pelo
+00003#STR0003#ALL#usuario
+00004#STR0004#ALL#Matricula
+00005#STR0005#ALL#Centro de Custo
+00006#STR0006#ALL#Nome
+00007#STR0007#ALL#Turno
+00008#STR0008#ALL#Zebrado
+00009#STR0009#ALL#Administracao
+00010#STR0010#ALL#
+00011#STR0011#ALL#
+00012#STR0012#ALL#
+00013#STR0013#ALL#Assinatura do Funcionario
+00014#STR0014#ALL#T O T A I S
+00015#STR0015#ALL#Cod Descricao                Calc.            Cod Descricao                Calc.          
+00016#STR0016#ALL#Cod Descricao                         Infor.  Cod Descricao                         Infor.
+00017#STR0017#ALL#Cod Descricao                Calc.    Infor.  Cod Descricao                Calc.    Infor.
+00018#STR0018#ALL#** Excecao nao Trabalhada **
+00019#STR0019#ALL#** Feriado **
+00020#STR0020#ALL#** Ausente **
+00021#STR0021#ALL#** D.S.R. **
+00022#STR0022#ALL#** Compensado **
+00023#STR0023#ALL#** Nao Trabalhado **
+00024#STR0024#ALL#Emp...: 
+00025#STR0025#ALL# Matr..: 
+00026#STR0026#ALL#  Chapa : 
+00027#STR0027#ALL#End...: 
+00028#STR0028#ALL# Nome..: 
+00029#STR0029#ALL#CGC...: 
+00030#STR0030#ALL# Funcao: 
+00031#STR0031#ALL#C.C...: 
+00032#STR0032#ALL# Categ.: 
+00033#STR0033#ALL#Turno.: 
+00034#STR0034#ALL#   DATA    DIA     
+00035#STR0035#ALL#a E. 
+00036#STR0036#ALL#a S. 
+00037#STR0037#ALL#Observacao                Horas  Tipo da Marcacao
+00038#STR0038#ALL#C.Custo + Nome
+00039#STR0039#ALL#Periodo de Apontamento Invalido.
+00040#STR0040#ALL#Consultar Marca&ccedil;&otilde;es
+00041#STR0041#ALL#Motivo de Abono
+00042#STR0042#ALL#Data
+00043#STR0043#ALL#Dia
+00044#STR0044#ALL#&#170;E.
+00045#STR0045#ALL#&#170;S.
+00046#STR0046#ALL#Observa&ccedil;&otilde;es
+00047#STR0047#ALL#Horas  Tipo da Marca&ccedil;&atilde;o
+00048#STR0048#ALL#Turno 
+00049#STR0049#ALL#Turnos: 

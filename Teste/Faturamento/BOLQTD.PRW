@@ -1,0 +1,466 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP5 IDE em 06/09/02
+#INCLUDE "TOPCONN.CH"
+
+User Function BOLQTD()        // incluido pelo assistente de conversao do AP5 IDE em 06/09/02
+
+
+/*/
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³ Programa ³ BOLQTD   ³ Autor ³ Eliene Cerqueira      ³ Data ³ 19.08.05 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descricao ³ Emissao do Boletim Diario de Faturamento (pnvfa01)         ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+/*/
+
+SetPrvt("WNREL,TAMANHO,TITULO,CDESC1,CDESC2,CDESC3")
+SetPrvt("NREGISTRO,CKEY,NINDEX,CINDEX,CCONDICAO,LEND")
+SetPrvt("CPERG,ARETURN,NOMEPROG,NLASTKEY,NBEGIN,ALINHA")
+SetPrvt("LI,LIMITE,LRODAPE,CPICTQTD,NTOTQTD,NTOTVAL")
+SetPrvt("NTOTIPI,APEDCLI,CSTRING,AQUANT,AQTOTAL,ASTRU")
+SetPrvt("CARQTRAB,CIND,ASTRU2,XCLIME,CNOM_VEND,CDESC_PROD")
+SetPrvt("CGRP_PROD,CCODP,CCODV,NQTD,NLIQ,NIPI")
+SetPrvt("ASTRU3,CCODVEN,CNOMVEN,NTOTVEND,M,K")
+SetPrvt("NVINI,W,LVOLTA,LTOPOP,LREG,LITEM")
+SetPrvt("_NREG,CDINI,CDFIM,NTOTGER,NTOTLIQ,CGRP")
+SetPrvt("LACHOUGRP,CDESC,NTOT,NTLIQ,NTIPI,CHEADER")
+SetPrvt("CHEADER2,CVEND1,NAJUSTE,LCONTINUA,CCODPROD,I")
+SetPrvt("LPULOUP,_CALIASTEMP,_NREGTEMP1,_NREGTEMP2,LACHOU,J")
+SetPrvt("G,")
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Define Variaveis                                             ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+wnrel            :=""
+tamanho          :="G"
+titulo           :="EMISSAO DO BOLETIM DE QUANTIDADE VENDIDA"
+cDesc1           :="Emissao do boletim de quantidade vendida, de acordo com"
+cDesc2           :="intervalo informado na op‡„o Parƒmetros."
+cDesc3           :=" "
+nRegistro        := 0
+cKey             :=""
+nIndex           :=""
+cIndex           :="" //  && Variaveis para a criacao de Indices Temp.
+cCondicao        :=""
+lEnd             := .T.
+cPerg            :="PNV001"
+aReturn          := { "Zebrado", 1,"Administracao", 2, 2, 1, "",0 }
+//nomeprog         :="BOLQTD"
+nLastKey         :=0
+nBegin           :=0
+aLinha           :={ }
+li               :=80
+limite           :=220 //180  // 220
+lRodape          :=.F.
+cPictQtd         :=""
+nTotQtd          :=nTotVal:=0
+nTotIPI          :=0
+aPedCli          := {}
+wnrel            := "BOLQTD"
+cString          := "SC6"     
+
+aQuant         :={} // Array com quantidades para somatorio total
+aQTotal        :={} // Array com os totais de cada vendedor
+
+// Criar arquivo de Perguntas - SX1
+//GRAV_1SX()// Substituido pelo assistente de conversao do AP5 IDE em 06/09/02 ==> Execute(GRAV_1SX)
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Verifica as perguntas selecionadas                          ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+pergunte("PNV001",.F.)
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Variaveis utilizadas para parametros                        ³
+//³ mv_par01              Da Data                               ³
+//³ mv_par02              Ate a Data                            ³
+//³ mv_par03              Do Vendedor                           ³
+//³ mv_par04              Ate o Vendedor                        ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+//wnrel:=SetPrint(cString,wnrel,cPerg,@Titulo,cDesc1,cDesc2,cDesc3,.F.)
+wnrel:=SetPrint("",wnrel,cPerg,@Titulo,cDesc1,cDesc2,cDesc3,.F.,,,Tamanho)
+
+If nLastKey==27
+	Return
+Endif
+
+SetDefault(aReturn,cString)
+
+If nLastKey==27
+	Return
+Endif
+
+RptStatus({||C730Imp()})// Substituido pelo assistente de conversao do AP5 IDE em 06/09/02 ==>     RptStatus({||Execute(C730Imp)})
+DbSelectArea("FAT")
+dbCloseArea()
+Return
+
+// Substituido pelo assistente de conversao do AP5 IDE em 06/09/02 ==>     Function C730IMP
+Static Function C730IMP()
+pergunte("PNV001",.F.)
+limite   := 220
+li       := 80
+m_pag    := 1
+nPag     := 0
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Inicializa os codigos de caracter Comprimido/Normal da impressora ³
+//³ Faz manualmente porque nao chama a funcao Cabec()                 ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+@ 0,0 PSAY AvalImp(Limite)
+
+cQry := "SELECT DISTINCT SD2.D2_COD, SB1.B1_DESC, SB1.B1_CLASSE1, SF2.F2_VEND1 AS VEND, SUM(SD2.D2_QUANT) AS QUANT,"
+cQry := cQry + " SUM(SD2.D2_TOTAL) AS TLIQ, SUM(SD2.D2_VALIPI) AS TIPI"
+cQry := cQry + " FROM SD2010 AS SD2, SF2010 AS SF2, SB1010 AS SB1"
+cQry := cQry + " WHERE SD2.D2_DOC = SF2.F2_DOC"
+cQry := cQry + " AND SF2.F2_EMISSAO>='"+DTOS(mv_par01)+"'"
+cQry := cQry + " AND SF2.F2_EMISSAO<='"+DTOS(mv_par02)+"'"
+cQry := cQry + " AND SF2.F2_VEND1>='"+MV_PAR03+"'"
+cQry := cQry + " AND SF2.F2_VEND1<='"+MV_PAR04+"'"
+cQry := cQry + " AND SF2.F2_TIPO NOT IN ('D','I')"
+cQry := cQry + " AND SUBSTRING(SD2.D2_CF,2,3) NOT  IN ('117','201','202','553','556','558','901','902','908','909','910','911','912','913','914','915','916','918','923','949')"
+cQry := cQry + " AND SD2.D2_COD=SB1.B1_COD"
+cQry := cQry + " AND SF2.D_E_L_E_T_<>'*'"
+cQry := cQry + " AND SD2.D_E_L_E_T_<>'*'"
+cQry := cQry + " GROUP BY SD2.D2_COD, SB1.B1_DESC, SB1.B1_CLASSE1, SF2.F2_VEND1"
+cQry := cQry + " UNION"
+cQry := cQry + " SELECT DISTINCT SD2.D2_COD, SB1.B1_DESC, SB1.B1_CLASSE1, SF2.F2_VEND2 AS VEND, SUM(SD2.D2_QUANT) AS QUANT,"
+cQry := cQry + " SUM(SD2.D2_TOTAL) AS TLIQ, SUM(SD2.D2_VALIPI) AS TIPI"
+cQry := cQry + " FROM SD2010 AS SD2, SF2010 AS SF2, SB1010 AS SB1"
+cQry := cQry + " WHERE SD2.D2_DOC = SF2.F2_DOC"
+cQry := cQry + " AND SF2.F2_EMISSAO>='"+DTOS(mv_par01)+"'"
+cQry := cQry + " AND SF2.F2_EMISSAO<='"+DTOS(mv_par02)+"'"
+cQry := cQry + " AND ((SF2.F2_VEND1='999999' AND SF2.F2_VEND2>='"+MV_PAR03+"'" 
+cQry := cQry + " AND SF2.F2_VEND2<='"+MV_PAR04+"'"
+cQry := cQry + " ) OR (SF2.F2_VEND1<>'999999' AND SF2.F2_VEND2='A00039'))"
+//cQry := cQry + " AND SF2.F2_VEND2>='"+MV_PAR03+"'" 
+//cQry := cQry + " AND SF2.F2_VEND2<='"+MV_PAR04+"'"
+cQry := cQry + " AND SF2.F2_TIPO NOT IN ('D','I')"
+cQry := cQry + " AND SUBSTRING(SD2.D2_CF,2,3) NOT  IN ('117','201','202','553','556','558','901','902','908','909','910','911','912','913','914','915','916','918','923','949')"
+cQry := cQry + " AND SD2.D2_COD=SB1.B1_COD"
+cQry := cQry + " AND SF2.D_E_L_E_T_<>'*'"
+cQry := cQry + " AND SD2.D_E_L_E_T_<>'*'"
+cQry := cQry + " GROUP BY SD2.D2_COD, SB1.B1_DESC, SB1.B1_CLASSE1, SF2.F2_VEND2"
+cQry := cQry + " ORDER BY 1,3"
+Tcquery cQry new alias "FAT"
+
+aStru3:={}
+AADD( aStru3, {"CODIGO"  ,"C" ,6  ,0} )
+AADD( aStru3, {"VENDEDOR","C" ,8  ,0} )
+AADD( aStru3, {"ORDEM"   ,"C" ,2  ,0} )
+AADD( aStru3, {"QTTOT"   ,"N" ,12 ,2} )
+cArqTrb1:=CriaTrab(aStru3,.T.)
+DbUseArea(.T.,"DBFCDX",cArqTrb1,"VENDEDOR",.F.)
+IndRegua("VENDEDOR",cArqTrb1,"CODIGO")
+
+DbSelectArea("FAT")
+DbGoTop()
+While !EOF()
+  DbSelectArea("VENDEDOR")
+  If dbSeek(FAT->VEND,.F.)
+     RecLock("VENDEDOR",.F.)
+  Else
+     DbSelectArea("SA3")
+     DbSeek(xFilial("SA3")+FAT->VEND,.F.)
+     RecLock("VENDEDOR",.T.)
+     VENDEDOR->CODIGO   := FAT->VEND
+     VENDEDOR->VENDEDOR := SubStr(SA3->A3_NREDUZ,1,8)
+  Endif
+  VENDEDOR->QTTOT   := VENDEDOR->QTTOT+FAT->QUANT
+  MSUnlock()                        
+  
+  DbSelectArea("FAT")
+  DbSkip()
+End
+//
+DbSelectArea("VENDEDOR")
+QTDVEND:=RecCount()
+DbGoTop()           
+I:=1
+While !EOF()
+  RecLock("VENDEDOR",.F.)
+    VENDEDOR->ORDEM    := STRZERO(I,2)
+  MSUnlock()
+  I:=I+1
+  DbSkip()
+End
+//
+
+aStru:={}
+AADD( aStru, {"PROD" ,"C" ,11  ,0} )
+AADD( aStru, {"DESC" ,"C" ,30  ,0} )
+AADD( aStru, {"CLASSE","C",3   ,0} )
+For I:=1 to QTDVEND
+    campo:="QTVEND"+strzero(I,2)
+    AADD( aStru, {campo ,"N" ,12 ,2} )
+Next
+AADD( aStru, {"QTTOT" ,"N" ,12 ,2} )
+AADD( aStru, {"VLTOT" ,"N" ,12 ,2} )
+AADD( aStru, {"IPITOT" ,"N" ,12 ,2} )
+cArqTrb2:=CriaTrab(aStru,.T.)
+DbUseArea(.T.,"DBFCDX",cArqTrb2,"MATRIZ",.F.)
+IndRegua("MATRIZ",cArqTrb2,"PROD")
+
+DbSelectArea("FAT")
+SetRegua(RecCount())
+DbGoTop()           
+While FAT->( !Eof() )
+   IncRegua()
+   DbSelectArea("MATRIZ")
+   RecLock("MATRIZ",.T.)
+     MATRIZ->PROD := FAT->D2_COD
+     MATRIZ->DESC := FAT->B1_DESC
+     MATRIZ->CLASSE:=FAT->B1_CLASSE1
+   MSUnlock()
+   DbSelectArea("FAT")
+   XPROD:=FAT->D2_COD
+   XQTD:=XVL:=XIPI:=0
+   DO While FAT->( !Eof() ) .AND. FAT->D2_COD=XPROD
+      XVEND:=FAT->VEND
+      DbSelectArea("VENDEDOR")
+      DbSeek(FAT->VEND,.F.)
+      campo:="QTVEND"+VENDEDOR->ORDEM
+      DbSelectArea("FAT")
+      XQUANT:=0
+      DO While FAT->( !Eof() ) .AND. FAT->VEND=XVEND .AND. FAT->D2_COD=XPROD
+         XQUANT:=XQUANT+FAT->QUANT
+         XVL:=XVL+FAT->TLIQ
+         XIPI:=XIPI+FAT->TIPI
+         DbSkip()
+      End
+      RecLock("MATRIZ",.F.)
+        &campo := &campo+XQUANT
+      MSUnlock()
+      XQTD:=XQTD+XQUANT
+   END
+   RecLock("MATRIZ",.F.)
+     QTTOT  := XQTD
+     VLTOT  := XVL
+     IPITOT := XIPI
+   MSUnlock()
+END
+LI:=65
+DbSelectArea("MATRIZ")
+SetRegua(RecCount())
+DbGoTop()
+While !EOF()
+  IncRegua()
+  If lAbortPrint
+   	  @LI,00 PSAY "*** CANCELADO PELO OPERADOR ***"
+      Exit
+  Endif 
+
+  If LI > 60
+     LI:=0
+  	 @ li, 000 PSAY CHR(15)
+	 li:=li+1
+	 @ li,000 PSAY Replicate("-",limite)
+	 li := li+1
+	 @ li,000 PSAY SM0->M0_NOMECOM
+	 li := li+1                                                                   
+     @ li,000 PSAY "BOLETIM DE QUANTIDADE VENDIDA - Periodo de"
+     cDIni:=DTOS(mv_par01)
+     cDFim:=DTOS(mv_par02)
+     @ li,044 PSAY SubStr(cDIni,7,2)+"/"+SubStr(cDIni,5,2)+"/"+SubStr(cDIni,1,4)+" a "+SubStr(cDFim,7,2)+"/"+SubStr(cDFim,5,2)+"/"+SubStr(cDFim,1,4)
+	 @ li,116 PSAY "DATA:"
+	 @ li,122 PSAY SubStr(Dtos(Date()),7,2)+"/"+SubStr(Dtos(Date()),5,2)+"/"+SubStr(Dtos(Date()),1,4)
+	 li := li+1
+	 @ li,000 PSAY Replicate("-",limite)
+	 li := li+1
+	 @ li,000 PSAY "                                           |" 
+	 DbSelectArea("VENDEDOR")
+     DbGoTop()           
+	 While !EOF()
+	   @ li,PCol()+1 PSAY VENDEDOR->VENDEDOR+"|"
+	   DbSkip()
+	 End
+	 li := li+1
+     @li,000 PSAY " PRODUTO                                   |"
+     DbGoTop()           
+  	 While !EOF()
+	   @ li,PCol()+1 PSAY VENDEDOR->CODIGO+"  |"
+	   DbSkip()
+ 	 End
+	 li := li+1
+	 @ li,000 PSAY Replicate("-",limite)
+	 li := li+1
+  Endif   
+  DbSelectArea("MATRIZ")
+  @li,000 PSAY PROD+" "+DESC+" |" 
+  For I:=1 to QTDVEND
+      campo:="QTVEND"+strzero(I,2)
+      @ li,PCol()+1 PSAY &campo Picture "@E 999,999"
+      @ li,PCol()+1 PSAY "|"
+   Next
+   li:=li+1
+   DbSkip()
+End
+@ li,000 PSAY Replicate("-",limite)
+li:=li+1
+@ li,000 PSAY "TOTAL"
+@ li,043 PSAY "|"
+DbSelectArea("VENDEDOR")
+DbGoTop()           
+While !EOF()
+   @ li,PCol()+1 PSAY QTTOT   Picture "@E 999,999"
+   @ li,PCol()+1 PSAY "|"
+   DbSkip()
+End
+li:=li+1
+@ li,000 PSAY Replicate("-",limite)
+
+li:=0     
+ImpTotais()
+
+If aReturn[5] == 1
+	Set Printer To
+	dbCommitAll()
+	OurSpool(wnrel)
+Endif
+
+dbSelectArea("VENDEDOR")
+dbCloseArea()
+If !Empty( cArqTrb1 )
+   FErase( cArqTrb1+".*")
+Endif
+dbSelectArea("MATRIZ")
+dbCloseArea()
+If !Empty( cArqTrb2 )
+   FErase( cArqTrb2+".*")
+Endif
+
+MS_FLUSH()
+
+Static Function Imptotais()
+
+DbSelectArea("MATRIZ")
+SetRegua(RecCount())
+IndRegua("MATRIZ",cArqTrb2,"SUBSTR(PROD,1,6)")
+DbGoTop()      
+nTotGer:=0
+nTotLiq:=0
+nTotIPI:=0       
+li:=65
+While MATRIZ->(!EOF())
+    If li > 63 
+       If li <> 65
+          @ li,000 PSAY Replicate("-",limite)
+       Endif
+       li:=1
+       @ li,001 PSAY Replicate("-",limite)
+       li := li+1
+       @ li,001 PSAY SM0->M0_NOMECOM
+       li := li+1
+       @ li,001 PSAY "BOLETIM DE QUANTIDADE VENDIDA - Periodo de"
+       cDIni:=DTOS(mv_par01)
+       cDFim:=DTOS(mv_par02)
+       @ li,044 PSAY SubStr(cDIni,7,2)+"/"+SubStr(cDIni,5,2)+"/"+SubStr(cDIni,1,4)+" a "+SubStr(cDFim,7,2)+"/"+SubStr(cDFim,5,2)+"/"+SubStr(cDFim,1,4)
+  	   @ li,116 PSAY "DATA:"
+	   @ li,122 PSAY SubStr(Dtos(Date()),7,2)+"/"+SubStr(Dtos(Date()),5,2)+"/"+SubStr(Dtos(Date()),1,4)
+       li:=li+1
+       @ li,001 PSAY Replicate("-",Limite)
+       li:=li+1
+//     @ li,001 PSAY "  PRODUTO                                |      Q U A N T    |  L I Q U I D O    |          I P I    |   T O T A L  B R U T O     |"
+       @ li,001 PSAY "  PRODUTO                                |    Q U A N T     |  L I Q U I D O   |    P R E C O     |        I P I     |    T O T A L     |"
+       li:=li+1                                                    
+       @ li,001 PSAY "                                         |                  |                  |    M E D I O     |                  |    B R U T O     | "
+       li:=li+1                                                    
+       @ li,001 PSAY Replicate("-",Limite)                         
+       li:=li+1
+    End
+    cGrp  := SUBSTR(MATRIZ->PROD,1,6) //QUERY->GRP_P
+    cClas := MATRIZ->CLASSE
+    DbselectArea("SZ2")
+    DbSeek(xFilial()+cClas,.T.)
+    cDesc := Z2_DESC
+    nTot  := 0
+    nTLiq := 0
+    nTIPI := 0
+    dbSelectArea("MATRIZ")
+    While (SUBSTR(MATRIZ->PROD,1,6) == cGrp) .And. !Eof()
+       nTot:=nTot+MATRIZ->QTTOT
+       nTLiq:=nTliq+MATRIZ->VLTOT
+       nTIPI:=nTIPI+MATRIZ->IPITOT
+       MATRIZ->(dbSkip())
+    End
+    ntotGer:=nTotGer+nTot
+    ntotLIQ:=nTotLiq+nTliq
+    ntotIPI:=nTotIPI+nTIPI
+    
+    @ li, 001      PSAY alltrim(cGrp)+" "+SubStr(cDesc,1,30)+"    |"
+    @ li, PCOL()+2 PSAY nTot Picture "@E 999,999,999.99"
+    @ li, PCOL()+2 PSAY "|"
+    @ li, PCOL()+2 PSAY nTliq Picture "@E 999,999,999.99"
+    @ li, PCOL()+2 PSAY "|"
+    @ li, PCOL()+2 PSAY nTliq/nTot Picture "@E 999,999,999.99"
+    @ li, PCOL()+2 PSAY "|"
+    @ li, PCOL()+2 PSAY nTIPI Picture "@E 999,999,999.99"
+    @ li, PCOL()+2 PSAY "|"
+    @ li, PCOL()+2 PSAY nTLiq+nTIPI Picture "@E 999,999,999.99"
+    @ li, PCOL()+2 PSAY "|"
+    li:=li+1
+    IncRegua()
+End
+
+li:=li+1
+@ li,000 PSAY Replicate("-",Limite)
+li:=li+1
+@ li,000      PSAY "  TOTAL GERAL                             |"
+@ li,PCOL()+2 PSAY nTotGer Picture "@E 999,999,999.99"
+@ li,PCOL()+2 PSAY "|"
+@ li,PCOL()+2 PSAY nTotLiq Picture "@E 999,999,999.99"
+@ li,PCOL()+2 PSAY "|                  |"
+@ li,PCOL()+2 PSAY nTotIPI Picture "@E 999,999,999.99"
+@ li,PCOL()+2 PSAY "|"
+@ li,PCOL()+2 PSAY nTotLiq+nTotIPI Picture "@E 999,999,999.99"
+@ li,PCOL()+2 PSAY "|"
+li:=li+1
+@ li,000 PSAY Replicate("-",Limite)
+li:=li+5
+@ li,000 PSAY chr(18)
+Return
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Funcao para Gravacao das perguntas no SX1                 ³
+//³ Autor: Tito Roland (Deve ser alterada conforme            ³
+//³        necessidade do programa.)                          ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+// Substituido pelo assistente de conversao do AP5 IDE em 06/09/02 ==> Function GRAV_1SX
+Static Function GRAV_1SX()
+   *
+   _cAlias:=Select()
+   *
+   _cSX1:={}
+   Aadd(_cSX1,{cPerg,"01","Da Data           ?","MV_CH1", "D",0, 8,0,"G","","MV_PAR01","","","",""})
+   Aadd(_cSX1,{cPerg,"02","Ate a Data        ?","MV_CH2", "D",0, 8,0,"G","","MV_PAR02","","","",""})
+   Aadd(_cSX1,{cPerg,"03","Do Vendedor       ?","MV_CH3", "C",0, 6,0,"G","","MV_PAR03","","","",""})
+   Aadd(_cSX1,{cPerg,"04","Ate o Vendedor    ?","MV_CH4", "C",0, 6,0,"G","","MV_PAR04","","","",""})
+   *   
+   For S := 1 To Len(_cSX1)
+       *
+       dbSelectArea("SX1")
+       dbSetOrder(1)
+       dbSeek(cPerg+Right(Strzero(S),2),.T.)
+       *
+       If ! Found()
+          RecLock("SX1",.T.)
+          *
+          Replace X1_GRUPO         WITH _cSX1[S,1]
+          Replace X1_ORDEM         WITH _cSX1[S,2]
+          Replace X1_PERGUNT       WITH _cSX1[S,3]
+          Replace X1_VARIAVL       WITH _cSX1[S,4]
+          Replace X1_TIPO          WITH _cSX1[S,5]
+          Replace X1_PRESEL        WITH _cSX1[S,6]
+          Replace X1_TAMANHO       WITH _cSX1[S,7]
+          Replace X1_DECIMAL       WITH _cSX1[S,8]
+          Replace X1_GSC           WITH _cSX1[S,9]
+          Replace X1_VALID         WITH _cSX1[S,10]
+          Replace X1_VAR01         WITH _cSX1[S,11]
+          Replace X1_DEF01         WITH _cSX1[S,12]
+          Replace X1_DEF02         WITH _cSX1[S,13]
+          Replace X1_DEF03         WITH _cSX1[S,14]
+          Replace X1_F3            WITH _cSX1[S,15]
+          MSUnlock()
+       Endif
+   Next
+   dbSelectArea(_cAlias)
+Return           

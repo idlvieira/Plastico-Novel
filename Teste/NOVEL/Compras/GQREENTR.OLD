@@ -1,0 +1,67 @@
+#INCLUDE 'PROTHEUS.CH'
+#INCLUDE 'RWMAKE.CH'
+#INCLUDE 'FONT.CH'
+#INCLUDE 'COLORS.CH'
+
+/*ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Programa  ³ GQREENTR ³ Autor ³ Jefferson Moreira     ³ Data ³ 06/07/09 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descricao ³P.E. utilizado para alterar os impostos gravados nos livros ³±±
+±±³          ³fiscais. 													  ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß*/
+
+User Function GQREENTR()
+GRAVSF3()
+GRAVSFT`()
+RETURN
+
+STATIC FUNCTION GRAVSF3()
+DBSELECTAREA("SF3")
+DBSETORDER(5)
+DBGOTOP()
+DBSEEK(XFILIAL("SF3")+SF1->F1_SERIE+SF1->F1_DOC+SF1->F1_FORNECE+SF1->F1_LOJA)
+IF FOUND()
+	WHILE !EOF() .AND. SF3->F3_NFISCAL == SF1->F1_DOC .AND. SF3->F3_SERIE == SF1->F1_SERIE;
+	 .AND. SF3->F3_CLIEFOR == SF1->F1_FORNECE .AND. SF3->F3_LOJA == SF1->F1_LOJA;
+	 .AND. SF3->F3_FORMUL == "S" .AND. SUBSTR(SF3->F3_CFO,1,1) <= "3" .AND. SF3->F3_ESTADO == "EX"
+	 	RECLOCK("SF3",.F.)
+	 	REPLACE SF3->F3_REPROC WITH "N"
+	 	REPLACE SF3->F3_BASIMP5 WITH SF1->F1_BASIMP5
+	 	REPLACE SF3->F3_BASIMP6 WITH SF1->F1_BASIMP6
+	 	REPLACE SF3->F3_VALIMP5 WITH SF1->F1_VALIMP5
+	 	REPLACE SF3->F3_VALIMP6 WITH SF1->F1_VALIMP6
+	 	REPLACE SF3->F3_ALQIMP5 WITH 7.6
+	 	REPLACE SF3->F3_ALQIMP6 WITH 1.65
+	 	MSUNLOCK()
+	 	DBSKIP()
+	 END
+ENDIF
+RETURN()
+
+STATIC FUNCTION GRAVSFT()
+DBSELECTAREA("SFT")
+DBSETORDER(1)
+DBGOTOP()
+DBSEEK(XFILIAL("SFT")+"E"+SF1->F1_SERIE+SF1->F1_DOC+SF1->F1_FORNECE+SF1->F1_LOJA)
+IF FOUND()
+	WHILE !EOF() .AND. SFT->FT_NFISCAL == SF1->F1_DOC .AND. SFT->FT_SERIE == SF1->F1_SERIE;
+	 .AND. SFT->FT_CLIEFOR == SF1->F1_FORNECE .AND. SFT->FT_LOJA == SF1->F1_LOJA;
+	 .AND. SFT->FT_TIPOMOV == "E" .AND. SFT->FT_ESTADO == "EX"
+	 	RECLOCK("SFT",.F.)
+	 	REPLACE SFT->FT_BASECOF WITH SF1->F1_BASIMP5
+	 	REPLACE SFT->FT_BASEPIS WITH SF1->F1_BASIMP6
+	 	REPLACE SFT->FT_VALCOF WITH SF1->F1_VALIMP5
+	 	REPLACE SFT->FT_VALPIS WITH SF1->F1_VALIMP6
+	 	REPLACE SFT->FT_ALIQCOF WITH 7.6
+	 	REPLACE SFT->FT_ALIQPIS WITH 1.65
+	 	MSUNLOCK()
+	 	DBSKIP()
+	 END
+ENDIF
+RETURN()
+
+
